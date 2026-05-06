@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gradients — HTML Tools</title>
+  <meta name="description" content="Curated gradient collection. Copy CSS, Tailwind classes, or export as PNG.">
+  <meta property="og:title" content="Gradients — HTML Tools">
+  <meta property="og:description" content="Curated gradient collection. Copy CSS, Tailwind classes, or export as PNG.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Gradients — HTML Tools">
+  <meta name="twitter:description" content="Curated gradient collection. Copy CSS, Tailwind classes, or export as PNG.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎨</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+
+  <header class="border-b border-gray-800 px-6 py-4">
+    <div class="max-w-[1400px] mx-auto flex items-center gap-3">
+      <a href="index.html" class="no-underline text-white font-bold text-lg tracking-tight hover:text-blue-400 transition-colors">
+        HTML Tools
+      </a>
+      <span class="text-gray-700">/</span>
+      <span class="text-gray-400 text-sm flex items-center gap-1.5">🎨 Gradients</span>
+    </div>
+  </header>
+
+  <div class="max-w-[1400px] mx-auto w-full flex-1 py-8 px-6">
+
+    <header class="mb-7">
+      <h1 class="text-3xl font-bold text-white flex items-center gap-3">🎨 Gradients</h1>
+      <p class="mt-1.5 text-sm text-gray-500">Curated gradient collection — copy CSS, Tailwind classes, or export as PNG.</p>
+    </header>
+
+    <div id="grid" class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr))"></div>
+
+  </div>
+
+  <!-- Toast -->
+  <div id="toast"
+       class="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg bg-gray-800 border border-gray-600
+              text-sm text-gray-200 shadow-lg transition-all duration-200 opacity-0 translate-y-2 pointer-events-none select-none z-50">
+  </div>
+
+  <footer class="max-w-[1400px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
+    &copy; <span id="year"></span> Irfan Maulana<span id="deploy-time"></span>
+  </footer>
+
+  <script>
+  // ── Tailwind color palette ────────────────────────────────────
+  const TW = {
+    slate:   {50:'#f8fafc',100:'#f1f5f9',200:'#e2e8f0',300:'#cbd5e1',400:'#94a3b8',500:'#64748b',600:'#475569',700:'#334155',800:'#1e293b',900:'#0f172a',950:'#020617'},
+    gray:    {50:'#f9fafb',100:'#f3f4f6',200:'#e5e7eb',300:'#d1d5db',400:'#9ca3af',500:'#6b7280',600:'#4b5563',700:'#374151',800:'#1f2937',900:'#111827',950:'#030712'},
+    zinc:    {50:'#fafafa',100:'#f4f4f5',200:'#e4e4e7',300:'#d4d4d8',400:'#a1a1aa',500:'#71717a',600:'#52525b',700:'#3f3f46',800:'#27272a',900:'#18181b'},
+    red:     {50:'#fef2f2',100:'#fee2e2',200:'#fecaca',300:'#fca5a5',400:'#f87171',500:'#ef4444',600:'#dc2626',700:'#b91c1c',800:'#991b1b',900:'#7f1d1d'},
+    orange:  {50:'#fff7ed',100:'#ffedd5',200:'#fed7aa',300:'#fdba74',400:'#fb923c',500:'#f97316',600:'#ea580c',700:'#c2410c',800:'#9a3412',900:'#7c2d12'},
+    amber:   {50:'#fffbeb',100:'#fef3c7',200:'#fde68a',300:'#fcd34d',400:'#fbbf24',500:'#f59e0b',600:'#d97706',700:'#b45309',800:'#92400e',900:'#78350f'},
+    yellow:  {50:'#fefce8',100:'#fef9c3',200:'#fef08a',300:'#fde047',400:'#facc15',500:'#eab308',600:'#ca8a04',700:'#a16207',800:'#854d0e',900:'#713f12'},
+    lime:    {50:'#f7fee7',100:'#ecfccb',200:'#d9f99d',300:'#bef264',400:'#a3e635',500:'#84cc16',600:'#65a30d',700:'#4d7c0f',800:'#3f6212',900:'#365314'},
+    green:   {50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',400:'#4ade80',500:'#22c55e',600:'#16a34a',700:'#15803d',800:'#166534',900:'#14532d'},
+    emerald: {50:'#ecfdf5',100:'#d1fae5',200:'#a7f3d0',300:'#6ee7b7',400:'#34d399',500:'#10b981',600:'#059669',700:'#047857',800:'#065f46',900:'#064e3b'},
+    teal:    {50:'#f0fdfa',100:'#ccfbf1',200:'#99f6e4',300:'#5eead4',400:'#2dd4bf',500:'#14b8a6',600:'#0d9488',700:'#0f766e',800:'#115e59',900:'#134e4a'},
+    cyan:    {50:'#ecfeff',100:'#cffafe',200:'#a5f3fc',300:'#67e8f9',400:'#22d3ee',500:'#06b6d4',600:'#0891b2',700:'#0e7490',800:'#155e75',900:'#164e63'},
+    sky:     {50:'#f0f9ff',100:'#e0f2fe',200:'#bae6fd',300:'#7dd3fc',400:'#38bdf8',500:'#0ea5e9',600:'#0284c7',700:'#0369a1',800:'#075985',900:'#0c4a6e'},
+    blue:    {50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',300:'#93c5fd',400:'#60a5fa',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8',800:'#1e40af',900:'#1e3a8f'},
+    indigo:  {50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81'},
+    violet:  {50:'#f5f3ff',100:'#ede9fe',200:'#ddd6fe',300:'#c4b5fd',400:'#a78bfa',500:'#8b5cf6',600:'#7c3aed',700:'#6d28d9',800:'#5b21b6',900:'#4c1d95'},
+    purple:  {50:'#faf5ff',100:'#f3e8ff',200:'#e9d5ff',300:'#d8b4fe',400:'#c084fc',500:'#a855f7',600:'#9333ea',700:'#7e22ce',800:'#6b21a8',900:'#581c87'},
+    fuchsia: {50:'#fdf4ff',100:'#fae8ff',200:'#f5d0fe',300:'#f0abfc',400:'#e879f9',500:'#d946ef',600:'#c026d3',700:'#a21caf',800:'#86198f',900:'#701a75'},
+    pink:    {50:'#fdf2f8',100:'#fce7f3',200:'#fbcfe8',300:'#f9a8d4',400:'#f472b6',500:'#ec4899',600:'#db2777',700:'#be185d',800:'#9d174d',900:'#831843'},
+    rose:    {50:'#fff1f2',100:'#ffe4e6',200:'#fecdd3',300:'#fda4af',400:'#fb7185',500:'#f43f5e',600:'#e11d48',700:'#be123c',800:'#9f1239',900:'#881337'},
+  };
+
+  function resolveColor(name) {
+    if (name === 'white') return '#ffffff';
+    if (name === 'black') return '#000000';
+    const i = name.lastIndexOf('-');
+    if (i === -1) return '#888';
+    const resolved = TW[name.slice(0, i)]?.[name.slice(i + 1)];
+    if (!resolved) console.warn(`[gradients] unknown color: ${name}`);
+    return resolved ?? '#888';
+  }
+
+  // ── Gradient data ────────────────────────────────────────────
+  const GRADIENTS_CORE = [
+    {name:'Hyper',direction:'bg-gradient-to-r',colors:'from-pink-500 via-red-500 to-yellow-500'},
+    {name:'Oceanic',direction:'bg-gradient-to-r',colors:'from-green-300 via-blue-500 to-purple-600'},
+    {name:'Cotton Candy',direction:'bg-gradient-to-r',colors:'from-pink-300 via-purple-300 to-indigo-400'},
+    {name:'Gotham',direction:'bg-gradient-to-r',colors:'from-gray-700 via-gray-900 to-black'},
+    {name:'Sunset',direction:'bg-gradient-to-r',colors:'from-indigo-200 via-red-200 to-yellow-100'},
+    {name:'Mojave',direction:'bg-gradient-to-r',colors:'from-yellow-100 via-yellow-300 to-yellow-500'},
+    {name:'Beachside',direction:'bg-gradient-to-r',colors:'from-yellow-200 via-green-200 to-green-500'},
+    {name:'Gunmetal',direction:'bg-gradient-to-r',colors:'from-gray-200 via-gray-400 to-gray-600'},
+    {name:'Peachy',direction:'bg-gradient-to-r',colors:'from-red-200 via-red-300 to-yellow-200'},
+    {name:'Seafoam',direction:'bg-gradient-to-r',colors:'from-green-200 via-green-300 to-blue-500'},
+    {name:'Pumpkin',direction:'bg-gradient-to-r',colors:'from-yellow-200 via-yellow-400 to-yellow-700'},
+    {name:'Pandora',direction:'bg-gradient-to-r',colors:'from-green-200 via-green-400 to-purple-700'},
+    {name:'Valentine',direction:'bg-gradient-to-r',colors:'from-red-200 to-red-600'},
+    {name:'Hawaii',direction:'bg-gradient-to-r',colors:'from-green-300 via-yellow-300 to-pink-300'},
+    {name:'Lavender',direction:'bg-gradient-to-r',colors:'from-indigo-300 to-purple-400'},
+    {name:'Wintergreen',direction:'bg-gradient-to-r',colors:'from-green-200 to-green-500'},
+    {name:'Huckleberry',direction:'bg-gradient-to-r',colors:'from-purple-200 via-purple-400 to-purple-800'},
+    {name:'Blue Steel',direction:'bg-gradient-to-r',colors:'from-gray-400 via-gray-600 to-blue-800'},
+    {name:'Arendelle',direction:'bg-gradient-to-r',colors:'from-blue-100 via-blue-300 to-blue-500'},
+    {name:'Spearmint',direction:'bg-gradient-to-r',colors:'from-green-200 via-green-400 to-green-500'},
+    {name:'Minnesota',direction:'bg-gradient-to-r',colors:'from-purple-400 to-yellow-400'},
+    {name:'Bombpop',direction:'bg-gradient-to-r',colors:'from-red-400 via-gray-300 to-blue-500'},
+    {name:'Acadia',direction:'bg-gradient-to-r',colors:'from-red-800 via-yellow-600 to-yellow-500'},
+    {name:'Sonora',direction:'bg-gradient-to-r',colors:'from-yellow-200 to-yellow-500'},
+    {name:'Paradise',direction:'bg-gradient-to-r',colors:'from-blue-300 via-green-200 to-yellow-300'},
+    {name:'Sierra Mist',direction:'bg-gradient-to-r',colors:'from-yellow-200 via-green-200 to-green-300'},
+    {name:'Creamsicle',direction:'bg-gradient-to-r',colors:'from-yellow-200 via-yellow-300 to-yellow-400'},
+    {name:'Midnight',direction:'bg-gradient-to-r',colors:'from-blue-700 via-blue-800 to-gray-900'},
+    {name:'Borealis',direction:'bg-gradient-to-r',colors:'from-green-300 to-purple-400'},
+    {name:'Strawberry',direction:'bg-gradient-to-r',colors:'from-yellow-200 via-pink-200 to-pink-400'},
+    {name:'Flamingo',direction:'bg-gradient-to-r',colors:'from-pink-400 to-pink-600'},
+    {name:'Burning Sunrise',direction:'bg-gradient-to-r',colors:'from-yellow-600 to-red-600'},
+    {name:'Apple',direction:'bg-gradient-to-r',colors:'from-green-500 to-green-700'},
+    {name:'Watermelon',direction:'bg-gradient-to-r',colors:'from-red-500 to-green-500'},
+    {name:'Flare',direction:'bg-gradient-to-r',colors:'from-orange-600 to-orange-500'},
+    {name:'Rasta',direction:'bg-gradient-to-r',colors:'from-lime-600 via-yellow-300 to-red-600'},
+    {name:'Lust',direction:'bg-gradient-to-r',colors:'from-rose-700 to-pink-600'},
+    {name:'Sublime',direction:'bg-gradient-to-r',colors:'from-rose-400 via-fuchsia-500 to-indigo-500'},
+    {name:'Witch',direction:'bg-gradient-to-r',colors:'from-slate-900 via-purple-900 to-slate-900'},
+    {name:'Powerpuff',direction:'bg-gradient-to-r',colors:'from-sky-400 via-rose-400 to-lime-400'},
+    {name:'Solid Blue',direction:'bg-gradient-to-r',colors:'from-blue-500 to-blue-600'},
+    {name:'Ice',direction:'bg-gradient-to-r',colors:'from-rose-100 to-teal-100'},
+    {name:'Sky',direction:'bg-gradient-to-b',colors:'from-sky-400 to-sky-200'},
+    {name:'Horizon',direction:'bg-gradient-to-b',colors:'from-orange-500 to-yellow-300'},
+    {name:'Morning',direction:'bg-gradient-to-r',colors:'from-rose-400 to-orange-300'},
+    {name:'Space',direction:'bg-gradient-to-b',colors:'from-gray-900 to-gray-600'},
+    {name:'Earth',direction:'bg-gradient-to-r',colors:'from-teal-200 to-lime-200'},
+    {name:'Picture',direction:'bg-gradient-to-r',colors:'from-fuchsia-500 via-red-600 to-orange-400'},
+    {name:'Messenger',direction:'bg-gradient-to-r',colors:'from-sky-400 to-blue-500'},
+    {name:'Sea',direction:'bg-gradient-to-r',colors:'from-cyan-200 to-cyan-400'},
+    {name:'Payment',direction:'bg-gradient-to-r',colors:'from-sky-400 to-cyan-300'},
+    {name:'Video',direction:'bg-gradient-to-r',colors:'from-red-500 to-red-800'},
+    {name:'Passion',direction:'bg-gradient-to-r',colors:'from-rose-500 via-red-400 to-red-500'},
+    {name:'Flower',direction:'bg-gradient-to-r',colors:'from-violet-300 to-violet-400'},
+    {name:'Cool Sunset',direction:'bg-gradient-to-r',colors:'from-orange-300 to-rose-300'},
+    {name:'Pink Neon',direction:'bg-gradient-to-r',colors:'from-fuchsia-600 to-pink-600'},
+    {name:'Blue Sand',direction:'bg-gradient-to-r',colors:'from-slate-500 to-yellow-100'},
+    {name:'Emerald',direction:'bg-gradient-to-r',colors:'from-emerald-500 to-lime-600'},
+    {name:'Relaxed Rose',direction:'bg-gradient-to-r',colors:'from-rose-300 to-rose-500'},
+    {name:'Purple Haze',direction:'bg-gradient-to-r',colors:'from-purple-800 via-violet-900 to-purple-800'},
+    {name:'Silver',direction:'bg-gradient-to-r',colors:'from-gray-100 to-gray-300'},
+    {name:'Orange Coral',direction:'bg-gradient-to-r',colors:'from-orange-400 to-rose-400'},
+    {name:'Blue Coral',direction:'bg-gradient-to-r',colors:'from-blue-400 to-emerald-400'},
+    {name:'Beam of Light',direction:'bg-[conic-gradient(at_top,_var(--tw-gradient-stops))]',colors:'from-gray-900 via-gray-100 to-gray-900'},
+    {name:'Safari Sunset',direction:'bg-[conic-gradient(at_left,_var(--tw-gradient-stops))]',colors:'from-yellow-500 via-purple-500 to-blue-500'},
+    {name:'High Tide',direction:'bg-[conic-gradient(at_top,_var(--tw-gradient-stops))]',colors:'from-sky-500 via-orange-200 to-yellow-600'},
+    {name:'Hunniepop',direction:'bg-[conic-gradient(at_bottom_left,_var(--tw-gradient-stops))]',colors:'from-fuchsia-300 via-green-400 to-rose-700'},
+    {name:'Soft Metal',direction:'bg-[conic-gradient(at_right,_var(--tw-gradient-stops))]',colors:'from-indigo-200 via-slate-600 to-indigo-200'},
+    {name:'Coral Sun',direction:'bg-[conic-gradient(at_top,_var(--tw-gradient-stops))]',colors:'from-yellow-200 via-emerald-200 to-yellow-200'},
+    {name:'Power Pink',direction:'bg-[conic-gradient(at_left,_var(--tw-gradient-stops))]',colors:'from-rose-500 to-indigo-700'},
+    {name:'Powder Blue',direction:'bg-[conic-gradient(at_left,_var(--tw-gradient-stops))]',colors:'from-sky-400 to-blue-800'},
+    {name:'Moody Sunset',direction:'bg-[conic-gradient(at_left,_var(--tw-gradient-stops))]',colors:'from-rose-900 via-amber-800 to-rose-400'},
+    {name:'Burnt Sand',direction:'bg-[conic-gradient(at_left,_var(--tw-gradient-stops))]',colors:'from-yellow-200 via-red-500 to-fuchsia-500'},
+    {name:'Blue / White Split',direction:'bg-[conic-gradient(at_bottom,_var(--tw-gradient-stops))]',colors:'from-white via-sky-500 to-sky-500'},
+    {name:'Purple Beam',direction:'bg-gradient-to-bl',colors:'from-indigo-900 via-indigo-400 to-indigo-900'},
+    {name:'Sand Beam',direction:'bg-[conic-gradient(at_top,_var(--tw-gradient-stops))]',colors:'from-orange-900 via-amber-100 to-orange-900'},
+    {name:'Island Waves',direction:'bg-gradient-to-r',colors:'from-yellow-400 via-gray-50 to-teal-300'},
+    {name:'Big Sur',direction:'bg-gradient-to-tr',colors:'from-violet-500 to-orange-300'},
+    {name:'Oahu',direction:'bg-gradient-to-t',colors:'from-orange-400 to-sky-400'},
+    {name:'Peach Pie',direction:'bg-[conic-gradient(at_right,_var(--tw-gradient-stops))]',colors:'from-red-900 via-violet-200 to-orange-500'},
+    {name:'Salem',direction:'bg-gradient-to-b',colors:'from-gray-900 via-purple-900 to-violet-600'},
+    {name:'Purple Burst',direction:'bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))]',colors:'from-purple-900 to-indigo-500'},
+    {name:'Amber Sunrise',direction:'bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))]',colors:'from-amber-900 to-yellow-300'},
+    {name:'Sky Sea',direction:'bg-[radial-gradient(ellipse_at_right,_var(--tw-gradient-stops))]',colors:'from-sky-400 to-indigo-900'},
+    {name:'Rocket Power',direction:'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))]',colors:'from-amber-700 via-orange-300 to-rose-800'},
+    {name:'Blue Flame',direction:'bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))]',colors:'from-amber-200 via-violet-600 to-sky-900'},
+    {name:'Warm Glow',direction:'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))]',colors:'from-gray-300 via-fuchsia-600 to-orange-600'},
+  ];
+
+  // ── CSS conversion ───────────────────────────────────────────
+  const DIR_MAP = {
+    'bg-gradient-to-r':  'to right',
+    'bg-gradient-to-l':  'to left',
+    'bg-gradient-to-t':  'to top',
+    'bg-gradient-to-b':  'to bottom',
+    'bg-gradient-to-tr': 'to top right',
+    'bg-gradient-to-tl': 'to top left',
+    'bg-gradient-to-br': 'to bottom right',
+    'bg-gradient-to-bl': 'to bottom left',
+  };
+
+  function toCss(g) {
+    // Parse color stop tokens (skip any extra bg-* tokens in colors)
+    const parts = g.colors.split(/\s+/).filter(p => !p.startsWith('bg-'));
+    const from = parts.find(p => p.startsWith('from-'))?.slice(5);
+    const via  = parts.find(p => p.startsWith('via-'))?.slice(4);
+    const to   = parts.find(p => p.startsWith('to-'))?.slice(3);
+    const stops = via
+      ? `${resolveColor(from)}, ${resolveColor(via)}, ${resolveColor(to)}`
+      : `${resolveColor(from)}, ${resolveColor(to)}`;
+    // Standard direction
+    if (DIR_MAP[g.direction]) return `linear-gradient(${DIR_MAP[g.direction]}, ${stops})`;
+    // Arbitrary direction: bg-[conic-gradient(...)] / bg-[radial-gradient(...)]
+    const m = g.direction.match(/^bg-\[(.+)\]$/);
+    if (m) return m[1].replace(/_/g, ' ').replace(/var\(--tw-gradient-stops\)/, stops);
+    return `linear-gradient(to right, ${stops})`;
+  }
+
+  function toTailwind(g) {
+    const clean = g.colors.replace(/\s*bg-gradient-to-\S+\s*/g, ' ').trim();
+    return `${g.direction} ${clean}`;
+  }
+
+  // ── Toast ────────────────────────────────────────────────────
+  let toastTimer;
+  function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.remove('opacity-0', 'translate-y-2');
+    el.classList.add('opacity-100', 'translate-y-0');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      el.classList.remove('opacity-100', 'translate-y-0');
+      el.classList.add('opacity-0', 'translate-y-2');
+    }, 2000);
+  }
+
+  // ── Actions ──────────────────────────────────────────────────
+  function copyCss(g) {
+    navigator.clipboard.writeText(`background: ${toCss(g)};`)
+      .then(() => showToast('CSS copied!'));
+  }
+
+  function copyTailwind(g) {
+    navigator.clipboard.writeText(toTailwind(g))
+      .then(() => showToast('Tailwind classes copied!'));
+  }
+
+  // ── Canvas gradient drawing ──────────────────────────────────
+  function splitArgs(str) {
+    const parts = [];
+    let depth = 0, start = 0;
+    for (let i = 0; i < str.length; i++) {
+      if (str[i] === '(') depth++;
+      else if (str[i] === ')') depth--;
+      else if (str[i] === ',' && depth === 0) {
+        parts.push(str.slice(start, i).trim());
+        start = i + 1;
+      }
+    }
+    parts.push(str.slice(start).trim());
+    return parts;
+  }
+
+  function parsePos(pos, w, h) {
+    let x = w / 2, y = h / 2;
+    for (const p of pos.trim().split(/\s+/)) {
+      if (p === 'left')   x = 0;
+      if (p === 'right')  x = w;
+      if (p === 'top')    y = 0;
+      if (p === 'bottom') y = h;
+    }
+    return [x, y];
+  }
+
+  function addColorStops(grad, stopParts) {
+    const stops = stopParts.map(s => {
+      const m = s.match(/^(.+?)\s+([\d.]+)%\s*$/);
+      return m ? { color: m[1].trim(), offset: parseFloat(m[2]) / 100 }
+               : { color: s.trim(), offset: null };
+    }).filter(s => s.color);
+    if (!stops.length) return;
+    if (stops[0].offset === null)               stops[0].offset = 0;
+    if (stops[stops.length - 1].offset === null) stops[stops.length - 1].offset = 1;
+    for (let i = 1; i < stops.length - 1; i++) {
+      if (stops[i].offset !== null) continue;
+      let j = i + 1;
+      while (j < stops.length - 1 && stops[j].offset === null) j++;
+      const lo = stops[i - 1].offset, hi = stops[j].offset, n = j - i + 1;
+      for (let k = i; k < j; k++) stops[k].offset = lo + (hi - lo) * (k - i + 1) / n;
+    }
+    stops.forEach(s => grad.addColorStop(Math.max(0, Math.min(1, s.offset)), s.color));
+  }
+
+  function drawCssGradient(ctx, css, w, h) {
+    let m;
+
+    m = css.match(/^linear-gradient\((.+)\)$/s);
+    if (m) {
+      const parts = splitArgs(m[1]);
+      const first = parts[0];
+      let x0, y0, x1, y1, stopParts;
+      if (/^to\s|^\d/.test(first)) {
+        stopParts = parts.slice(1);
+        if (first.startsWith('to ')) {
+          const d = first.slice(3).trim();
+          const dirs = {
+            'right':        [0, 0, w, 0],
+            'left':         [w, 0, 0, 0],
+            'bottom':       [0, 0, 0, h],
+            'top':          [0, h, 0, 0],
+            'bottom right': [0, 0, w, h],
+            'bottom left':  [w, 0, 0, h],
+            'top right':    [0, h, w, 0],
+            'top left':     [w, h, 0, 0],
+          };
+          [x0, y0, x1, y1] = dirs[d] ?? [0, 0, w, 0];
+        } else {
+          const rad = parseFloat(first) * Math.PI / 180;
+          const len = Math.abs(w * Math.sin(rad)) + Math.abs(h * Math.cos(rad));
+          x0 = w/2 - Math.sin(rad)*len/2; y0 = h/2 + Math.cos(rad)*len/2;
+          x1 = w/2 + Math.sin(rad)*len/2; y1 = h/2 - Math.cos(rad)*len/2;
+        }
+      } else {
+        stopParts = parts;
+        [x0, y0, x1, y1] = [0, 0, 0, h];
+      }
+      const grad = ctx.createLinearGradient(x0, y0, x1, y1);
+      addColorStops(grad, stopParts);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+      return;
+    }
+
+    m = css.match(/^radial-gradient\((.+)\)$/s);
+    if (m) {
+      const parts = splitArgs(m[1]);
+      let cx = w/2, cy = h/2, stopParts;
+      if (parts[0].includes('at ')) {
+        [cx, cy] = parsePos(parts[0].slice(parts[0].indexOf('at ') + 3), w, h);
+        stopParts = parts.slice(1);
+      } else {
+        stopParts = parts;
+      }
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.sqrt(w*w + h*h));
+      addColorStops(grad, stopParts);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+      return;
+    }
+
+    m = css.match(/^conic-gradient\((.+)\)$/s);
+    if (m) {
+      const parts = splitArgs(m[1]);
+      let cx = w/2, cy = h/2, stopParts;
+      if (parts[0].startsWith('at ')) {
+        [cx, cy] = parsePos(parts[0].slice(3), w, h);
+        stopParts = parts.slice(1);
+      } else {
+        stopParts = parts;
+      }
+      // Fallback to radial when conic is unsupported; visually different but best-effort.
+      const grad = ctx.createConicGradient
+        ? ctx.createConicGradient(0, cx, cy)
+        : ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(w, h) / 2);
+      addColorStops(grad, stopParts);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+      return;
+    }
+
+    throw new Error('unrecognised gradient');
+  }
+
+  function exportPng(g, btn) {
+    const slug = g.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const w = 1200, h = 630;
+    btn.textContent = '…';
+    btn.disabled = true;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+
+    try {
+      drawCssGradient(ctx, toCss(g), w, h);
+    } catch (_) {
+      ctx.fillStyle = '#1f2937';
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    canvas.toBlob(blob => {
+      const a = document.createElement('a');
+      a.download = `${slug}.png`;
+      a.href = URL.createObjectURL(blob);
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      showToast('PNG exported!');
+      btn.textContent = 'PNG';
+      btn.disabled = false;
+    }, 'image/png');
+  }
+
+  // ── Render ───────────────────────────────────────────────────
+  function createCard(g) {
+    const css = toCss(g);
+    const card = document.createElement('div');
+    card.className = 'rounded-xl overflow-hidden border border-gray-800 hover:border-gray-600 transition-all duration-150 bg-gray-900';
+
+    const preview = document.createElement('div');
+    preview.className = 'h-36 w-full';
+    preview.style.background = css;
+
+    const footer = document.createElement('div');
+    footer.className = 'px-3 py-2.5 border-t border-gray-800 flex items-center justify-between gap-2';
+
+    const name = document.createElement('span');
+    name.className = 'text-xs font-medium text-gray-300 truncate';
+    name.textContent = g.name;
+
+    const btns = document.createElement('div');
+    btns.className = 'flex gap-1 shrink-0';
+
+    const btnCss = btn('CSS', () => copyCss(g));
+    const btnTw  = btn('TW',  () => copyTailwind(g));
+    const btnPng = btn('PNG', null);
+    btnPng.onclick = () => exportPng(g, btnPng);
+
+    btns.append(btnCss, btnTw, btnPng);
+    footer.append(name, btns);
+    card.append(preview, footer);
+    return card;
+  }
+
+  function btn(label, handler) {
+    const b = document.createElement('button');
+    b.textContent = label;
+    b.className = 'px-2 py-0.5 text-[0.65rem] font-medium rounded border cursor-pointer transition-colors bg-gray-800 border-gray-600 text-gray-400 hover:border-blue-400 hover:text-gray-200';
+    if (handler) b.onclick = handler;
+    return b;
+  }
+
+  // Init
+  const grid = document.getElementById('grid');
+  const frag = document.createDocumentFragment();
+  GRADIENTS_CORE.forEach(g => frag.appendChild(createCard(g)));
+  grid.appendChild(frag);
+  </script>
+
+  <script>document.getElementById("year").textContent=new Date().getFullYear();var _bt="__BUILD_TIME__";if(_bt){document.getElementById("deploy-time").textContent=" · Deployed "+new Date(_bt).toLocaleString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit",timeZoneName:"short"});}</script>
+</body>
+</html>

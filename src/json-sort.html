@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Sort — HTML Tools</title>
+  <meta name="description" content="Sort JSON object keys alphabetically (A→Z or Z→A), recursively, instantly in your browser.">
+  <meta property="og:title" content="JSON Sort — HTML Tools">
+  <meta property="og:description" content="Sort JSON object keys alphabetically (A→Z or Z→A), recursively, instantly in your browser.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JSON Sort — HTML Tools">
+  <meta name="twitter:description" content="Sort JSON object keys alphabetically (A→Z or Z→A), recursively, instantly in your browser.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔤</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+
+  <!-- Site header -->
+  <header class="border-b border-gray-800 px-6 py-4">
+    <div class="max-w-[1100px] mx-auto flex items-center gap-3">
+      <a href="index.html" class="no-underline text-white font-bold text-lg tracking-tight hover:text-blue-400 transition-colors">
+        HTML Tools
+      </a>
+      <span class="text-gray-700">/</span>
+      <span class="text-gray-400 text-sm flex items-center gap-1.5">
+        🔤 JSON Sort
+      </span>
+    </div>
+  </header>
+
+  <div class="max-w-[1100px] mx-auto w-full flex-1 py-8 px-6">
+
+    <header class="mb-7">
+      <h1 class="text-3xl font-bold text-white flex items-center gap-3">🔤 JSON Sort</h1>
+      <p class="mt-1.5 text-sm text-gray-500">Sort JSON object keys alphabetically, recursively, instantly in your browser.</p>
+    </header>
+
+    <!-- Toolbar -->
+    <div class="flex flex-wrap gap-2 items-center mb-4">
+      <button id="btn-asc" onclick="setOrder('asc')"
+              class="px-4 py-1.5 rounded-md border text-sm font-medium cursor-pointer transition-colors
+                     bg-blue-900/30 border-blue-400 text-blue-400">
+        A → Z
+      </button>
+      <button id="btn-desc" onclick="setOrder('desc')"
+              class="px-4 py-1.5 rounded-md border text-sm font-medium cursor-pointer transition-colors
+                     bg-gray-800 border-gray-600 text-gray-200 hover:bg-gray-700 hover:border-blue-400">
+        Z → A
+      </button>
+      <div class="w-px h-5 bg-gray-700 mx-1"></div>
+      <button onclick="clearAll()"
+              class="px-4 py-1.5 rounded-md border text-sm font-medium cursor-pointer transition-colors
+                     bg-transparent border-gray-600 text-red-400 hover:bg-gray-800 hover:border-red-400">
+        Clear
+      </button>
+    </div>
+
+    <!-- Panels -->
+    <div class="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Input</label>
+        </div>
+        <textarea id="input"
+                  placeholder="Paste JSON here..."
+                  spellcheck="false"
+                  oninput="onInput()"
+                  class="w-full h-[500px] min-h-[500px] rounded-lg border border-gray-700 bg-gray-900
+                         text-gray-200 font-mono text-[0.8rem] leading-relaxed p-4 resize-y outline-none
+                         focus:border-blue-400 transition-colors"></textarea>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Output</label>
+          <div class="flex gap-1 items-center">
+            <button onclick="copyOutput()"
+                    class="px-2.5 py-0.5 text-[0.7rem] rounded border cursor-pointer transition-colors
+                           bg-gray-800 border-gray-600 text-gray-400 hover:border-blue-400 hover:text-gray-200">
+              Copy
+            </button>
+            <span class="w-px h-3 bg-gray-700 mx-0.5"></span>
+            <button id="btn-tree" onclick="setView('tree')"
+                    class="px-2.5 py-0.5 text-[0.7rem] rounded border cursor-pointer transition-colors
+                           bg-blue-900/30 border-blue-400 text-blue-400">
+              Tree
+            </button>
+            <button id="btn-raw" onclick="setView('raw')"
+                    class="px-2.5 py-0.5 text-[0.7rem] rounded border cursor-pointer transition-colors
+                           bg-gray-800 border-gray-600 text-gray-400 hover:border-blue-400">
+              Raw
+            </button>
+          </div>
+        </div>
+        <div id="output"
+             class="w-full h-[500px] min-h-[500px] rounded-lg border border-gray-700 bg-gray-900
+                    font-mono text-[0.8rem] leading-relaxed p-4 overflow-auto resize-y"></div>
+      </div>
+
+    </div>
+
+    <div id="status" class="mt-2.5 text-xs text-gray-500 min-h-[18px]"></div>
+  </div>
+
+  <script src="json-utils.js"></script>
+  <script>
+    const inputEl  = document.getElementById('input');
+    const outputEl = document.getElementById('output');
+    const statusEl = document.getElementById('status');
+
+    let sortOrder  = 'asc';
+    let currentView = 'tree';
+    let lastParsed  = null;
+    let lastSorted  = '';
+
+    // ── Order toggle ─────────────────────────────────────────────
+    function setOrder(order) {
+      sortOrder = order;
+      const ascBtn  = document.getElementById('btn-asc');
+      const descBtn = document.getElementById('btn-desc');
+      const active   = 'bg-blue-900/30 border-blue-400 text-blue-400';
+      const inactive = 'bg-gray-800 border-gray-600 text-gray-200 hover:bg-gray-700 hover:border-blue-400';
+      ascBtn.className  = ascBtn.className.replace(order === 'asc'  ? inactive : active, order === 'asc'  ? active : inactive);
+      descBtn.className = descBtn.className.replace(order === 'desc' ? inactive : active, order === 'desc' ? active : inactive);
+      sort();
+    }
+
+    // ── View toggle ──────────────────────────────────────────────
+    function setView(v) {
+      currentView = v;
+      const treeBtn = document.getElementById('btn-tree');
+      const rawBtn  = document.getElementById('btn-raw');
+      treeBtn.className = treeBtn.className.replace(/bg-gray-800 border-gray-600 text-gray-400/, '')
+                                            .replace(/bg-blue-900\/30 border-blue-400 text-blue-400/, '');
+      rawBtn.className  = rawBtn.className.replace(/bg-gray-800 border-gray-600 text-gray-400/, '')
+                                           .replace(/bg-blue-900\/30 border-blue-400 text-blue-400/, '');
+      if (v === 'tree') {
+        treeBtn.className += ' bg-blue-900/30 border-blue-400 text-blue-400';
+        rawBtn.className  += ' bg-gray-800 border-gray-600 text-gray-400';
+      } else {
+        rawBtn.className  += ' bg-blue-900/30 border-blue-400 text-blue-400';
+        treeBtn.className += ' bg-gray-800 border-gray-600 text-gray-400';
+      }
+      renderOutput();
+    }
+
+    function renderOutput() {
+      if (!lastParsed && lastSorted === '') { outputEl.innerHTML = ''; return; }
+      if (currentView === 'tree' && lastParsed !== null) {
+        outputEl.className = outputEl.className.replace(' whitespace-pre', '');
+        outputEl.innerHTML = '';
+        const root = document.createElement('div');
+        root.className = 'tree-root';
+        const counter = { n: 1 };
+        root.appendChild(buildTree(lastParsed, null, true, counter));
+        outputEl.appendChild(root);
+      } else {
+        if (!outputEl.className.includes('whitespace-pre')) {
+          outputEl.className += ' whitespace-pre';
+        }
+        outputEl.innerHTML = highlightRaw(lastSorted);
+      }
+    }
+
+    // ── Sort ─────────────────────────────────────────────────────
+    function sortKeys(value, desc) {
+      if (Array.isArray(value)) return value.map(v => sortKeys(v, desc));
+      if (value !== null && typeof value === 'object') {
+        const keys = Object.keys(value).sort((a, b) =>
+          desc ? b.localeCompare(a) : a.localeCompare(b)
+        );
+        const out = {};
+        for (const k of keys) out[k] = sortKeys(value[k], desc);
+        return out;
+      }
+      return value;
+    }
+
+    function sort() {
+      const raw = inputEl.value.trim();
+      if (!raw) {
+        lastParsed = null; lastSorted = '';
+        outputEl.innerHTML = '';
+        outputEl.classList.remove('border-red-500');
+        outputEl.classList.add('border-gray-700');
+        setStatus('');
+        return;
+      }
+      try {
+        const { value, fixed } = tolerantParse(raw);
+        lastParsed = sortKeys(value, sortOrder === 'desc');
+        lastSorted = JSON.stringify(lastParsed, null, 2);
+        outputEl.classList.remove('border-red-500');
+        outputEl.classList.add('border-gray-700');
+        renderOutput();
+        const suffix = fixed ? ' · auto-fixed' : '';
+        const label  = sortOrder === 'desc' ? 'Z → A' : 'A → Z';
+        setStatus(`Sorted ${label} · ${countKeys(lastParsed)} keys${suffix}`, 'ok');
+      } catch (e) {
+        lastParsed = null; lastSorted = '';
+        outputEl.classList.remove('border-gray-700');
+        outputEl.classList.add('border-red-500');
+        outputEl.textContent = e.message;
+        setStatus(e.message, 'err');
+      }
+    }
+
+    // ── Tree builder ─────────────────────────────────────────────
+    function buildTree(value, key, isLast, counter) {
+      const node = document.createElement('div');
+      node.className = 'tree-node';
+
+      if (value === null || typeof value !== 'object') {
+        const row = document.createElement('div');
+        row.className = 'tree-row';
+        row.innerHTML =
+          `<span class="line-num">${counter.n++}</span>` +
+          '<span class="toggle-btn leaf">▶</span>' +
+          (key !== null ? `<span class="json-key">"${escHtml(key)}"</span><span class="json-punct">: </span>` : '') +
+          primitiveHtml(value) +
+          (isLast ? '' : '<span class="tree-comma">,</span>');
+        node.appendChild(row);
+        return node;
+      }
+
+      const isArray  = Array.isArray(value);
+      const keys     = isArray ? value.map((_, i) => i) : Object.keys(value);
+      const openB    = isArray ? '[' : '{';
+      const closeB   = isArray ? ']' : '}';
+      const previewLabel = isArray
+        ? `${keys.length} item${keys.length !== 1 ? 's' : ''}`
+        : `${keys.length} key${keys.length !== 1 ? 's' : ''}`;
+
+      const headerRow = document.createElement('div');
+      headerRow.className = 'tree-row';
+      headerRow.style.cursor = 'pointer';
+
+      const toggleBtn = document.createElement('span');
+      toggleBtn.className = 'toggle-btn';
+      toggleBtn.textContent = '▼';
+
+      const keyHtml = key !== null
+        ? `<span class="json-key">"${escHtml(String(key))}"</span><span class="json-punct">: </span>`
+        : '';
+
+      headerRow.innerHTML =
+        `<span class="line-num">${counter.n++}</span>` +
+        keyHtml +
+        `<span class="json-punct">${openB}</span>` +
+        `<span class="collapsed-preview" style="display:none"> ${previewLabel} </span>`;
+      headerRow.insertBefore(toggleBtn, headerRow.children[1]);
+      node.appendChild(headerRow);
+
+      const childrenEl = document.createElement('div');
+      childrenEl.className = 'tree-children';
+      keys.forEach((k, i) => {
+        childrenEl.appendChild(buildTree(value[k], isArray ? null : k, i === keys.length - 1, counter));
+      });
+      node.appendChild(childrenEl);
+
+      const footerRow = document.createElement('div');
+      footerRow.className = 'tree-row';
+      footerRow.innerHTML =
+        `<span class="line-num">${counter.n++}</span>` +
+        '<span class="toggle-btn leaf">▶</span>' +
+        `<span class="json-punct">${closeB}</span>` +
+        (isLast ? '' : '<span class="tree-comma">,</span>');
+      node.appendChild(footerRow);
+
+      const collapsedPreview = headerRow.querySelector('.collapsed-preview');
+      let collapsed = false;
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        collapsed = !collapsed;
+        toggleBtn.textContent          = collapsed ? '▶' : '▼';
+        childrenEl.style.display       = collapsed ? 'none' : '';
+        footerRow.style.display        = collapsed ? 'none' : '';
+        collapsedPreview.style.display = collapsed ? 'inline' : 'none';
+        if (collapsed) {
+          collapsedPreview.textContent = ` ${previewLabel} ${closeB}${isLast ? '' : ','}`;
+        }
+      });
+      headerRow.addEventListener('click', () => toggleBtn.click());
+
+      return node;
+    }
+
+    // ── Raw syntax highlight ─────────────────────────────────────
+    function highlightRaw(json) {
+      const highlighted = escHtml(json).replace(
+        /("(?:\\u[0-9a-fA-F]{4}|\\[^u]|[^\\"])*"(\s*:)?)|(\b(?:true|false|null)\b)|(-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+        (m) => {
+          if (m.endsWith(':'))               return `<span class="json-key">${m}</span>`;
+          if (m.startsWith('"'))             return `<span class="json-string">${m}</span>`;
+          if (m === 'true' || m === 'false') return `<span class="json-bool">${m}</span>`;
+          if (m === 'null')                  return `<span class="json-null">${m}</span>`;
+          return `<span class="json-number">${m}</span>`;
+        }
+      );
+      const lines = highlighted.split('\n');
+      const pad   = String(lines.length).length;
+      return lines.map((line, i) =>
+        `<span class="line-num">${String(i + 1).padStart(pad)}</span>${line}`
+      ).join('\n');
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────
+    function primitiveHtml(v) {
+      if (v === null)             return `<span class="json-null">null</span>`;
+      if (typeof v === 'boolean') return `<span class="json-bool">${v}</span>`;
+      if (typeof v === 'number')  return `<span class="json-number">${v}</span>`;
+      return `<span class="json-string">"${escHtml(v)}"</span>`;
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function countKeys(obj) {
+      if (typeof obj !== 'object' || obj === null) return 0;
+      const keys = Object.keys(obj);
+      return keys.length + keys.reduce((s, k) => s + countKeys(obj[k]), 0);
+    }
+
+    function setStatus(msg, type = '') {
+      statusEl.textContent = msg;
+      statusEl.className   = type === 'ok'
+        ? 'mt-2.5 text-xs min-h-[18px] text-green-400'
+        : type === 'err'
+          ? 'mt-2.5 text-xs min-h-[18px] text-red-400'
+          : 'mt-2.5 text-xs min-h-[18px] text-gray-500';
+    }
+
+    function copyOutput() {
+      if (!lastSorted) return;
+      navigator.clipboard.writeText(lastSorted).then(() => {
+        setStatus('Copied to clipboard!', 'ok');
+        setTimeout(() => setStatus(''), 2000);
+      });
+    }
+
+    function clearAll() {
+      inputEl.value = '';
+      lastParsed    = null;
+      lastSorted    = '';
+      outputEl.innerHTML = '';
+      outputEl.classList.remove('border-red-500', 'whitespace-pre');
+      outputEl.classList.add('border-gray-700');
+      setStatus('');
+    }
+
+    let debounceTimer;
+    function onInput() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(sort, 300);
+    }
+
+    inputEl.focus();
+  </script>
+
+  <footer class="max-w-[1100px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
+    &copy; <span id="year"></span> Irfan Maulana<span id="deploy-time"></span>
+  </footer>
+
+  <script>document.getElementById("year").textContent=new Date().getFullYear();var _bt="__BUILD_TIME__";if(_bt){document.getElementById("deploy-time").textContent=" · Deployed "+new Date(_bt).toLocaleString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit",timeZoneName:"short"});}</script>
+</body>
+</html>

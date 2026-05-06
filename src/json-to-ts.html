@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON to TypeScript — HTML Tools</title>
+  <meta name="description" content="Convert JSON objects into TypeScript interface or type definitions instantly in your browser.">
+  <meta property="og:title" content="JSON to TypeScript — HTML Tools">
+  <meta property="og:description" content="Convert JSON objects into TypeScript interface or type definitions instantly in your browser.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JSON to TypeScript — HTML Tools">
+  <meta name="twitter:description" content="Convert JSON objects into TypeScript interface or type definitions instantly in your browser.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔷</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .ts-keyword  { color: #79c0ff; }
+    .ts-name     { color: #c792ea; }
+    .ts-key      { color: #e1e4e8; }
+    .ts-type     { color: #f78c6c; }
+    .ts-punct    { color: #8b949e; }
+    .ts-optional { color: #8b949e; }
+    .ts-modifier { color: #56b6c2; font-style: italic; }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+
+  <header class="border-b border-gray-800 px-6 py-4">
+    <div class="max-w-[1100px] mx-auto flex items-center gap-3">
+      <a href="index.html" class="no-underline text-white font-bold text-lg tracking-tight hover:text-blue-400 transition-colors">
+        HTML Tools
+      </a>
+      <span class="text-gray-700">/</span>
+      <span class="text-gray-400 text-sm">🔷 JSON to TypeScript</span>
+    </div>
+  </header>
+
+  <div class="max-w-[1100px] mx-auto w-full flex-1 py-8 px-6">
+
+    <header class="mb-7">
+      <h1 class="text-3xl font-bold text-white flex items-center gap-3">🔷 JSON to TypeScript</h1>
+      <p class="mt-1.5 text-sm text-gray-500">Paste JSON and get TypeScript interfaces generated instantly.</p>
+    </header>
+
+    <!-- Options -->
+    <div class="flex flex-wrap items-center gap-4 mb-4">
+      <div class="flex items-center gap-2">
+        <label class="text-xs text-gray-500 font-medium">Root name</label>
+        <input id="root-name" type="text" value="Root" spellcheck="false"
+               class="px-2.5 py-1 rounded-md border border-gray-700 bg-gray-900 text-gray-200
+                      text-sm w-28 outline-none focus:border-blue-400 transition-colors">
+      </div>
+      <label class="flex items-center gap-2 text-xs text-gray-400 hover:text-gray-200 cursor-pointer select-none">
+        <input type="checkbox" id="use-interface" checked class="w-3.5 h-3.5 accent-blue-400 cursor-pointer">
+        use interface
+      </label>
+      <label class="flex items-center gap-2 text-xs text-gray-400 hover:text-gray-200 cursor-pointer select-none">
+        <input type="checkbox" id="use-export" checked class="w-3.5 h-3.5 accent-blue-400 cursor-pointer">
+        export
+      </label>
+      <label class="flex items-center gap-2 text-xs text-gray-400 hover:text-gray-200 cursor-pointer select-none">
+        <input type="checkbox" id="use-optional" checked class="w-3.5 h-3.5 accent-blue-400 cursor-pointer">
+        mark optional fields
+      </label>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+
+      <!-- Input -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">JSON Input</label>
+          <span id="err-msg" class="text-xs text-red-400"></span>
+        </div>
+        <textarea id="input" placeholder="Paste JSON here..." spellcheck="false" oninput="onInput()"
+                  class="w-full h-[500px] min-h-[500px] rounded-lg border border-gray-700 bg-gray-900
+                         text-gray-200 font-mono text-[0.8rem] leading-relaxed p-4 resize-y outline-none
+                         focus:border-blue-400 transition-colors"></textarea>
+      </div>
+
+      <!-- Output -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">TypeScript</label>
+          <button onclick="copyOutput()"
+                  class="px-2.5 py-0.5 text-[0.7rem] rounded border cursor-pointer transition-colors
+                         bg-gray-800 border-gray-600 text-gray-400 hover:border-blue-400 hover:text-gray-200">
+            Copy
+          </button>
+        </div>
+        <div id="output"
+             class="w-full h-[500px] min-h-[500px] rounded-lg border border-gray-700 bg-gray-900
+                    font-mono text-[0.8rem] leading-relaxed p-4 overflow-auto resize-y whitespace-pre"></div>
+      </div>
+
+    </div>
+
+    <div id="status" class="mt-2.5 text-xs text-gray-500 min-h-[18px]"></div>
+
+  </div>
+
+  <footer class="max-w-[1100px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
+    &copy; <span id="year"></span> Irfan Maulana<span id="deploy-time"></span>
+  </footer>
+
+  <script src="json-utils.js"></script>
+  <script>document.getElementById("year").textContent=new Date().getFullYear();var _bt="__BUILD_TIME__";if(_bt){document.getElementById("deploy-time").textContent=" · Deployed "+new Date(_bt).toLocaleString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit",timeZoneName:"short"});}</script>
+  <script>
+    const inputEl  = document.getElementById('input');
+    const outputEl = document.getElementById('output');
+    const statusEl = document.getElementById('status');
+    const errEl    = document.getElementById('err-msg');
+
+    let lastOutput = '';
+
+    function getOptions() {
+      return {
+        rootName:     document.getElementById('root-name').value.trim() || 'Root',
+        useExport:    document.getElementById('use-export').checked,
+        useOptional:  document.getElementById('use-optional').checked,
+        useInterface: document.getElementById('use-interface').checked,
+      };
+    }
+
+    // ── Name helpers ──────────────────────────────────────────────
+    function toPascal(str) {
+      return str
+        .replace(/[-_\s](.)/g, (_, c) => c.toUpperCase())
+        .replace(/^(.)/, (_, c) => c.toUpperCase());
+    }
+
+    function toSingular(name) {
+      if (/List$/i.test(name))  return name.replace(/List$/i, '');
+      if (/ies$/i.test(name))   return name.slice(0, -3) + 'y';
+      if (/ses$/i.test(name))   return name.slice(0, -2);
+      if (/s$/i.test(name) && name.length > 2) return name.slice(0, -1);
+      return name + 'Item';
+    }
+
+    // ── Type inference ────────────────────────────────────────────
+    function uniqueName(name, usedNames) {
+      if (!usedNames.has(name)) { usedNames.add(name); return name; }
+      let i = 2;
+      while (usedNames.has(name + i)) i++;
+      usedNames.add(name + i);
+      return name + i;
+    }
+
+    // Merge all objects in an array into one interface, detecting optional fields
+    function mergeArrayObjects(arr, itemName, ifaces, usedNames) {
+      const keyMap   = new Map(); // key → { types: Set, count }
+      const objCount = arr.filter(i => typeof i === 'object' && i !== null && !Array.isArray(i)).length;
+
+      for (const obj of arr) {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) continue;
+        for (const [k, v] of Object.entries(obj)) {
+          if (!keyMap.has(k)) keyMap.set(k, { types: new Set(), count: 0 });
+          const entry = keyMap.get(k);
+          entry.count++;
+          // Use inferTypeFull so nested arrays of objects are also merged
+          entry.types.add(inferTypeFull(v, toPascal(k), ifaces, usedNames));
+        }
+      }
+
+      const fields = [];
+      for (const [key, { types, count }] of keyMap) {
+        fields.push({ key, type: [...types].join(' | '), nullable: false, optional: count < objCount });
+      }
+
+      const ifaceName = uniqueName(itemName, usedNames);
+      ifaces.push({ name: ifaceName, fields });
+      return ifaceName;
+    }
+
+    function inferTypeFull(value, name, ifaces, usedNames) {
+      if (value === null)             return 'null';
+      if (typeof value === 'boolean') return 'boolean';
+      if (typeof value === 'number')  return 'number';
+      if (typeof value === 'string')  return 'string';
+
+      if (Array.isArray(value)) {
+        if (value.length === 0) return 'unknown[]';
+        const itemName = toPascal(toSingular(name));
+        const allObjs  = value.every(i => typeof i === 'object' && i !== null && !Array.isArray(i));
+
+        if (allObjs) {
+          return `${mergeArrayObjects(value, itemName, ifaces, usedNames)}[]`;
+        }
+
+        const elemTypes = value.map(item => inferTypeFull(item, itemName, ifaces, usedNames));
+        const unique    = [...new Set(elemTypes)];
+        const elemType  = unique.length === 1 ? unique[0] : `(${unique.join(' | ')})`;
+        return `${elemType}[]`;
+      }
+
+      // Object
+      const ifaceName = uniqueName(toPascal(name), usedNames);
+      const fields    = [];
+      for (const [key, val] of Object.entries(value)) {
+        const childType = inferTypeFull(val, toPascal(key), ifaces, usedNames);
+        fields.push({ key, type: childType, nullable: val === null, optional: false });
+      }
+      ifaces.push({ name: ifaceName, fields });
+      return ifaceName;
+    }
+
+    // ── Deduplication ─────────────────────────────────────────────
+    // If multiple interfaces have identical fields, collapse them into one
+    function deduplicateIfaces(ifaces) {
+      const sigToName = new Map(); // structural signature → first seen name
+      const remap     = new Map(); // duplicate name → canonical name
+
+      for (const iface of ifaces) {
+        const sig = iface.fields
+          .map(f => `${f.key}${f.optional ? '?' : ''}${f.nullable ? '!' : ''}:${f.type}`)
+          .join('|');
+        if (sigToName.has(sig)) {
+          remap.set(iface.name, sigToName.get(sig));
+        } else {
+          sigToName.set(sig, iface.name);
+          remap.set(iface.name, iface.name);
+        }
+      }
+
+      // Replace type references in surviving interfaces
+      function applyRemap(type) {
+        for (const [oldName, newName] of remap) {
+          if (oldName !== newName) {
+            type = type.replace(new RegExp(`\\b${oldName}\\b`, 'g'), newName);
+          }
+        }
+        return type;
+      }
+
+      return ifaces
+        .filter(iface => remap.get(iface.name) === iface.name) // keep canonicals only
+        .map(iface => ({
+          ...iface,
+          fields: iface.fields.map(f => ({ ...f, type: applyRemap(f.type) }))
+        }));
+    }
+
+    // ── Code generation ───────────────────────────────────────────
+    function renderType(t) {
+      // Wrap built-in types in ts-type span, interfaces stay as ts-name
+      const builtins = new Set(['string','number','boolean','null','unknown','any']);
+      return t.split(/(\b(?:string|number|boolean|null|unknown|any)\b|\[\]|\(\)|[|&])/)
+        .map(part => {
+          if (builtins.has(part))          return `<span class="ts-type">${part}</span>`;
+          if (part === '[]' || part === '(' || part === ')' || part === '|' || part === '&')
+                                           return `<span class="ts-punct">${part}</span>`;
+          if (part.trim())                 return `<span class="ts-name">${escHtml(part)}</span>`;
+          return part;
+        }).join('');
+    }
+
+    function generate(ifaces, opts) {
+      const prefix = opts.useExport ? '<span class="ts-modifier">export</span> ' : '';
+      const kw     = opts.useInterface ? 'interface' : 'type';
+      const lines  = [];
+
+      // Root first (last in array), then supporting types
+      [...ifaces].reverse().forEach(iface => {
+        if (kw === 'interface') {
+          lines.push(`${prefix}<span class="ts-keyword">interface</span> <span class="ts-name">${escHtml(iface.name)}</span> <span class="ts-punct">{</span>`);
+        } else {
+          lines.push(`${prefix}<span class="ts-keyword">type</span> <span class="ts-name">${escHtml(iface.name)}</span> <span class="ts-punct">= {</span>`);
+        }
+
+        for (const f of iface.fields) {
+          const opt = (f.optional || f.nullable) && opts.useOptional ? '?' : '';
+          const typ = f.nullable ? `${renderType(f.type)} <span class="ts-punct">|</span> <span class="ts-type">null</span>` : renderType(f.type);
+          lines.push(`  <span class="ts-key">${escHtml(f.key)}</span><span class="ts-optional">${opt}</span><span class="ts-punct">:</span> ${typ}<span class="ts-punct">;</span>`);
+        }
+
+        lines.push(kw === 'type'
+          ? `<span class="ts-punct">};</span>`
+          : `<span class="ts-punct">}</span>`);
+        lines.push('');
+      });
+
+      if (lines[lines.length - 1] === '') lines.pop();
+      return lines;
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ── Convert ───────────────────────────────────────────────────
+    function convert() {
+      const raw = inputEl.value.trim();
+      errEl.textContent = '';
+      inputEl.classList.remove('border-red-500');
+
+      if (!raw) { outputEl.innerHTML = ''; lastOutput = ''; setStatus(''); return; }
+
+      let parsed, fixed;
+      try { ({ value: parsed, fixed } = tolerantParse(raw)); }
+      catch(e) {
+        errEl.textContent = e.message;
+        inputEl.classList.add('border-red-500');
+        outputEl.innerHTML = '';
+        lastOutput = '';
+        return;
+      }
+
+      const opts      = getOptions();
+      const ifaces    = [];
+      const usedNames = new Set();
+
+      // Handle root array
+      let rootValue = parsed;
+      let rootName  = opts.rootName;
+      let rootNote  = '';
+      if (Array.isArray(parsed)) {
+        rootValue = parsed.length > 0 ? parsed[0] : {};
+        rootNote  = ` // use as ${opts.rootName}[]`;
+      }
+
+      inferTypeFull(rootValue, rootName, ifaces, usedNames);
+      const dedupedIfaces = deduplicateIfaces(ifaces);
+
+      const opts2  = { ...opts, rootNote };
+      const lines  = generate(dedupedIfaces, opts2);
+      const pad    = String(lines.length).length;
+
+      // Render with line numbers (skip blank lines from numbering)
+      let lineNum = 1;
+      const html = lines.map(line => {
+        const num = line === '' ? '' : String(lineNum++).padStart(pad);
+        if (line === '') { lineNum; return `<span class="line-num">${' '.repeat(pad)}</span>`; }
+        return `<span class="line-num">${num}</span>${line}`;
+      }).join('\n');
+
+      outputEl.innerHTML = html;
+
+      // Plain text for copy
+      lastOutput = [...dedupedIfaces].reverse().map(iface => {
+        const prefix = opts.useExport ? 'export ' : '';
+        const kw     = opts.useInterface ? 'interface' : 'type';
+        const fieldLines = iface.fields.map(f => {
+          const opt = (f.optional || f.nullable) && opts.useOptional ? '?' : '';
+          const typ = f.nullable ? `${f.type} | null` : f.type;
+          return `  ${f.key}${opt}: ${typ};`;
+        });
+        return kw === 'interface'
+          ? `${prefix}interface ${iface.name} {\n${fieldLines.join('\n')}\n}`
+          : `${prefix}type ${iface.name} = {\n${fieldLines.join('\n')}\n};`;
+      }).join('\n\n');
+
+      const totalTypes = dedupedIfaces.length;
+      const suffix = fixed ? ' · auto-fixed' : '';
+      setStatus(`${totalTypes} type${totalTypes !== 1 ? 's' : ''} generated${suffix}`, 'ok');
+    }
+
+    function copyOutput() {
+      if (!lastOutput) return;
+      navigator.clipboard.writeText(lastOutput).then(() => {
+        setStatus('Copied!', 'ok');
+        setTimeout(() => convert(), 2000);
+      });
+    }
+
+    function setStatus(msg, type = '') {
+      statusEl.textContent = msg;
+      statusEl.className   = type === 'ok'
+        ? 'mt-2.5 text-xs min-h-[18px] text-green-400'
+        : 'mt-2.5 text-xs min-h-[18px] text-gray-500';
+    }
+
+    let timer;
+    function onInput() {
+      clearTimeout(timer);
+      timer = setTimeout(convert, 300);
+    }
+
+    // Re-run on option changes
+    document.getElementById('root-name').addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(convert, 200); });
+    document.getElementById('use-export').addEventListener('change', convert);
+    document.getElementById('use-optional').addEventListener('change', convert);
+    document.getElementById('use-interface').addEventListener('change', convert);
+
+    inputEl.focus();
+  </script>
+</body>
+</html>

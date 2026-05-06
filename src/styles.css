@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* JSON syntax colors */
+.json-key    { color: #c792ea; }
+.json-string { color: #c3e88d; }
+.json-number { color: #f78c6c; }
+.json-bool   { color: #ff5370; }
+.json-null   { color: #ff5370; }
+.json-punct  { color: #8b949e; white-space: pre; }
+
+/* Line numbers */
+.line-num {
+  display: inline-block;
+  min-width: 2.5rem;
+  text-align: right;
+  padding-right: 0.75rem;
+  margin-right: 0.25rem;
+  color: #374151;
+  border-right: 1px solid #1f2937;
+  user-select: none;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+/* Tree view */
+.tree-root { white-space: nowrap; }
+.tree-node { display: block; }
+.tree-row {
+  display: flex;
+  align-items: baseline;
+  padding: 0 2px;
+  border-radius: 3px;
+}
+
+.tree-row:hover { background: rgba(255,255,255,0.04); }
+
+.toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  margin-right: 4px;
+  flex-shrink: 0;
+  cursor: pointer;
+  color: #8b949e;
+  font-size: 0.6rem;
+  border-radius: 2px;
+  user-select: none;
+  position: relative;
+  top: -1px;
+}
+.toggle-btn:hover { color: #e1e4e8; background: #30363d; }
+.toggle-btn.leaf { cursor: default; visibility: hidden; }
+
+.tree-children {
+  padding-left: 20px;
+  border-left: 1px solid #21262d;
+  margin-left: 6px;
+}
+
+.collapsed-preview { color: #8b949e; font-style: italic; }
+.tree-comma { color: #8b949e; }

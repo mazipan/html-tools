@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Diff — HTML Tools</title>
+  <meta name="description" content="Compare two JSON objects and instantly see what was added, removed, or changed.">
+  <meta property="og:title" content="JSON Diff — HTML Tools">
+  <meta property="og:description" content="Compare two JSON objects and instantly see what was added, removed, or changed.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JSON Diff — HTML Tools">
+  <meta name="twitter:description" content="Compare two JSON objects and instantly see what was added, removed, or changed.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .diff-added   { background: rgba(63,185,80,.12);  border-left: 3px solid #3fb950; }
+    .diff-removed { background: rgba(248,81,73,.12);  border-left: 3px solid #f85149; }
+    .diff-changed { background: rgba(210,153,34,.12); border-left: 3px solid #d2991e; }
+
+    .badge-added   { background: rgba(63,185,80,.15);  color: #3fb950; }
+    .badge-removed { background: rgba(248,81,73,.15);  color: #f85149; }
+    .badge-changed { background: rgba(210,153,34,.15); color: #d2991e; }
+
+    .val-old { color: #f85149; text-decoration: line-through; opacity: .8; }
+    .val-new { color: #3fb950; }
+    .val-add { color: #3fb950; }
+    .val-rem { color: #f85149; }
+
+    .diff-path { color: #c792ea; font-family: 'SFMono-Regular', Consolas, monospace; font-size: 0.78rem; }
+
+    /* Tree highlight rows */
+    .tree-hl-added   { background: rgba(63,185,80,.15);  border-radius: 3px; }
+    .tree-hl-removed { background: rgba(248,81,73,.15);  border-radius: 3px; }
+    .tree-hl-changed { background: rgba(210,153,34,.15); border-radius: 3px; }
+    .tree-hl-parent  { border-left: 2px solid rgba(255,255,255,.1); margin-left: 1px; }
+
+    mark.sh { background: #92400e; color: #fef3c7; border-radius: 2px; padding: 0 1px; }
+    mark.sh.sh-active { background: #f59e0b; color: #000; border-radius: 2px; padding: 0 1px; }
+    #search-input:-webkit-autofill,
+    #search-input:autofill {
+      -webkit-box-shadow: 0 0 0 1000px #111827 inset;
+      box-shadow: 0 0 0 1000px #111827 inset;
+      -webkit-text-fill-color: #e5e7eb;
+      caret-color: #e5e7eb;
+    }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+
+  <header class="border-b border-gray-800 px-6 py-4">
+    <div class="max-w-[1100px] mx-auto flex items-center gap-3">
+      <a href="index.html" class="no-underline text-white font-bold text-lg tracking-tight hover:text-blue-400 transition-colors">
+        HTML Tools
+      </a>
+      <span class="text-gray-700">/</span>
+      <span class="text-gray-400 text-sm">🔍 JSON Diff</span>
+    </div>
+  </header>
+
+  <div class="max-w-[1100px] mx-auto w-full flex-1 py-8 px-6">
+
+    <header class="mb-7">
+      <h1 class="text-3xl font-bold text-white flex items-center gap-3">🔍 JSON Diff</h1>
+      <p class="mt-1.5 text-sm text-gray-500">Paste two JSON objects then compare and inspect differences.</p>
+    </header>
+
+    <!-- Inputs -->
+    <div class="grid grid-cols-2 gap-4 mb-4 max-md:grid-cols-1">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Original</label>
+          <span id="err-left" class="text-xs text-red-400"></span>
+        </div>
+        <textarea id="left" placeholder="Paste original JSON here..." spellcheck="false"
+                  class="w-full h-64 rounded-lg border border-gray-700 bg-gray-900 text-gray-200
+                         font-mono text-[0.8rem] leading-relaxed p-4 resize-y outline-none
+                         focus:border-blue-400 transition-colors"></textarea>
+      </div>
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Modified</label>
+          <span id="err-right" class="text-xs text-red-400"></span>
+        </div>
+        <textarea id="right" placeholder="Paste modified JSON here..." spellcheck="false"
+                  class="w-full h-64 rounded-lg border border-gray-700 bg-gray-900 text-gray-200
+                         font-mono text-[0.8rem] leading-relaxed p-4 resize-y outline-none
+                         focus:border-blue-400 transition-colors"></textarea>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-col gap-3 mb-6">
+      <label class="flex items-center gap-2 cursor-pointer select-none text-sm text-gray-400 hover:text-gray-200 transition-colors w-fit">
+        <input type="checkbox" id="show-tree"
+               class="w-4 h-4 rounded border-gray-600 bg-gray-800 accent-blue-400 cursor-pointer">
+        Reformat &amp; show tree
+      </label>
+      <div class="flex items-center gap-2">
+        <button onclick="runCompare()"
+                class="px-4 py-1.5 rounded-md border text-sm font-medium cursor-pointer transition-colors
+                       bg-green-800 border-green-600 text-white hover:bg-green-700">
+          Compare
+        </button>
+        <button onclick="runReset()"
+                class="px-4 py-1.5 rounded-md border text-sm font-medium cursor-pointer transition-colors
+                       bg-transparent border-gray-600 text-red-400 hover:bg-gray-800 hover:border-red-400">
+          Reset
+        </button>
+        <button onclick="openSearch()" title="Search results (Ctrl+F / ⌘F)"
+                class="px-4 py-1.5 rounded-md border text-sm font-medium cursor-pointer transition-colors
+                       bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700 hover:border-blue-400">
+          Search
+        </button>
+      </div>
+
+      <!-- Search bar -->
+      <div id="search-bar" style="display:none"
+           class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg border border-gray-700 bg-gray-900/70 w-full max-w-lg">
+        <input id="search-input" type="text" placeholder="Search in results…" spellcheck="false" autocomplete="off"
+               oninput="runSearch()"
+               onkeydown="onSearchKey(event)"
+               class="flex-1 bg-transparent text-gray-200 font-mono text-[0.78rem] outline-none placeholder-gray-600 min-w-0">
+        <span id="search-count" class="text-[0.7rem] text-gray-500 whitespace-nowrap select-none"></span>
+        <button onclick="navigateSearch(-1)" title="Previous (Shift+Enter)"
+                class="px-1.5 py-0.5 text-[0.7rem] rounded border cursor-pointer transition-colors
+                       bg-gray-800 border-gray-600 text-gray-400 hover:border-blue-400 hover:text-gray-200">↑</button>
+        <button onclick="navigateSearch(1)" title="Next (Enter)"
+                class="px-1.5 py-0.5 text-[0.7rem] rounded border cursor-pointer transition-colors
+                       bg-gray-800 border-gray-600 text-gray-400 hover:border-blue-400 hover:text-gray-200">↓</button>
+        <button onclick="closeSearch()" title="Close (Esc)"
+                class="px-1.5 py-0.5 text-[0.7rem] rounded border cursor-pointer transition-colors
+                       bg-gray-800 border-gray-600 text-gray-400 hover:border-red-400 hover:text-red-400">✕</button>
+      </div>
+    </div>
+
+    <!-- Diff result -->
+    <div id="diff-section" style="display:none" class="mb-6"></div>
+
+    <!-- Tree section -->
+    <div id="tree-section" style="display:none">
+      <div class="flex items-center gap-4 flex-wrap mb-3">
+        <span class="text-xs text-gray-500 font-medium uppercase tracking-wide">Legend</span>
+        <span class="flex items-center gap-1.5 text-xs text-gray-400">
+          <span class="inline-block w-3 h-3 rounded-sm" style="background:rgba(63,185,80,.4); border-left: 3px solid #3fb950"></span>
+          Added
+        </span>
+        <span class="flex items-center gap-1.5 text-xs text-gray-400">
+          <span class="inline-block w-3 h-3 rounded-sm" style="background:rgba(248,81,73,.4); border-left: 3px solid #f85149"></span>
+          Removed
+        </span>
+        <span class="flex items-center gap-1.5 text-xs text-gray-400">
+          <span class="inline-block w-3 h-3 rounded-sm" style="background:rgba(210,153,34,.4); border-left: 3px solid #d2991e"></span>
+          Changed
+        </span>
+        <span class="flex items-center gap-1.5 text-xs text-gray-400">
+          <span class="inline-block w-3 h-3 rounded-sm border-l-2 border-white/10 bg-transparent"></span>
+          Has changes inside
+        </span>
+        <label class="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-200 cursor-pointer select-none ml-auto">
+          <input type="checkbox" id="lock-scroll" checked
+                 class="w-3.5 h-3.5 accent-blue-400 cursor-pointer">
+          Lock scroll
+        </label>
+      </div>
+      <div class="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+        <div>
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-2">Original — Tree</label>
+          <div id="left-tree"
+               class="w-full h-96 rounded-lg border border-gray-700 bg-gray-900
+                      font-mono text-[0.8rem] leading-relaxed p-4 overflow-auto resize-y"></div>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-2">Modified — Tree</label>
+          <div id="right-tree"
+               class="w-full h-96 rounded-lg border border-gray-700 bg-gray-900
+                      font-mono text-[0.8rem] leading-relaxed p-4 overflow-auto resize-y"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="max-w-[1100px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
+    &copy; <span id="year"></span> Irfan Maulana<span id="deploy-time"></span>
+  </footer>
+
+  <script src="json-utils.js"></script>
+  <script>document.getElementById("year").textContent=new Date().getFullYear();var _bt="__BUILD_TIME__";if(_bt){document.getElementById("deploy-time").textContent=" · Deployed "+new Date(_bt).toLocaleString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit",timeZoneName:"short"});}</script>
+  <script>
+    const leftEl      = document.getElementById('left');
+    const rightEl     = document.getElementById('right');
+    const errLeft     = document.getElementById('err-left');
+    const errRight    = document.getElementById('err-right');
+    const treeSection = document.getElementById('tree-section');
+    const diffSection = document.getElementById('diff-section');
+    const leftTreeEl  = document.getElementById('left-tree');
+    const rightTreeEl = document.getElementById('right-tree');
+    const showTreeCb  = document.getElementById('show-tree');
+
+    let lastChanges  = null;
+    let isSyncing    = false;
+
+    function setupScrollSync() {
+      function sync(source, target) {
+        source.addEventListener('scroll', () => {
+          if (!document.getElementById('lock-scroll').checked || isSyncing) return;
+          isSyncing = true;
+          target.scrollTop  = source.scrollTop;
+          target.scrollLeft = source.scrollLeft;
+          requestAnimationFrame(() => { isSyncing = false; });
+        });
+      }
+      sync(leftTreeEl, rightTreeEl);
+      sync(rightTreeEl, leftTreeEl);
+    }
+    setupScrollSync();
+
+    // ── Helpers ───────────────────────────────────────────────────
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    function clearErrors() {
+      errLeft.textContent  = '';
+      errRight.textContent = '';
+      leftEl.classList.remove('border-red-500');
+      rightEl.classList.remove('border-red-500');
+    }
+
+    function parseBoth() {
+      clearErrors();
+      let left, right, ok = true;
+      try { ({ value: left } = tolerantParse(leftEl.value.trim())); }
+      catch(e) { errLeft.textContent = e.message; leftEl.classList.add('border-red-500'); ok = false; }
+      try { ({ value: right } = tolerantParse(rightEl.value.trim())); }
+      catch(e) { errRight.textContent = e.message; rightEl.classList.add('border-red-500'); ok = false; }
+      return ok ? { left, right } : null;
+    }
+
+    // ── Actions ───────────────────────────────────────────────────
+    function runCompare() {
+      const data = parseBoth();
+      if (!data) return;
+
+      lastChanges = computeDiff(data.left, data.right);
+
+      const added   = lastChanges.filter(c => c.type === 'added').length;
+      const removed = lastChanges.filter(c => c.type === 'removed').length;
+      const changed = lastChanges.filter(c => c.type === 'changed').length;
+
+      diffSection.style.display = '';
+      diffSection.innerHTML = renderSummary(added, removed, changed) + renderChanges(lastChanges);
+
+      if (showTreeCb.checked) {
+        refreshTrees(data);
+      } else {
+        treeSection.style.display = 'none';
+      }
+    }
+
+    function refreshTrees(data) {
+      // Reformat textareas
+      leftEl.value  = JSON.stringify(data.left,  null, 2);
+      rightEl.value = JSON.stringify(data.right, null, 2);
+
+      // Build per-side highlight maps from last diff
+      const leftHL  = new Map();
+      const rightHL = new Map();
+      if (lastChanges) {
+        for (const c of lastChanges) {
+          if (c.type === 'removed' || c.type === 'changed') leftHL.set(c.path, c.type);
+          if (c.type === 'added'   || c.type === 'changed') rightHL.set(c.path, c.type);
+        }
+      }
+
+      treeSection.style.display = '';
+      renderTreeInto(leftTreeEl,  data.left,  leftHL);
+      renderTreeInto(rightTreeEl, data.right, rightHL);
+      leftTreeEl.scrollTop  = 0;
+      rightTreeEl.scrollTop = 0;
+    }
+
+    function runReset() {
+      leftEl.value  = '';
+      rightEl.value = '';
+      clearErrors();
+      lastChanges = null;
+      showTreeCb.checked        = false;
+      treeSection.style.display = 'none';
+      diffSection.style.display = 'none';
+      diffSection.innerHTML     = '';
+      leftTreeEl.innerHTML      = '';
+      rightTreeEl.innerHTML     = '';
+      closeSearch();
+      leftEl.focus();
+    }
+
+    // ── Tree renderer ─────────────────────────────────────────────
+    function renderTreeInto(container, value, highlights) {
+      container.innerHTML = '';
+      const root = document.createElement('div');
+      root.className = 'tree-root';
+      const counter = { n: 1 };
+      root.appendChild(buildTree(value, null, true, false, '', highlights, counter));
+      container.appendChild(root);
+    }
+
+    function childPath(parentPath, key, isArrayItem) {
+      if (key === null) return parentPath;
+      if (isArrayItem)  return parentPath ? `${parentPath}[${key}]` : `[${key}]`;
+      return parentPath ? `${parentPath}.${key}` : String(key);
+    }
+
+    function hasDescendant(path, highlights) {
+      if (!highlights.size) return false;
+      const prefix = path ? path + '.' : '';
+      const prefixArr = path ? path + '[' : '[';
+      for (const [p] of highlights) {
+        if (p.startsWith(prefix) || p.startsWith(prefixArr)) return true;
+      }
+      return false;
+    }
+
+    function buildTree(value, key, isLast, isArrayItem, parentPath, highlights, counter) {
+      const curPath = childPath(parentPath, key, isArrayItem);
+      const hlType  = highlights?.get(curPath);
+      const hasDesc = !hlType && highlights?.size && hasDescendant(curPath, highlights);
+
+      const node = document.createElement('div');
+      node.className = 'tree-node';
+
+      if (value === null || typeof value !== 'object') {
+        const row = document.createElement('div');
+        row.className = 'tree-row' + (hlType ? ` tree-hl-${hlType}` : '');
+        row.dataset.path = curPath;
+        row.innerHTML =
+          `<span class="line-num">${counter.n++}</span>` +
+          '<span class="toggle-btn leaf">▶</span>' +
+          (key !== null && !isArrayItem ? `<span class="json-key">"${escHtml(String(key))}"</span><span class="json-punct">: </span>` : '') +
+          primitiveHtml(value) +
+          (isLast ? '' : '<span class="tree-comma">,</span>');
+        node.appendChild(row);
+        return node;
+      }
+
+      const isArray = Array.isArray(value);
+      const keys    = isArray ? value.map((_, i) => i) : Object.keys(value);
+      const openB   = isArray ? '[' : '{';
+      const closeB  = isArray ? ']' : '}';
+      const preview = `${keys.length} ${isArray ? 'item' : 'key'}${keys.length !== 1 ? 's' : ''}`;
+
+      const headerRow = document.createElement('div');
+      headerRow.className = 'tree-row' + (hlType ? ` tree-hl-${hlType}` : hasDesc ? ' tree-hl-parent' : '');
+      headerRow.dataset.path = curPath;
+      headerRow.style.cursor = 'pointer';
+
+      const toggleBtn = document.createElement('span');
+      toggleBtn.className = 'toggle-btn';
+      toggleBtn.textContent = '▼';
+
+      const keyHtml = key !== null && !isArrayItem
+        ? `<span class="json-key">"${escHtml(String(key))}"</span><span class="json-punct">: </span>`
+        : '';
+
+      headerRow.innerHTML =
+        `<span class="line-num">${counter.n++}</span>` +
+        keyHtml +
+        `<span class="json-punct">${openB}</span>` +
+        `<span class="collapsed-preview" style="display:none"> ${preview} </span>`;
+      headerRow.insertBefore(toggleBtn, headerRow.children[1]);
+      node.appendChild(headerRow);
+
+      const childrenEl = document.createElement('div');
+      childrenEl.className = 'tree-children';
+      keys.forEach((k, i) => {
+        childrenEl.appendChild(
+          buildTree(value[k], k, i === keys.length - 1, isArray, curPath, highlights, counter)
+        );
+      });
+      node.appendChild(childrenEl);
+
+      const footerRow = document.createElement('div');
+      footerRow.className = 'tree-row';
+      footerRow.innerHTML =
+        `<span class="line-num">${counter.n++}</span>` +
+        '<span class="toggle-btn leaf">▶</span>' +
+        `<span class="json-punct">${closeB}</span>` +
+        (isLast ? '' : '<span class="tree-comma">,</span>');
+      node.appendChild(footerRow);
+
+      const collapsedPreview = headerRow.querySelector('.collapsed-preview');
+      let collapsed = false;
+      toggleBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        collapsed = !collapsed;
+        toggleBtn.textContent          = collapsed ? '▶' : '▼';
+        childrenEl.style.display       = collapsed ? 'none' : '';
+        footerRow.style.display        = collapsed ? 'none' : '';
+        collapsedPreview.style.display = collapsed ? 'inline' : 'none';
+        if (collapsed) collapsedPreview.textContent = ` ${preview} ${closeB}${isLast ? '' : ','}`;
+      });
+      headerRow.addEventListener('click', () => toggleBtn.click());
+
+      return node;
+    }
+
+    function primitiveHtml(v) {
+      if (v === null)             return `<span class="json-null">null</span>`;
+      if (typeof v === 'boolean') return `<span class="json-bool">${v}</span>`;
+      if (typeof v === 'number')  return `<span class="json-number">${v}</span>`;
+      return `<span class="json-string">"${escHtml(v)}"</span>`;
+    }
+
+    // ── Diff algorithm ─────────────────────────────────────────────
+    function computeDiff(a, b, path = '') {
+      if (a === b) return [];
+      const typeA = Array.isArray(a) ? 'array' : (a === null ? 'null' : typeof a);
+      const typeB = Array.isArray(b) ? 'array' : (b === null ? 'null' : typeof b);
+
+      if (typeA !== typeB || (typeA !== 'object' && typeA !== 'array')) {
+        return [{ type: 'changed', path, oldVal: a, newVal: b }];
+      }
+
+      const changes = [];
+      if (typeA === 'array') {
+        const len = Math.max(a.length, b.length);
+        for (let i = 0; i < len; i++) {
+          const p = `${path}[${i}]`;
+          if (i >= a.length)      changes.push({ type: 'added',   path: p, newVal: b[i] });
+          else if (i >= b.length) changes.push({ type: 'removed', path: p, oldVal: a[i] });
+          else                    changes.push(...computeDiff(a[i], b[i], p));
+        }
+      } else {
+        for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) {
+          const p = path ? `${path}.${key}` : key;
+          if (!(key in a))      changes.push({ type: 'added',   path: p, newVal: b[key] });
+          else if (!(key in b)) changes.push({ type: 'removed', path: p, oldVal: a[key] });
+          else                  changes.push(...computeDiff(a[key], b[key], p));
+        }
+      }
+      return changes;
+    }
+
+    // ── Diff rendering ─────────────────────────────────────────────
+    function shortVal(v) {
+      if (v === null)            return 'null';
+      if (typeof v !== 'object') return JSON.stringify(v);
+      const s = JSON.stringify(v);
+      return s.length > 60 ? s.slice(0, 57) + '…' : s;
+    }
+
+    function renderSummary(added, removed, changed) {
+      if (added + removed + changed === 0) {
+        return `<div class="flex items-center gap-2 text-green-400 text-sm font-medium py-4">
+          <span class="text-lg">✓</span> Both JSON objects are identical.
+        </div>`;
+      }
+      return `
+        <div class="grid grid-cols-3 gap-3 mb-4 max-sm:grid-cols-1">
+          <div class="badge-added rounded-lg px-4 py-3 flex items-center gap-3">
+            <span class="text-2xl font-bold">${added}</span>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide opacity-70">Added</div>
+              <div class="text-xs opacity-60">new ${added === 1 ? 'field' : 'fields'}</div>
+            </div>
+          </div>
+          <div class="badge-removed rounded-lg px-4 py-3 flex items-center gap-3">
+            <span class="text-2xl font-bold">${removed}</span>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide opacity-70">Removed</div>
+              <div class="text-xs opacity-60">deleted ${removed === 1 ? 'field' : 'fields'}</div>
+            </div>
+          </div>
+          <div class="badge-changed rounded-lg px-4 py-3 flex items-center gap-3">
+            <span class="text-2xl font-bold">${changed}</span>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide opacity-70">Changed</div>
+              <div class="text-xs opacity-60">modified ${changed === 1 ? 'value' : 'values'}</div>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renderChanges(changes) {
+      if (!changes.length) return '';
+      return `<div class="flex flex-col gap-1">${changes.map(c => {
+        let valueHtml;
+        if (c.type === 'added') {
+          valueHtml = `<span class="val-add">${escHtml(shortVal(c.newVal))}</span>`;
+        } else if (c.type === 'removed') {
+          valueHtml = `<span class="val-rem">${escHtml(shortVal(c.oldVal))}</span>`;
+        } else {
+          valueHtml = `<span class="val-old">${escHtml(shortVal(c.oldVal))}</span>
+                       <span class="text-gray-600 mx-1">→</span>
+                       <span class="val-new">${escHtml(shortVal(c.newVal))}</span>`;
+        }
+        const icon      = c.type === 'added' ? '+' : c.type === 'removed' ? '−' : '≠';
+        const iconColor = c.type === 'added' ? 'text-green-400' : c.type === 'removed' ? 'text-red-400' : 'text-yellow-500';
+        return `
+          <div class="diff-${c.type} rounded px-3 py-2 flex items-baseline gap-3 flex-wrap cursor-pointer hover:brightness-125 transition-all"
+               data-diff-path="${escHtml(c.path || '')}" onclick="scrollToPath(this.dataset.diffPath)" title="Click to scroll to this path in the tree">
+            <span class="w-5 text-center font-bold font-mono text-xs ${iconColor}">${icon}</span>
+            <span class="diff-path">${escHtml(c.path || '(root)')}</span>
+            <span class="text-gray-600 text-xs">${c.type}</span>
+            <span class="ml-auto font-mono text-xs text-right">${valueHtml}</span>
+          </div>`;
+      }).join('')}</div>`;
+    }
+
+    // ── Scroll to path ───────────────────────────────────────────
+    function isAncestorPath(ancestor, target) {
+      return target === ancestor || target.startsWith(ancestor + '.') || target.startsWith(ancestor + '[');
+    }
+
+    function scrollToPath(path) {
+      if (treeSection.style.display === 'none') return;
+
+      // Expand only ancestors of the target path, leaving everything else as-is
+      [leftTreeEl, rightTreeEl].forEach(container => {
+        container.querySelectorAll('.toggle-btn:not(.leaf)').forEach(btn => {
+          if (btn.textContent !== '▶') return;
+          const row = btn.closest('[data-path]');
+          if (row && isAncestorPath(row.dataset.path, path)) btn.click();
+        });
+      });
+
+      [leftTreeEl, rightTreeEl].forEach(container => {
+        const rows = container.querySelectorAll('[data-path]');
+        const row = Array.from(rows).find(r => r.dataset.path === path);
+        if (!row) return;
+        row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        row.style.outline = '2px solid #f59e0b';
+        row.style.borderRadius = '3px';
+        setTimeout(() => { row.style.outline = ''; row.style.borderRadius = ''; }, 1200);
+      });
+    }
+
+    // ── Search ───────────────────────────────────────────────────
+    let searchMatches = [];
+    let searchCurrent = -1;
+    let searchCollapsedSnapshot = null;
+
+    function captureCollapsed() {
+      const snap = { left: new Set(), right: new Set() };
+      [[leftTreeEl, 'left'], [rightTreeEl, 'right']].forEach(([container, side]) => {
+        container.querySelectorAll('.toggle-btn:not(.leaf)').forEach(btn => {
+          if (btn.textContent === '▶') {
+            const row = btn.closest('[data-path]');
+            if (row) snap[side].add(row.dataset.path);
+          }
+        });
+      });
+      return snap;
+    }
+
+    function restoreCollapsed(snap) {
+      [[leftTreeEl, 'left'], [rightTreeEl, 'right']].forEach(([container, side]) => {
+        container.querySelectorAll('.toggle-btn:not(.leaf)').forEach(btn => {
+          if (btn.textContent === '▼') {
+            const row = btn.closest('[data-path]');
+            if (row && snap[side].has(row.dataset.path)) btn.click();
+          }
+        });
+      });
+    }
+
+    function openSearch() {
+      const bar = document.getElementById('search-bar');
+      bar.style.display = 'flex';
+      document.getElementById('search-input').select();
+      document.getElementById('search-input').focus();
+      if (!searchCollapsedSnapshot) searchCollapsedSnapshot = captureCollapsed();
+    }
+
+    function closeSearch() {
+      const bar = document.getElementById('search-bar');
+      if (!bar) return;
+      bar.style.display = 'none';
+      clearSearchHighlights();
+      searchMatches = [];
+      searchCurrent = -1;
+      document.getElementById('search-count').textContent = '';
+      if (searchCollapsedSnapshot) {
+        restoreCollapsed(searchCollapsedSnapshot);
+        searchCollapsedSnapshot = null;
+      }
+    }
+
+    function clearSearchHighlights() {
+      [diffSection, leftTreeEl, rightTreeEl].forEach(container => {
+        container.querySelectorAll('mark.sh').forEach(mark => {
+          const parent = mark.parentNode;
+          if (parent) {
+            parent.replaceChild(document.createTextNode(mark.textContent), mark);
+            parent.normalize();
+          }
+        });
+      });
+    }
+
+    function getTextNodes(container) {
+      const results = [];
+      const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+          if (node.parentElement && node.parentElement.classList.contains('line-num')) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      });
+      let node;
+      while ((node = walker.nextNode())) results.push(node);
+      return results;
+    }
+
+    function runSearch() {
+      clearSearchHighlights();
+      searchMatches = [];
+      searchCurrent = -1;
+
+      const query = document.getElementById('search-input').value;
+      const countEl = document.getElementById('search-count');
+
+      if (!query) { countEl.textContent = ''; return; }
+
+      // Snapshot collapsed state (if not already), then expand all so every node is searchable
+      if (!searchCollapsedSnapshot) searchCollapsedSnapshot = captureCollapsed();
+      [leftTreeEl, rightTreeEl].forEach(container => {
+        container.querySelectorAll('.toggle-btn:not(.leaf)').forEach(btn => {
+          if (btn.textContent === '▶') btn.click();
+        });
+      });
+
+      const lowerQuery = query.toLowerCase();
+      const containers = [diffSection, leftTreeEl, rightTreeEl].filter(
+        el => el.style.display !== 'none' && el.innerHTML
+      );
+
+      containers.forEach(container => {
+        getTextNodes(container).forEach(textNode => {
+          const text = textNode.textContent;
+          const lowerText = text.toLowerCase();
+          let idx = lowerText.indexOf(lowerQuery);
+          if (idx === -1) return;
+
+          const frag = document.createDocumentFragment();
+          let lastIdx = 0;
+
+          while (idx !== -1) {
+            if (idx > lastIdx) frag.appendChild(document.createTextNode(text.slice(lastIdx, idx)));
+            const mark = document.createElement('mark');
+            mark.className = 'sh';
+            mark.textContent = text.slice(idx, idx + query.length);
+            frag.appendChild(mark);
+            searchMatches.push(mark);
+            lastIdx = idx + query.length;
+            idx = lowerText.indexOf(lowerQuery, lastIdx);
+          }
+
+          if (lastIdx < text.length) frag.appendChild(document.createTextNode(text.slice(lastIdx)));
+          textNode.parentNode.replaceChild(frag, textNode);
+        });
+      });
+
+      if (searchMatches.length === 0) {
+        countEl.textContent = 'No matches';
+        countEl.className = 'text-[0.7rem] text-red-400 whitespace-nowrap select-none';
+        return;
+      }
+
+      countEl.className = 'text-[0.7rem] text-gray-500 whitespace-nowrap select-none';
+      searchCurrent = 0;
+      updateSearchActive();
+    }
+
+    function updateSearchActive() {
+      searchMatches.forEach((m, i) => {
+        m.className = i === searchCurrent ? 'sh sh-active' : 'sh';
+      });
+      const active = searchMatches[searchCurrent];
+      if (active) active.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      document.getElementById('search-count').textContent =
+        `${searchCurrent + 1} / ${searchMatches.length}`;
+    }
+
+    function navigateSearch(dir) {
+      if (searchMatches.length === 0) return;
+      searchCurrent = (searchCurrent + dir + searchMatches.length) % searchMatches.length;
+      updateSearchActive();
+    }
+
+    function onSearchKey(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        navigateSearch(e.shiftKey ? -1 : 1);
+      } else if (e.key === 'Escape') {
+        closeSearch();
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        openSearch();
+      }
+    });
+
+    leftEl.focus();
+  </script>
+</body>
+</html>
