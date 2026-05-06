@@ -37,7 +37,7 @@ Current tools (all under `src/`):
 - Each tool page has a shared site header with a back-link to `index.html`.
 - Build output goes to `dist/` — do not commit this directory.
 - The `parcel-namer-no-hash` local plugin strips content hashes from output filenames so URLs stay stable.
-- **All JS is inlined into HTML at build time.** The Hub serves `.js` files as `application/octet-stream` with `nosniff`, which browsers refuse. `scripts/build.mjs` inlines every `.js` reference into its parent HTML after bundling so `dist/` contains only `.html` and `.css` files.
+- **All JS is inlined into HTML at build time.** `scripts/build.mjs` inlines every `.js` reference into its parent HTML after bundling so `dist/` contains only `.html` and `.css` files.
 
 ## Commands
 
@@ -45,16 +45,3 @@ Current tools (all under `src/`):
 npm run dev      # start dev server (watches all *.html)
 npm run build    # production build → dist/
 ```
-
-## Publishing to Wego Hub
-
-The site is hosted at `https://internal.wego.com/hub/apps/html-tools/`. Deploy by building first, then uploading the `dist/` output via the `/publish-to-wego-hub` skill.
-
-**Prerequisities:** `HUB_DEPLOY_TOKEN` must be set in the environment. If not, log in at `https://internal.wego.com/hub/auth/login` and create a token at `https://internal.wego.com/hub/tokens`.
-
-**Steps:**
-
-1. Build: `npm run build`
-2. Invoke the skill: `/publish-to-wego-hub html-tools` followed by every file in `dist/` — all `.html` files and all `.css` files. Run `ls dist/` first to get the exact list; do not skip any file. There are no `.js` files in `dist/` — all JS is inlined into the HTML at build time.
-
-The slug `html-tools` is already claimed — always use it so URLs remain stable. Files are served at `https://internal.wego.com/hub/apps/html-tools/<filename>`.

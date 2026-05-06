@@ -2,8 +2,6 @@
 
 A collection of single-file browser-native utilities. All logic runs client-side — no backend, no accounts, no data leaves your browser.
 
-Hosted at: https://internal.wego.com/hub/apps/html-tools/
-
 ## Tools
 
 | Tool | Description |
@@ -32,7 +30,3 @@ Requires Node 24+ (see `.nvmrc`).
 ## Adding a new tool
 
 See [AGENTS.md](AGENTS.md) for the full checklist.
-
-## Deploying
-
-Build first, then publish via the `/publish-to-wego-hub` skill (see [AGENTS.md](AGENTS.md)).
