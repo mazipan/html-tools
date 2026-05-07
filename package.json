@@ -10,11 +10,11 @@
   },
   "license": "ISC",
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.2.2",
+    "@tailwindcss/postcss": "^4.2.4",
     "@tailwindcss/typography": "^0.5.19",
     "parcel": "^2.16.4",
     "parcel-namer-no-hash": "file:./parcel-namer-no-hash",
-    "tailwindcss": "^4.2.2",
+    "tailwindcss": "^4.2.4",
     "rimraf": "^6.1.3"
   },
   "packageManager": "npm@11.12.1",
