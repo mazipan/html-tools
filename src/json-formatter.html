@@ -14,7 +14,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗂️</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <style>
     mark.sh { background: #92400e; color: #fef3c7; border-radius: 2px; padding: 0 1px; }
@@ -27,6 +27,7 @@
       caret-color: #e5e7eb;
     }
   </style>
+<script>try{var _t=JSON.parse(localStorage.getItem("htmltools-theme")||"{}");if(_t.theme)document.documentElement.dataset.theme=_t.theme;if(_t.accent)document.documentElement.dataset.accent=_t.accent;}catch(e){}</script>
 </head>
 <body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
 
@@ -52,21 +53,9 @@
 
     <!-- Toolbar -->
     <div class="flex flex-wrap gap-2 items-center mb-4">
-      <button onclick="format()"
-              class="px-4 py-1.5 rounded-md border text-sm font-medium cursor-pointer transition-colors
-                     bg-green-800 border-green-600 text-white hover:bg-green-700">
-        Prettify
-      </button>
-      <button onclick="minify()"
-              class="px-4 py-1.5 rounded-md border text-sm font-medium cursor-pointer transition-colors
-                     bg-gray-800 border-gray-600 text-gray-200 hover:bg-gray-700 hover:border-blue-400">
-        Minify
-      </button>
-      <button onclick="clearAll()"
-              class="px-4 py-1.5 rounded-md border text-sm font-medium cursor-pointer transition-colors
-                     bg-transparent border-gray-600 text-red-400 hover:bg-gray-800 hover:border-red-400">
-        Clear
-      </button>
+      <button onclick="format()" class="btn btn-primary">Prettify</button>
+      <button onclick="minify()" class="btn btn-secondary">Minify</button>
+      <button onclick="clearAll()" class="btn btn-danger">Clear</button>
     </div>
 
     <!-- Panels -->
@@ -89,28 +78,12 @@
         <div class="flex items-center justify-between mb-2">
           <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Output</label>
           <div class="flex gap-1 items-center">
-            <button onclick="copyOutput()"
-                    class="px-2.5 py-0.5 text-[0.7rem] rounded border cursor-pointer transition-colors
-                           bg-gray-800 border-gray-600 text-gray-400 hover:border-blue-400 hover:text-gray-200">
-              Copy
-            </button>
+            <button onclick="copyOutput()" class="btn btn-secondary btn-sm">Copy</button>
             <span class="w-px h-3 bg-gray-700 mx-0.5"></span>
-            <button id="btn-tree" onclick="setView('tree')"
-                    class="px-2.5 py-0.5 text-[0.7rem] rounded border cursor-pointer transition-colors
-                           bg-blue-900/30 border-blue-400 text-blue-400">
-              Tree
-            </button>
-            <button id="btn-raw" onclick="setView('raw')"
-                    class="px-2.5 py-0.5 text-[0.7rem] rounded border cursor-pointer transition-colors
-                           bg-gray-800 border-gray-600 text-gray-400 hover:border-blue-400">
-              Raw
-            </button>
+            <button id="btn-tree" onclick="setView('tree')" class="btn btn-sm btn-active">Tree</button>
+            <button id="btn-raw" onclick="setView('raw')" class="btn btn-secondary btn-sm">Raw</button>
             <span class="w-px h-3 bg-gray-700 mx-0.5"></span>
-            <button onclick="openSearch()" title="Search (Ctrl+F / ⌘F)"
-                    class="px-2.5 py-0.5 text-[0.7rem] rounded border cursor-pointer transition-colors
-                           bg-gray-800 border-gray-600 text-gray-400 hover:border-blue-400 hover:text-gray-200">
-              Search
-            </button>
+            <button onclick="openSearch()" title="Search (Ctrl+F / ⌘F)" class="btn btn-secondary btn-sm">Search</button>
           </div>
         </div>
 
@@ -122,14 +95,10 @@
                  onkeydown="onSearchKey(event)"
                  class="flex-1 bg-transparent text-gray-200 font-mono text-[0.78rem] outline-none placeholder-gray-600 min-w-0">
           <span id="search-count" class="text-[0.7rem] text-gray-500 whitespace-nowrap select-none"></span>
-          <button onclick="navigateSearch(-1)" title="Previous (Shift+Enter)"
-                  class="px-1.5 py-0.5 text-[0.7rem] rounded border cursor-pointer transition-colors
-                         bg-gray-800 border-gray-600 text-gray-400 hover:border-blue-400 hover:text-gray-200">↑</button>
-          <button onclick="navigateSearch(1)" title="Next (Enter)"
-                  class="px-1.5 py-0.5 text-[0.7rem] rounded border cursor-pointer transition-colors
-                         bg-gray-800 border-gray-600 text-gray-400 hover:border-blue-400 hover:text-gray-200">↓</button>
+          <button onclick="navigateSearch(-1)" title="Previous (Shift+Enter)" class="btn btn-secondary btn-sm">↑</button>
+          <button onclick="navigateSearch(1)" title="Next (Enter)" class="btn btn-secondary btn-sm">↓</button>
           <button onclick="closeSearch()" title="Close (Esc)"
-                  class="px-1.5 py-0.5 text-[0.7rem] rounded border cursor-pointer transition-colors
+                  class="btn btn-danger btn-sm
                          bg-gray-800 border-gray-600 text-gray-400 hover:border-red-400 hover:text-red-400">✕</button>
         </div>
 
@@ -158,17 +127,10 @@
       currentView = v;
       const treeBtn = document.getElementById('btn-tree');
       const rawBtn  = document.getElementById('btn-raw');
-      treeBtn.className = treeBtn.className.replace(/bg-gray-800 border-gray-600 text-gray-400/, '')
-                                            .replace(/bg-blue-900\/30 border-blue-400 text-blue-400/, '');
-      rawBtn.className  = rawBtn.className.replace(/bg-gray-800 border-gray-600 text-gray-400/, '')
-                                           .replace(/bg-blue-900\/30 border-blue-400 text-blue-400/, '');
-      if (v === 'tree') {
-        treeBtn.className += ' bg-blue-900/30 border-blue-400 text-blue-400';
-        rawBtn.className  += ' bg-gray-800 border-gray-600 text-gray-400';
-      } else {
-        rawBtn.className  += ' bg-blue-900/30 border-blue-400 text-blue-400';
-        treeBtn.className += ' bg-gray-800 border-gray-600 text-gray-400';
-      }
+      treeBtn.classList.toggle('btn-active', v === 'tree');
+      treeBtn.classList.toggle('btn-secondary', v !== 'tree');
+      rawBtn.classList.toggle('btn-active', v === 'raw');
+      rawBtn.classList.toggle('btn-secondary', v !== 'raw');
       renderOutput();
     }
 
@@ -515,9 +477,10 @@
   </div>
 
   <footer class="max-w-[1100px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
-    &copy; <span id="year"></span> Irfan Maulana<span id="deploy-time"></span>
+    &copy; <span id="year"></span> Irfan Maulana &amp; Claude<br><span id="deploy-time"></span>
   </footer>
 
-  <script>document.getElementById("year").textContent=new Date().getFullYear();var _bt="__BUILD_TIME__";if(_bt){document.getElementById("deploy-time").textContent=" · Deployed "+new Date(_bt).toLocaleString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit",timeZoneName:"short"});}</script>
+  <script>document.getElementById("year").textContent=new Date().getFullYear();var _bt="__BUILD_TIME__";if(_bt){document.getElementById("deploy-time").textContent="Deployed "+new Date(_bt).toLocaleString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit",timeZoneName:"short"});}</script>
+  <script src="./theme.js"></script>
 </body>
 </html>

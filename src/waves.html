@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wave Generator — HTML Tools</title>
+  <meta name="description" content="Generate SVG wave dividers for your web projects — single or stacked layers, fully customizable.">
+  <meta property="og:title" content="Wave Generator — HTML Tools">
+  <meta property="og:description" content="Generate SVG wave dividers for your web projects — single or stacked layers, fully customizable.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Wave Generator — HTML Tools">
+  <meta name="twitter:description" content="Generate SVG wave dividers for your web projects — single or stacked layers, fully customizable.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>〰️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:#374151;outline:none;cursor:pointer;width:100%}
+    input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent,#6366f1);cursor:pointer;transition:background .15s}
+    input[type=range]::-webkit-slider-thumb:hover{background:var(--accent-h,#818cf8)}
+    input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--accent,#6366f1);cursor:pointer;border:none}
+    input[type=color]{-webkit-appearance:none;appearance:none;border:none;padding:0;cursor:pointer;border-radius:4px;width:32px;height:32px;background:none}
+    input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+    input[type=color]::-webkit-color-swatch{border:none;border-radius:4px}
+    .checker{background:repeating-conic-gradient(#111827 0% 25%,#0f172a 0% 50%) 0 0/20px 20px}
+  </style>
+<script>try{var _t=JSON.parse(localStorage.getItem("htmltools-theme")||"{}");if(_t.theme)document.documentElement.dataset.theme=_t.theme;if(_t.accent)document.documentElement.dataset.accent=_t.accent;}catch(e){}</script>
+</head>
+<body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+
+  <header class="border-b border-gray-800 px-6 py-4">
+    <div class="max-w-[1400px] mx-auto flex items-center gap-3">
+      <a href="index.html" class="no-underline text-white font-bold text-lg tracking-tight hover:text-blue-400 transition-colors">HTML Tools</a>
+      <span class="text-gray-700">/</span>
+      <span class="text-gray-400 text-sm">〰️ Wave Generator</span>
+    </div>
+  </header>
+
+  <div class="max-w-[1400px] mx-auto w-full flex-1 py-8 px-6">
+
+    <header class="mb-7">
+      <h1 class="text-3xl font-bold text-white flex items-center gap-3">〰️ Wave Generator</h1>
+      <p class="mt-1.5 text-sm text-gray-500">Generate SVG wave dividers — single wave or stacked layers.</p>
+    </header>
+
+    <!-- Aspect ratio -->
+    <div class="flex items-center gap-3 mb-5">
+      <span class="text-xs text-gray-500 shrink-0">Aspect ratio</span>
+      <select id="aspect-ratio" class="bg-gray-900 border border-gray-700 text-xs text-gray-300 rounded-lg px-2 py-1.5 outline-none hover:border-gray-600 focus:border-blue-400 cursor-pointer">
+        <option value="1440x320">1440 × 320 — Wide banner</option>
+        <option value="1920x1080">1920 × 1080 — Full HD</option>
+        <option value="1440x560">1440 × 560 — Tall banner</option>
+        <option value="1200x400">1200 × 400 — Medium</option>
+        <option value="800x600">800 × 600 — Square-ish</option>
+      </select>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-1 mb-6 border-b border-gray-800">
+      <button id="tab-single" class="tab-btn tab-btn-active">Single Wave</button>
+      <button id="tab-stacked" class="tab-btn">Stacked Waves</button>
+    </div>
+
+    <!-- ── SINGLE WAVE PANEL ──────────────────────────────────────── -->
+    <div id="panel-single">
+      <div class="flex flex-col lg:flex-row gap-6">
+
+        <!-- Preview + code output -->
+        <div class="flex-1 flex flex-col gap-5 min-w-0">
+
+          <div class="checker rounded-xl border border-gray-800 overflow-hidden">
+            <svg id="sw-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" style="display:block;width:100%;height:auto">
+              <path id="sw-path"/>
+            </svg>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">SVG Output</span>
+              <div class="flex gap-2">
+                <button id="sw-copy" class="btn btn-secondary btn-sm">Copy SVG</button>
+                <button id="sw-dl"   class="btn btn-secondary btn-sm">Download</button>
+              </div>
+            </div>
+            <pre id="sw-code" class="bg-gray-900 border border-gray-800 rounded-lg p-4 text-xs text-green-400 font-mono overflow-x-auto whitespace-pre leading-relaxed max-h-36 overflow-y-auto"></pre>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="w-full lg:w-64 shrink-0 space-y-4">
+
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Shape</div>
+            <div class="space-y-3">
+
+              <div>
+                <div class="flex justify-between mb-1.5">
+                  <label class="text-xs text-gray-400">Position</label>
+                  <span id="sw-pos-val" class="text-xs text-gray-500 tabular-nums">50%</span>
+                </div>
+                <input type="range" id="sw-pos" min="15" max="85" value="50">
+              </div>
+
+              <button id="sw-reseed" class="btn btn-secondary w-full">🔀 Shuffle</button>
+
+            </div>
+          </div>
+
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Color</div>
+            <div class="space-y-3">
+
+              <div class="flex items-center gap-3">
+                <label class="text-xs text-gray-400 w-14 shrink-0">Fill</label>
+                <input type="color" id="sw-color" value="#6366f1">
+              </div>
+
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="sw-use-grad" class="accent-blue-400 cursor-pointer">
+                <span class="text-xs text-gray-400">Gradient fill</span>
+              </label>
+
+              <div id="sw-grad-row" class="flex items-center gap-3" style="display:none">
+                <label class="text-xs text-gray-400 w-14 shrink-0">To</label>
+                <input type="color" id="sw-color2" value="#a855f7">
+              </div>
+
+              <div class="pt-1">
+                <div class="text-xs text-gray-600 mb-2">Presets</div>
+                <div id="sw-palettes" class="grid grid-cols-5 gap-1.5"></div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STACKED WAVES PANEL ────────────────────────────────────── -->
+    <div id="panel-stacked" style="display:none">
+      <div class="flex flex-col lg:flex-row gap-6">
+
+        <!-- Preview + code output -->
+        <div class="flex-1 flex flex-col gap-5 min-w-0">
+
+          <div class="checker rounded-xl border border-gray-800 overflow-hidden">
+            <svg id="st-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" style="display:block;width:100%;height:auto">
+              <g id="st-group"></g>
+            </svg>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">SVG Output</span>
+              <div class="flex gap-2">
+                <button id="st-copy" class="btn btn-secondary btn-sm">Copy SVG</button>
+                <button id="st-dl"   class="btn btn-secondary btn-sm">Download</button>
+              </div>
+            </div>
+            <pre id="st-code" class="bg-gray-900 border border-gray-800 rounded-lg p-4 text-xs text-green-400 font-mono overflow-x-auto whitespace-pre leading-relaxed max-h-36 overflow-y-auto"></pre>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="w-full lg:w-64 shrink-0 space-y-4">
+
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Shape</div>
+            <div class="space-y-3">
+
+              <div>
+                <div class="flex justify-between mb-1.5">
+                  <label class="text-xs text-gray-400">Layers</label>
+                  <span id="st-layers-val" class="text-xs text-gray-500 tabular-nums">4</span>
+                </div>
+                <input type="range" id="st-layers" min="2" max="6" value="4">
+              </div>
+
+              <div>
+                <div class="flex justify-between mb-1.5">
+                  <label class="text-xs text-gray-400">Shift</label>
+                  <span id="st-pos-val" class="text-xs text-gray-500 tabular-nums">50%</span>
+                </div>
+                <input type="range" id="st-pos" min="0" max="100" value="50">
+              </div>
+
+              <button id="st-reseed" class="btn btn-secondary w-full">🔀 Shuffle</button>
+
+            </div>
+          </div>
+
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Colors</div>
+            <div class="space-y-3">
+
+              <div id="st-layer-colors" class="space-y-2"></div>
+
+              <div class="pt-1">
+                <div class="text-xs text-gray-600 mb-2">Presets</div>
+                <div id="st-palettes" class="grid grid-cols-5 gap-1.5"></div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg bg-gray-800 border border-gray-600 text-sm text-gray-200 shadow-lg transition-all duration-200 opacity-0 translate-y-2 pointer-events-none select-none z-50"></div>
+
+  <footer class="max-w-[1400px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
+    &copy; <span id="year"></span> Irfan Maulana &amp; Claude<br><span id="deploy-time"></span>
+  </footer>
+
+  <script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+  var _bt = '__BUILD_TIME__';
+  if (_bt) { document.getElementById('deploy-time').textContent = 'Deployed ' + new Date(_bt).toLocaleString('en-US', {month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}); }
+
+  let W = 1440, H = 320;
+  const NS = 'http://www.w3.org/2000/svg';
+
+  let swSeed = (Math.random() * 99999) | 0;
+  let stSeed = (Math.random() * 99999) | 0;
+
+  // ── Core ──────────────────────────────────────────────────────────────────────
+
+  function seededRNG(seed) {
+    let s = seed;
+    return () => {
+      s = (Math.imul(1664525, s) + 1013904223) | 0;
+      return (s >>> 0) / 4294967296;
+    };
+  }
+
+  // phase: 0–1 fraction of one wavelength to shift horizontally (per-layer offset)
+  function wavePath(amp, freq, yPos, flip, randomness, seed, phase) {
+    const step = W / freq;
+    const dir  = flip ? -1 : 1;
+    const r    = (randomness || 0) / 100;
+    const rng  = seededRNG(seed || 0);
+    const px   = ((phase || 0) % 1) * step;  // pixel shift (0 → step)
+    const segs = freq + 1;                    // one extra segment covers the overhang
+
+    // Anchor y-positions: edges locked to yPos, interior shifted by randomness
+    const ys = [yPos];
+    for (let i = 1; i < segs; i++) {
+      ys.push(yPos + (rng() * 2 - 1) * amp * r);
+    }
+    ys.push(yPos);
+
+    const x0 = f(-px);
+    let d = `M ${x0} ${f(ys[0])}`;
+    for (let i = 0; i < segs; i++) {
+      const x  = -px + i * step;
+      const y0 = ys[i], y1 = ys[i + 1];
+      // Control points always sinusoidal — randomness only moves anchors, never flattens the wave
+      const cp1 = y0 + dir * amp;
+      const cp2 = y1 - dir * amp;
+      d += ` C ${f(x + step/4)} ${f(cp1)} ${f(x + 3*step/4)} ${f(cp2)} ${f(x + step)} ${f(y1)}`;
+    }
+    d += ` L ${f(-px + segs * step)} ${H} L ${x0} ${H} Z`;
+    return d;
+  }
+
+  function f(n) { return +n.toFixed(2); }
+
+  function lerpColor(a, b, t) {
+    const p = c => [parseInt(c.slice(1,3),16), parseInt(c.slice(3,5),16), parseInt(c.slice(5,7),16)];
+    const [ar,ag,ab] = p(a), [br,bg,bb] = p(b);
+    return '#' + [ar+(br-ar)*t, ag+(bg-ag)*t, ab+(bb-ab)*t]
+      .map(v => Math.round(v).toString(16).padStart(2,'0')).join('');
+  }
+
+  function serializeSVG(svgEl) {
+    return new XMLSerializer().serializeToString(svgEl)
+      .replace(/ xmlns:xlink="[^"]*"/g, '')
+      .replace(/ xmlns="[^"]*"(?= )/g, '')
+      .replace(/(<(?:path|rect|defs|linearGradient|stop|g))/g, '\n  $1')
+      .replace(/(<\/(?:defs|svg|g)>)/g, '\n$1')
+      .replace(/^\s*\n/gm, '');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.remove('opacity-0','translate-y-2');
+    t.classList.add('opacity-100','translate-y-0');
+    setTimeout(() => { t.classList.add('opacity-0','translate-y-2'); t.classList.remove('opacity-100','translate-y-0'); }, 1600);
+  }
+
+  function copyCode(codeId, btn, filename) {
+    const code = document.getElementById(codeId).textContent;
+    navigator.clipboard.writeText(code).then(() => showToast('Copied!'));
+  }
+
+  function downloadSVG(codeId, filename) {
+    const code = document.getElementById(codeId).textContent;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([code], {type:'image/svg+xml'}));
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // ── Single Wave ───────────────────────────────────────────────────────────────
+
+  function renderSingle() {
+    const amp     = 60;
+    const freq    = 4;
+    const pos     = +$('sw-pos').value;
+    const useGrad = $('sw-use-grad').checked;
+    const col1    = $('sw-color').value;
+    const col2    = $('sw-color2').value;
+    const rand    = 60;
+
+    const svg  = $('sw-svg');
+    const path = $('sw-path');
+    const yPos = H * pos / 100;
+
+    // Gradient defs
+    let defs = svg.querySelector('defs');
+    if (useGrad) {
+      if (!defs) { defs = document.createElementNS(NS, 'defs'); svg.insertBefore(defs, path); }
+      defs.innerHTML = `<linearGradient id="sw-grad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="${col1}"/><stop offset="100%" stop-color="${col2}"/></linearGradient>`;
+      path.setAttribute('fill', 'url(#sw-grad)');
+    } else {
+      if (defs) defs.remove();
+      path.setAttribute('fill', col1);
+    }
+
+    path.setAttribute('d', wavePath(amp, freq, yPos, false, rand, swSeed));
+    $('sw-code').textContent = serializeSVG(svg);
+  }
+
+  // ── Stacked Waves ─────────────────────────────────────────────────────────────
+
+  const ST_STEPS   = 14;   // coarse Catmull-Rom control points per wave
+  const ST_DENSITY = 5;    // sub-samples per coarse step → smooth curve
+
+  // Generate dense (x, y) points for one wave line using Catmull-Rom
+  function genWavePts(yPos, amp, r, seed, flip) {
+    const rng = seededRNG(seed);
+    const dir = flip ? -1 : 1;
+    // Coarse anchors (first and last locked to yPos)
+    const coarse = [yPos];
+    for (let i = 1; i < ST_STEPS; i++) {
+      coarse.push(yPos + dir * (rng() * 2 - 1) * amp * r);
+    }
+    coarse.push(yPos);
+
+    const total = ST_STEPS * ST_DENSITY;
+    const pts = [];
+    for (let i = 0; i <= total; i++) {
+      const t   = (i / total) * ST_STEPS;
+      const seg = Math.min(Math.floor(t), ST_STEPS - 1);
+      const u   = t - seg;
+      const p0  = coarse[Math.max(0, seg - 1)];
+      const p1  = coarse[seg];
+      const p2  = coarse[seg + 1];
+      const p3  = coarse[Math.min(ST_STEPS, seg + 2)];
+      const u2  = u * u, u3 = u2 * u;
+      const y   = 0.5 * (2*p1 + (-p0+p2)*u + (2*p0-5*p1+4*p2-p3)*u2 + (-p0+3*p1-3*p2+p3)*u3);
+      pts.push([f(i * W / total), f(y)]);
+    }
+    return pts;
+  }
+
+  // Band path between two wave point arrays (traced forward along top, reverse along bottom)
+  function bandPath(topPts, botPts) {
+    let d = `M ${topPts[0][0]} ${topPts[0][1]}`;
+    for (let i = 1; i < topPts.length; i++) d += ` L ${topPts[i][0]} ${topPts[i][1]}`;
+    d += ` L ${botPts[botPts.length-1][0]} ${botPts[botPts.length-1][1]}`;
+    for (let i = botPts.length - 2; i >= 0; i--) d += ` L ${botPts[i][0]} ${botPts[i][1]}`;
+    return d + ' Z';
+  }
+
+  function flatLine(y) {
+    return [[0, f(y)], [f(W), f(y)]];
+  }
+
+  function getLayerColors(layers) {
+    const colors = [];
+    for (let i = 0; i < layers; i++) {
+      const el = $(`st-lc-${i}`);
+      colors.push(el ? el.value : '#6366f1');
+    }
+    return colors;
+  }
+
+  const LAYER_LABELS = ['Top','2nd','3rd','4th','5th','6th','7th','8th','9th','Bottom'];
+
+  function buildLayerColorInputs(layers, preserve) {
+    const container = $('st-layer-colors');
+    const existing = Array.from(container.querySelectorAll('input[type="color"]')).map(el => el.value);
+    container.innerHTML = '';
+    for (let i = 0; i < layers; i++) {
+      const defaultColor = lerpColor('#c4b5fd', '#3730a3', i / Math.max(layers - 1, 1));
+      const color = (preserve && existing[i]) ? existing[i] : defaultColor;
+      const row = document.createElement('div');
+      row.className = 'flex items-center gap-3';
+      row.innerHTML = `<label class="text-xs text-gray-400 w-14 shrink-0">${LAYER_LABELS[i] || 'Layer '+(i+1)}</label><input type="color" id="st-lc-${i}" value="${color}">`;
+      row.querySelector('input').addEventListener('input', renderStacked);
+      container.appendChild(row);
+    }
+  }
+
+  function renderStacked() {
+    const layers = +$('st-layers').value;
+    const pos    = +$('st-pos').value;
+    const colors = getLayerColors(layers);
+
+    const svg   = $('st-svg');
+    const group = $('st-group');
+    group.innerHTML = '';
+
+    // N layers → N-1 internal dividing wave lines, equally spaced across the full height
+    // pos shifts all wave lines up/down together
+    const spacing = H / layers;
+    const shift   = (pos / 100 - 0.5) * spacing * 0.6;  // ±shift from equal distribution
+    const amp     = spacing * 0.45;
+    const r       = 0.8;
+
+    const waves = [];
+    for (let i = 0; i < layers - 1; i++) {
+      waves.push(genWavePts((i + 1) * spacing + shift, amp, r, stSeed + i * 7919, false));
+    }
+
+    // Draw N bands (each is a closed shape between two wave lines)
+    for (let i = 0; i < layers; i++) {
+      const top = (i === 0)          ? flatLine(0) : waves[i - 1];
+      const bot = (i === layers - 1) ? flatLine(H) : waves[i];
+      const path = document.createElementNS(NS, 'path');
+      path.setAttribute('fill', colors[i] || '#6366f1');
+      path.setAttribute('d', bandPath(top, bot));
+      group.appendChild(path);
+    }
+
+    $('st-code').textContent = serializeSVG(svg);
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────────
+
+  function $(id) { return document.getElementById(id); }
+
+  function bindRange(id, suffix, cb) {
+    const el = $(id), val = $(id + '-val');
+    el.addEventListener('input', () => { val.textContent = el.value + (suffix||''); cb(); });
+  }
+
+  function bindCheck(id, cb) { $(id).addEventListener('change', cb); }
+  function bindColor(id, cb) { $(id).addEventListener('input', cb); }
+
+  function toggleRow(rowId, state) {
+    $(rowId).style.display = state ? '' : 'none';
+  }
+
+  // ── Wire up Single ────────────────────────────────────────────────────────────
+
+  bindRange('sw-pos', '%', renderSingle);
+
+  bindCheck('sw-use-grad', () => { toggleRow('sw-grad-row', $('sw-use-grad').checked); renderSingle(); });
+
+  ['sw-color','sw-color2'].forEach(id => bindColor(id, renderSingle));
+
+  $('sw-reseed').addEventListener('click', () => { swSeed = (Math.random() * 99999) | 0; renderSingle(); });
+
+  $('sw-copy').addEventListener('click', () => copyCode('sw-code'));
+  $('sw-dl').addEventListener('click',   () => downloadSVG('sw-code', 'wave.svg'));
+
+  // ── Stacked palettes ──────────────────────────────────────────────────────────
+
+  // c1 = top (light), c2 = bottom (dark)
+  const PALETTES = [
+    { name: 'Indigo',  c1: '#e0e7ff', c2: '#3730a3' },
+    { name: 'Ocean',   c1: '#bfdbfe', c2: '#1e40af' },
+    { name: 'Sky',     c1: '#bae6fd', c2: '#0c4a6e' },
+    { name: 'Teal',    c1: '#99f6e4', c2: '#134e4a' },
+    { name: 'Forest',  c1: '#bbf7d0', c2: '#14532d' },
+    { name: 'Lime',    c1: '#d9f99d', c2: '#365314' },
+    { name: 'Amber',   c1: '#fde68a', c2: '#78350f' },
+    { name: 'Sunset',  c1: '#fed7aa', c2: '#9a3412' },
+    { name: 'Rose',    c1: '#ffe4e6', c2: '#881337' },
+    { name: 'Slate',   c1: '#cbd5e1', c2: '#1e293b' },
+  ];
+
+  (function buildSinglePalettes() {
+    const grid = $('sw-palettes');
+    PALETTES.forEach(function(p) {
+      const btn = document.createElement('button');
+      btn.title = p.name;
+      btn.style.cssText = `background:linear-gradient(to right,${p.c1},${p.c2});width:100%;aspect-ratio:1;border-radius:6px;border:2px solid transparent;cursor:pointer;transition:border-color .15s,transform .15s`;
+      btn.addEventListener('mouseenter', () => btn.style.transform = 'scale(1.12)');
+      btn.addEventListener('mouseleave', () => btn.style.transform = '');
+      btn.addEventListener('click', () => {
+        $('sw-color').value  = p.c1;
+        $('sw-color2').value = p.c2;
+        grid.querySelectorAll('button').forEach(b => b.style.borderColor = 'transparent');
+        btn.style.borderColor = '#f9fafb';
+        renderSingle();
+      });
+      grid.appendChild(btn);
+    });
+  })();
+
+  (function buildPalettes() {
+    const grid = $('st-palettes');
+    PALETTES.forEach(function(p) {
+      const btn = document.createElement('button');
+      btn.title = p.name;
+      btn.style.cssText = `background:linear-gradient(to bottom right,${p.c1},${p.c2});width:100%;aspect-ratio:1;border-radius:6px;border:2px solid transparent;cursor:pointer;transition:border-color .15s,transform .15s`;
+      btn.addEventListener('mouseenter', () => btn.style.transform = 'scale(1.12)');
+      btn.addEventListener('mouseleave', () => btn.style.transform = '');
+      btn.addEventListener('click', () => {
+        const layers = +$('st-layers').value;
+        $('st-layer-colors').querySelectorAll('input[type="color"]').forEach((inp, i) => {
+          inp.value = lerpColor(p.c1, p.c2, i / Math.max(layers - 1, 1));
+        });
+        grid.querySelectorAll('button').forEach(b => b.style.borderColor = 'transparent');
+        btn.style.borderColor = '#f9fafb';
+        renderStacked();
+      });
+      grid.appendChild(btn);
+    });
+  })();
+
+  // ── Wire up Stacked ───────────────────────────────────────────────────────────
+
+  bindRange('st-layers', '', () => { buildLayerColorInputs(+$('st-layers').value, true); renderStacked(); });
+  bindRange('st-pos',    '%', renderStacked);
+
+
+  $('st-reseed').addEventListener('click', () => { stSeed = (Math.random() * 99999) | 0; renderStacked(); });
+
+  $('st-copy').addEventListener('click', () => copyCode('st-code'));
+  $('st-dl').addEventListener('click',   () => downloadSVG('st-code', 'waves.svg'));
+
+  // ── Tabs ──────────────────────────────────────────────────────────────────────
+
+  function switchTab(name) {
+    const isSingle = name === 'single';
+    $('tab-single').classList.toggle('tab-btn-active', isSingle);
+    $('tab-stacked').classList.toggle('tab-btn-active', !isSingle);
+    $('panel-single').style.display  = isSingle ? '' : 'none';
+    $('panel-stacked').style.display = isSingle ? 'none' : '';
+  }
+
+  $('tab-single').addEventListener('click',  () => switchTab('single'));
+  $('tab-stacked').addEventListener('click', () => switchTab('stacked'));
+
+  // ── Aspect ratio ─────────────────────────────────────────────────────────────
+
+  const ASPECT_RATIOS = {
+    '1440x320':  { w: 1440, h: 320  },
+    '1920x1080': { w: 1920, h: 1080 },
+    '1440x560':  { w: 1440, h: 560  },
+    '1200x400':  { w: 1200, h: 400  },
+    '800x600':   { w: 800,  h: 600  },
+  };
+
+  $('aspect-ratio').addEventListener('change', () => {
+    const { w, h } = ASPECT_RATIOS[$('aspect-ratio').value];
+    W = w; H = h;
+    ['sw-svg', 'st-svg'].forEach(id => $(id).setAttribute('viewBox', `0 0 ${W} ${H}`));
+    renderSingle();
+    renderStacked();
+  });
+
+  // ── Init ──────────────────────────────────────────────────────────────────────
+
+  buildLayerColorInputs(+$('st-layers').value, false);
+  renderSingle();
+  renderStacked();
+  </script>
+  <script src="./theme.js"></script>
+</body>
+</html>

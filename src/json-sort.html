@@ -14,8 +14,9 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔤</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+<script>try{var _t=JSON.parse(localStorage.getItem("htmltools-theme")||"{}");if(_t.theme)document.documentElement.dataset.theme=_t.theme;if(_t.accent)document.documentElement.dataset.accent=_t.accent;}catch(e){}</script>
 </head>
 <body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
 
@@ -41,22 +42,10 @@
 
     <!-- Toolbar -->
     <div class="flex flex-wrap gap-2 items-center mb-4">
-      <button id="btn-asc" onclick="setOrder('asc')"
-              class="px-4 py-1.5 rounded-md border text-sm font-medium cursor-pointer transition-colors
-                     bg-blue-900/30 border-blue-400 text-blue-400">
-        A → Z
-      </button>
-      <button id="btn-desc" onclick="setOrder('desc')"
-              class="px-4 py-1.5 rounded-md border text-sm font-medium cursor-pointer transition-colors
-                     bg-gray-800 border-gray-600 text-gray-200 hover:bg-gray-700 hover:border-blue-400">
-        Z → A
-      </button>
+      <button id="btn-asc" onclick="setOrder('asc')" class="btn btn-active">A → Z</button>
+      <button id="btn-desc" onclick="setOrder('desc')" class="btn btn-secondary">Z → A</button>
       <div class="w-px h-5 bg-gray-700 mx-1"></div>
-      <button onclick="clearAll()"
-              class="px-4 py-1.5 rounded-md border text-sm font-medium cursor-pointer transition-colors
-                     bg-transparent border-gray-600 text-red-400 hover:bg-gray-800 hover:border-red-400">
-        Clear
-      </button>
+      <button onclick="clearAll()" class="btn btn-danger">Clear</button>
     </div>
 
     <!-- Panels -->
@@ -79,22 +68,10 @@
         <div class="flex items-center justify-between mb-2">
           <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Output</label>
           <div class="flex gap-1 items-center">
-            <button onclick="copyOutput()"
-                    class="px-2.5 py-0.5 text-[0.7rem] rounded border cursor-pointer transition-colors
-                           bg-gray-800 border-gray-600 text-gray-400 hover:border-blue-400 hover:text-gray-200">
-              Copy
-            </button>
+            <button onclick="copyOutput()" class="btn btn-secondary btn-sm">Copy</button>
             <span class="w-px h-3 bg-gray-700 mx-0.5"></span>
-            <button id="btn-tree" onclick="setView('tree')"
-                    class="px-2.5 py-0.5 text-[0.7rem] rounded border cursor-pointer transition-colors
-                           bg-blue-900/30 border-blue-400 text-blue-400">
-              Tree
-            </button>
-            <button id="btn-raw" onclick="setView('raw')"
-                    class="px-2.5 py-0.5 text-[0.7rem] rounded border cursor-pointer transition-colors
-                           bg-gray-800 border-gray-600 text-gray-400 hover:border-blue-400">
-              Raw
-            </button>
+            <button id="btn-tree" onclick="setView('tree')" class="btn btn-sm btn-active">Tree</button>
+            <button id="btn-raw" onclick="setView('raw')" class="btn btn-secondary btn-sm">Raw</button>
           </div>
         </div>
         <div id="output"
@@ -123,10 +100,10 @@
       sortOrder = order;
       const ascBtn  = document.getElementById('btn-asc');
       const descBtn = document.getElementById('btn-desc');
-      const active   = 'bg-blue-900/30 border-blue-400 text-blue-400';
-      const inactive = 'bg-gray-800 border-gray-600 text-gray-200 hover:bg-gray-700 hover:border-blue-400';
-      ascBtn.className  = ascBtn.className.replace(order === 'asc'  ? inactive : active, order === 'asc'  ? active : inactive);
-      descBtn.className = descBtn.className.replace(order === 'desc' ? inactive : active, order === 'desc' ? active : inactive);
+      ascBtn.classList.toggle('btn-active', order === 'asc');
+      ascBtn.classList.toggle('btn-secondary', order !== 'asc');
+      descBtn.classList.toggle('btn-active', order === 'desc');
+      descBtn.classList.toggle('btn-secondary', order !== 'desc');
       sort();
     }
 
@@ -135,17 +112,10 @@
       currentView = v;
       const treeBtn = document.getElementById('btn-tree');
       const rawBtn  = document.getElementById('btn-raw');
-      treeBtn.className = treeBtn.className.replace(/bg-gray-800 border-gray-600 text-gray-400/, '')
-                                            .replace(/bg-blue-900\/30 border-blue-400 text-blue-400/, '');
-      rawBtn.className  = rawBtn.className.replace(/bg-gray-800 border-gray-600 text-gray-400/, '')
-                                           .replace(/bg-blue-900\/30 border-blue-400 text-blue-400/, '');
-      if (v === 'tree') {
-        treeBtn.className += ' bg-blue-900/30 border-blue-400 text-blue-400';
-        rawBtn.className  += ' bg-gray-800 border-gray-600 text-gray-400';
-      } else {
-        rawBtn.className  += ' bg-blue-900/30 border-blue-400 text-blue-400';
-        treeBtn.className += ' bg-gray-800 border-gray-600 text-gray-400';
-      }
+      treeBtn.classList.toggle('btn-active', v === 'tree');
+      treeBtn.classList.toggle('btn-secondary', v !== 'tree');
+      rawBtn.classList.toggle('btn-active', v === 'raw');
+      rawBtn.classList.toggle('btn-secondary', v !== 'raw');
       renderOutput();
     }
 
@@ -364,9 +334,10 @@
   </script>
 
   <footer class="max-w-[1100px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
-    &copy; <span id="year"></span> Irfan Maulana<span id="deploy-time"></span>
+    &copy; <span id="year"></span> Irfan Maulana &amp; Claude<br><span id="deploy-time"></span>
   </footer>
 
-  <script>document.getElementById("year").textContent=new Date().getFullYear();var _bt="__BUILD_TIME__";if(_bt){document.getElementById("deploy-time").textContent=" · Deployed "+new Date(_bt).toLocaleString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit",timeZoneName:"short"});}</script>
+  <script>document.getElementById("year").textContent=new Date().getFullYear();var _bt="__BUILD_TIME__";if(_bt){document.getElementById("deploy-time").textContent="Deployed "+new Date(_bt).toLocaleString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit",timeZoneName:"short"});}</script>
+  <script src="./theme.js"></script>
 </body>
 </html>

@@ -14,8 +14,9 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎨</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+<script>try{var _t=JSON.parse(localStorage.getItem("htmltools-theme")||"{}");if(_t.theme)document.documentElement.dataset.theme=_t.theme;if(_t.accent)document.documentElement.dataset.accent=_t.accent;}catch(e){}</script>
 </head>
 <body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
 
@@ -47,7 +48,7 @@
   </div>
 
   <footer class="max-w-[1400px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
-    &copy; <span id="year"></span> Irfan Maulana<span id="deploy-time"></span>
+    &copy; <span id="year"></span> Irfan Maulana &amp; Claude<br><span id="deploy-time"></span>
   </footer>
 
   <script>
@@ -424,7 +425,7 @@
   function btn(label, handler) {
     const b = document.createElement('button');
     b.textContent = label;
-    b.className = 'px-2 py-0.5 text-[0.65rem] font-medium rounded border cursor-pointer transition-colors bg-gray-800 border-gray-600 text-gray-400 hover:border-blue-400 hover:text-gray-200';
+    b.className = 'btn btn-secondary btn-sm';
     if (handler) b.onclick = handler;
     return b;
   }
@@ -436,6 +437,7 @@
   grid.appendChild(frag);
   </script>
 
-  <script>document.getElementById("year").textContent=new Date().getFullYear();var _bt="__BUILD_TIME__";if(_bt){document.getElementById("deploy-time").textContent=" · Deployed "+new Date(_bt).toLocaleString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit",timeZoneName:"short"});}</script>
+  <script>document.getElementById("year").textContent=new Date().getFullYear();var _bt="__BUILD_TIME__";if(_bt){document.getElementById("deploy-time").textContent="Deployed "+new Date(_bt).toLocaleString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit",timeZoneName:"short"});}</script>
+  <script src="./theme.js"></script>
 </body>
 </html>

@@ -12,6 +12,8 @@ Current tools (all under `src/`):
 - `index.html` — landing page linking all tools
 - `json-sort.html` — sort JSON object keys alphabetically (A→Z or Z→A), recursively
 - `gradients.html` — curated gradient gallery (87 gradients); copy CSS/Tailwind or export PNG
+- `blob.html` — blob generator: CSS border-radius blobs (8-value syntax, animate) + SVG blobs (catmull-rom path, copy/download)
+- `waves.html` — wave generator: single SVG wave (amplitude, frequency, position, gradient fill) + stacked waves (layers, spacing, color interpolation); copy/download SVG
 - `json-utils.js` — shared JSON parsing/validation helpers used by the JSON tools (inlined into HTML at build time)
 
 ## Stack
@@ -26,9 +28,9 @@ Current tools (all under `src/`):
 1. Create a new `.html` file inside `src/` (e.g. `src/base64.html`) following the pattern of an existing tool.
 2. Include the shared site header at the top of `<body>` with a back-link to `index.html` — copy the header block from an existing tool.
 3. Include the shared footer at the bottom with `&copy; <span id="year"></span> Irfan Maulana<span id="deploy-time"></span>` and the matching inline footer script — copy the `<script>` block from an existing tool. It uses a `"__BUILD_TIME__"` placeholder that `scripts/build.mjs` replaces with the real ISO timestamp at build time.
-4. Add a card linking to it in `index.html` under the appropriate section (or create a new section), and update the "Current tools" list at the top of this file.
+4. Add a card linking to it in `index.html` under the appropriate section (or create a new section), update the "Current tools" list in `AGENTS.md`, and add a row for the new tool in the tools table in `README.md`.
 5. Use `<link rel="stylesheet" href="styles.css">` for shared styles.
-6. Keep all logic inline in a `<script>` tag at the bottom of the file.
+7. Keep all logic inline in a `<script>` tag at the bottom of the file.
 
 ## Conventions
 
