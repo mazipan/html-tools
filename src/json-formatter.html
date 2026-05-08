@@ -488,6 +488,41 @@
   </script>
   </div>
 
+  <section class="max-w-[1100px] mx-auto w-full px-6 py-12 border-t border-gray-800">
+    <div class="grid gap-10 md:grid-cols-2">
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">About JSON Formatter</h2>
+        <p class="text-gray-400 leading-relaxed">Paste JSON to get a properly indented, syntax-highlighted version. Switch between formatted and minified output, search through the result, and explore deeply nested structures with the collapsible tree view.</p>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">How to use</h2>
+        <ol class="text-gray-400 leading-relaxed space-y-2 list-decimal list-inside">
+          <li>Paste JSON into the input panel.</li>
+          <li>Choose <strong class="text-gray-300">Format</strong> for pretty-printed output or <strong class="text-gray-300">Minify</strong> for a single line.</li>
+          <li>Browse the tree, collapse branches, or search for a specific key.</li>
+          <li>Click the copy button to copy the output to your clipboard.</li>
+        </ol>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">Common use cases</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Reading API responses copied from the browser network tab or <code class="text-gray-300">curl</code>.</li>
+          <li>Cleaning up JSON pasted from logs or chat windows.</li>
+          <li>Quickly checking that a config file is valid JSON.</li>
+          <li>Inspecting deeply nested data without scrolling through a wall of braces.</li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">Tips</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Validation errors show the line and column so you can fix them in place.</li>
+          <li>Output is always strict JSON, safe to feed straight into another parser.</li>
+          <li>Everything runs locally — your JSON never leaves the browser.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
   <footer class="max-w-[1100px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
     &copy; <span id="year"></span> Irfan Maulana &amp; Claude<br><span id="deploy-time"></span>
   </footer>
