@@ -1,8 +1,11 @@
 import { Parcel } from '@parcel/core';
-import { writeFileSync, readFileSync, rmSync } from 'fs';
+import { writeFileSync, readFileSync, rmSync, copyFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import { glob } from 'fs/promises';
+import { Resvg } from '@resvg/resvg-js';
+
+const SITE_URL = 'https://tools.mazipan.space';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
@@ -57,3 +60,30 @@ for (const js of jsFiles) {
 // Remove source maps.
 const mapFiles = await Array.fromAsync(glob('*.map', { cwd: distDir }));
 for (const f of mapFiles) rmSync(resolve(distDir, f));
+
+// Copy robots.txt and generate sitemap.xml at the dist root.
+copyFileSync(resolve(root, 'src/robots.txt'), resolve(distDir, 'robots.txt'));
+
+// Render the social-card SVG to a 1200x630 PNG.
+const svg = readFileSync(resolve(root, 'src/og-image.svg'));
+const png = new Resvg(svg, {
+  fitTo: { mode: 'width', value: 1200 },
+  font: { loadSystemFonts: true },
+}).render().asPng();
+writeFileSync(resolve(distDir, 'og-image.png'), png);
+
+const today = new Date().toISOString().split('T')[0];
+const sitemapUrls = htmlFiles
+  .filter(f => !f.startsWith('google'))
+  .sort()
+  .map(f => {
+    const loc = f === 'index.html' ? `${SITE_URL}/` : `${SITE_URL}/${f}`;
+    return `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${today}</lastmod>\n  </url>`;
+  })
+  .join('\n');
+const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${sitemapUrls}
+</urlset>
+`;
+writeFileSync(resolve(distDir, 'sitemap.xml'), sitemap);

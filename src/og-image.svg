@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="0.85" cy="0.2" r="0.55">
+      <stop offset="0" stop-color="#3b82f6" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#3b82f6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0.1" cy="0.95" r="0.5">
+      <stop offset="0" stop-color="#8b5cf6" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#030712"/>
+  <rect width="1200" height="630" fill="url(#glow1)"/>
+  <rect width="1200" height="630" fill="url(#glow2)"/>
+
+  <g stroke="#1f2937" stroke-width="1" opacity="0.4" fill="none">
+    <path d="M0 100 H1200 M0 200 H1200 M0 300 H1200 M0 400 H1200 M0 500 H1200"/>
+    <path d="M100 0 V630 M200 0 V630 M300 0 V630 M400 0 V630 M500 0 V630 M600 0 V630 M700 0 V630 M800 0 V630 M900 0 V630 M1000 0 V630 M1100 0 V630"/>
+  </g>
+
+  <rect x="80" y="170" width="72" height="6" rx="3" fill="url(#accent)"/>
+
+  <text x="80" y="300" font-family="Arial, Helvetica, sans-serif" font-size="108" font-weight="800" fill="#ffffff">HTML Tools</text>
+  <text x="80" y="380" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#9ca3af">Browser-native utilities for developers</text>
+
+  <g font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="500" fill="#e5e7eb">
+    <rect x="80" y="440" width="180" height="48" rx="24" fill="#0b1220" stroke="#1f2937"/>
+    <text x="170" y="472" text-anchor="middle">No installs</text>
+    <rect x="280" y="440" width="180" height="48" rx="24" fill="#0b1220" stroke="#1f2937"/>
+    <text x="370" y="472" text-anchor="middle">No servers</text>
+    <rect x="480" y="440" width="180" height="48" rx="24" fill="#0b1220" stroke="#1f2937"/>
+    <text x="570" y="472" text-anchor="middle">No tracking</text>
+  </g>
+
+  <text x="80" y="570" font-family="Courier New, monospace" font-size="24" font-weight="500" fill="#3b82f6">tools.mazipan.space</text>
+
+  <g opacity="0.85">
+    <circle cx="1020" cy="490" r="100" fill="url(#accent)" opacity="0.55"/>
+    <circle cx="1090" cy="410" r="60"  fill="url(#accent)" opacity="0.45"/>
+    <circle cx="940"  cy="440" r="36"  fill="url(#accent)" opacity="0.4"/>
+  </g>
+</svg>
