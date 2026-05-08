@@ -37,7 +37,8 @@ for (const html of htmlFiles) {
   const updated = readFileSync(htmlPath, 'utf8')
     .replace('"__BUILD_TIME__"', buildTime)
     .replace(/src="\/([^"]+)"/g, 'src="./$1"')
-    .replace(/href="\/([^"]+)"/g, 'href="./$1"');
+    .replace(/href="\/([^"]+)"/g, 'href="./$1"')
+    .replace(/href=("?)index\.html\1(?=[ >])/g, 'href="/"');
   writeFileSync(htmlPath, updated);
 }
 
@@ -61,8 +62,9 @@ for (const js of jsFiles) {
 const mapFiles = await Array.fromAsync(glob('*.map', { cwd: distDir }));
 for (const f of mapFiles) rmSync(resolve(distDir, f));
 
-// Copy robots.txt and generate sitemap.xml at the dist root.
+// Copy robots.txt and _headers; generate sitemap.xml and _redirects at the dist root.
 copyFileSync(resolve(root, 'src/robots.txt'), resolve(distDir, 'robots.txt'));
+copyFileSync(resolve(root, 'src/_headers'), resolve(distDir, '_headers'));
 
 // Render the social-card SVG to a 1200x630 PNG.
 const svg = readFileSync(resolve(root, 'src/og-image.svg'));
@@ -72,12 +74,19 @@ const png = new Resvg(svg, {
 }).render().asPng();
 writeFileSync(resolve(distDir, 'og-image.png'), png);
 
+const cleanPath = f => f === 'index.html' ? '/' : `/${f.replace(/\.html$/, '')}`;
+const indexable = htmlFiles.filter(f => !f.startsWith('google')).sort();
+
+// Generate _redirects: 301 .html paths to their clean form so old links keep working.
+const redirects = indexable
+  .map(f => `/${f}  ${cleanPath(f)}  301!`)
+  .join('\n');
+writeFileSync(resolve(distDir, '_redirects'), redirects + '\n');
+
 const today = new Date().toISOString().split('T')[0];
-const sitemapUrls = htmlFiles
-  .filter(f => !f.startsWith('google'))
-  .sort()
+const sitemapUrls = indexable
   .map(f => {
-    const loc = f === 'index.html' ? `${SITE_URL}/` : `${SITE_URL}/${f}`;
+    const loc = `${SITE_URL}${cleanPath(f)}`;
     return `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${today}</lastmod>\n  </url>`;
   })
   .join('\n');

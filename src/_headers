@@ -1,0 +1,21 @@
+# Default headers applied to every response
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Cache-Control: public, max-age=300, must-revalidate
+
+# Stable static assets — daily cache (URLs are stable per parcel-namer-no-hash)
+/styles.css
+  Cache-Control: public, max-age=86400
+
+/og-image.png
+  Cache-Control: public, max-age=86400
+
+# SEO files — hourly cache so updates reach crawlers quickly
+/sitemap.xml
+  Cache-Control: public, max-age=3600
+
+/robots.txt
+  Cache-Control: public, max-age=3600
