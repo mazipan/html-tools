@@ -113,5 +113,6 @@ The 1200×630 social card lives at `src/og-image.png` and is committed to the re
 ```bash
 npm run dev          # start dev server (watches all *.html)
 npm run build        # production build → dist/
+npm run preview      # serve dist/ locally to spot-check the production build
 npm run generate:og  # regenerate src/og-image.png from src/og-image.svg
 ```
