@@ -63,6 +63,20 @@ Each tool's `faqs` is an array of `{ q, a }` entries; aim for 3–5 genuinely co
 - Stacked PRs (one PR's base = another PR's branch) are a silent footgun: when the dependency merges into `main`, GitHub does **not** auto-rebase the stacked PR. Merging the stacked PR while its base still points at the now-defunct feature branch lands the merge commit on that dead branch instead of `main` — the PR shows as "Merged" but the changes never ship.
 - If a branch genuinely needs commits from another in-flight PR, either (a) wait for the dependency to merge first and rebase onto `main`, or (b) absorb the rebase pain at merge time. Never use a non-`main` base as a shortcut.
 
+## Commit messages
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/). Format: `<type>(<optional scope>): <description>`.
+
+Types: `feat` (new user-facing capability), `fix` (bug fix), `docs`, `style` (formatting / CSS / non-behavioral UI tweaks), `refactor`, `perf`, `test`, `chore`, `build`, `ci`, `revert`.
+
+Rules: present-tense description, lowercase first letter, no trailing period. Keep the subject line ≤72 characters; put detail in the body. Use a `BREAKING CHANGE:` footer when applicable.
+
+Examples:
+- `feat: add npm run preview script`
+- `fix(spacing): tighten bottom-section vertical padding`
+- `docs: document semantic landmarks convention`
+- `refactor(build): extract jsonLdForPage helper`
+
 ## Conventions
 
 - All processing must stay client-side — never add a server dependency or external API call.
