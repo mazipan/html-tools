@@ -145,6 +145,36 @@
       "maxWidth": "1100px"
     },
     {
+      "slug": "json-to-yaml",
+      "name": "JSON ↔ YAML",
+      "icon": "📝",
+      "category": "JSON",
+      "description": "Convert between JSON and YAML instantly in your browser. YAML 1.2-compatible, anchor + alias resolution, multi-document support, and configurable block / flow output.",
+      "faqs": [
+        {
+          "q": "Are comments preserved when converting YAML to JSON?",
+          "a": "No. JSON has no comment syntax, so they're dropped. The status bar shows a count of how many were stripped so you don't lose them silently."
+        },
+        {
+          "q": "How are anchors and aliases handled?",
+          "a": "Resolved into duplicated values when going to JSON. Going JSON → YAML doesn't reintroduce anchors automatically; if you need DRY YAML, edit by hand after."
+        },
+        {
+          "q": "Does it support multi-document YAML (`---`)?",
+          "a": "Yes. Choose between first doc only (default) and array of docs (each doc becomes one element of a top-level JSON array)."
+        },
+        {
+          "q": "Why is `yes` not converting to `true`?",
+          "a": "That's a YAML 1.1 quirk. We follow YAML 1.2 by default, where only `true`/`false` (and a few variants) are booleans. `yes`/`no` stay as strings."
+        },
+        {
+          "q": "What's the difference between block and flow style?",
+          "a": "Block uses indentation and dashes — the typical outline-style YAML look. Flow looks more like JSON: `{key: value, list: [a, b]}`. Auto picks block for larger structures and flow for short inline ones."
+        }
+      ],
+      "maxWidth": "1100px"
+    },
+    {
       "slug": "svg-to-jsx",
       "name": "SVG to JSX",
       "icon": "⚛️",
