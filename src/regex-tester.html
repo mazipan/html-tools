@@ -34,6 +34,22 @@
     }
     .flag-pill:hover { color: #d1d5db; border-color: #4b5563; }
     .flag-pill.on   { background: #1e3a8a; border-color: #3b82f6; color: #f9fafb; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid #374151;
+      background: #1f2937;
+      color: #d1d5db;
+      font-size: 0.75rem;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.12s;
+    }
+    .chip:hover { border-color: #4b5563; color: #f9fafb; }
+    .chip.on    { background: #1e3a8a; border-color: #3b82f6; color: #fff; }
     .pattern-row {
       display: flex;
       align-items: stretch;
@@ -103,8 +119,8 @@
       <span class="slash" id="flags-display">/</span>
     </div>
 
-    <!-- Flags + mode + sample -->
-    <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-3">
+    <!-- Flags + mode -->
+    <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-1">
       <div class="flex items-center gap-1.5">
         <span class="text-xs text-gray-500 mr-0.5">Flags:</span>
         <button class="flag-pill" data-flag="g" title="global — find every match">g</button>
@@ -123,21 +139,19 @@
         <button id="mode-split"   onclick="setMode('split')"   class="btn btn-secondary btn-sm">Split</button>
       </div>
 
-      <label class="flex items-center gap-2 text-xs text-gray-500">
-        Sample
-        <select id="sample" onchange="loadSample(this.value)" class="bg-gray-900 border border-gray-700 text-xs text-gray-200 rounded-md px-2 py-1 outline-none hover:border-gray-600 focus:border-blue-400">
-          <option value="">— pick one —</option>
-          <option value="email">Email-ish</option>
-          <option value="url">URL-ish</option>
-          <option value="ipv4">IPv4</option>
-          <option value="iso-date">ISO date</option>
-          <option value="hex-color">Hex color</option>
-          <option value="slug">Slug</option>
-        </select>
-      </label>
-
-      <button onclick="clearAll()" class="btn btn-danger btn-sm">Clear</button>
+      <button onclick="clearAll()" class="btn btn-danger">Clear</button>
     </div>
+
+    <!-- Flag descriptions (always visible, compact) -->
+    <p class="text-[0.7rem] text-gray-600 leading-snug mb-3">
+      <span class="text-gray-400 font-medium">g</span> global ·
+      <span class="text-gray-400 font-medium">i</span> case-insensitive ·
+      <span class="text-gray-400 font-medium">m</span> multiline (<code>^</code>/<code>$</code> per line) ·
+      <span class="text-gray-400 font-medium">s</span> dotAll (<code>.</code> matches newlines) ·
+      <span class="text-gray-400 font-medium">u</span> unicode ·
+      <span class="text-gray-400 font-medium">y</span> sticky ·
+      <span class="text-gray-400 font-medium">d</span> indices on captures
+    </p>
 
     <div id="pattern-error" class="text-xs text-red-400 mb-2 min-h-[16px]"></div>
 
@@ -145,6 +159,17 @@
     <div id="replace-row" style="display:none" class="mb-3">
       <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Replacement string ($1, $2, $&lt;name&gt;, $&amp;)</label>
       <input id="replacement" type="text" oninput="onInput()" placeholder="e.g. <a href=&quot;mailto:$&amp;&quot;>$1</a>" class="w-full bg-gray-900 border border-gray-700 text-gray-200 font-mono text-[0.8rem] rounded-lg px-3 py-2 outline-none focus:border-blue-400">
+    </div>
+
+    <!-- Sample chips (above the test input) -->
+    <div class="flex flex-wrap items-center gap-1.5 mb-2">
+      <span class="text-xs text-gray-500 mr-1">Samples:</span>
+      <button class="chip" data-sample="email"     onclick="loadSample('email')">📧 Email</button>
+      <button class="chip" data-sample="url"       onclick="loadSample('url')">🔗 URL</button>
+      <button class="chip" data-sample="ipv4"      onclick="loadSample('ipv4')">🌐 IPv4</button>
+      <button class="chip" data-sample="iso-date"  onclick="loadSample('iso-date')">📅 ISO date</button>
+      <button class="chip" data-sample="hex-color" onclick="loadSample('hex-color')">🎨 Hex color</button>
+      <button class="chip" data-sample="slug"      onclick="loadSample('slug')">🔤 Slug</button>
     </div>
 
     <!-- Two-panel grid -->
@@ -176,6 +201,33 @@
     </div>
 
     <div id="status" class="mt-2.5 text-xs text-gray-500 min-h-[18px]"></div>
+
+    <!-- Regex explainer (token-by-token) -->
+    <details class="mt-6 rounded-lg border border-gray-800 hover:border-gray-700 transition-colors open:border-gray-700">
+      <summary class="cursor-pointer list-none px-4 py-3 text-sm font-medium text-gray-200 flex items-center justify-between gap-3 select-none">
+        <span>Explain this regex</span>
+        <span class="text-gray-500" aria-hidden="true">▾</span>
+      </summary>
+      <div id="explainer" class="px-4 pb-4 text-xs text-gray-400 leading-relaxed font-mono">
+        <div class="text-gray-500">Type a pattern above to see a token-by-token breakdown.</div>
+      </div>
+    </details>
+
+    <!-- Copy as code (runnable JS snippet) -->
+    <details class="mt-3 rounded-lg border border-gray-800 hover:border-gray-700 transition-colors open:border-gray-700">
+      <summary class="cursor-pointer list-none px-4 py-3 text-sm font-medium text-gray-200 flex items-center justify-between gap-3 select-none">
+        <span>Copy as code</span>
+        <span class="text-gray-500" aria-hidden="true">▾</span>
+      </summary>
+      <div class="px-4 pb-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs text-gray-500">Runnable JavaScript snippet — paste into any console or playground.</span>
+          <button onclick="copyCode()" class="btn btn-secondary btn-sm">Copy</button>
+        </div>
+        <pre id="code-snippet"
+             class="bg-gray-900 border border-gray-800 rounded-lg p-4 text-xs text-gray-200 font-mono leading-relaxed overflow-x-auto whitespace-pre"></pre>
+      </div>
+    </details>
 
     <!-- Cheat sheet -->
     <details class="mt-6 rounded-lg border border-gray-800 hover:border-gray-700 transition-colors open:border-gray-700">
@@ -280,7 +332,11 @@
         run();
       }
     });
-    patternEl.addEventListener('input', onInput);
+    patternEl.addEventListener('input', () => {
+      // User edited the pattern manually — deselect any active sample chip.
+      document.querySelectorAll('.chip[data-sample].on').forEach(el => el.classList.remove('on'));
+      onInput();
+    });
 
     function setMode(m) {
       mode = m;
@@ -307,7 +363,10 @@
       });
       updateFlagsDisplay();
       testEl.value = s.test;
-      document.getElementById('sample').value = '';
+      // Highlight the active sample chip
+      document.querySelectorAll('.chip[data-sample]').forEach(el => {
+        el.classList.toggle('on', el.dataset.sample === name);
+      });
       run();
     }
 
@@ -319,11 +378,14 @@
       document.querySelectorAll('.flag-pill').forEach(el => {
         el.classList.toggle('on', flags.has(el.dataset.flag));
       });
+      document.querySelectorAll('.chip[data-sample]').forEach(el => el.classList.remove('on'));
       updateFlagsDisplay();
       resultsEl.innerHTML = '';
       statusEl.textContent = '';
       errorEl.textContent = '';
       lastOutput = '';
+      renderExplainer();
+      renderCode();
       patternEl.focus();
     }
 
@@ -345,6 +407,9 @@
       lastOutput = '';
       resultsEl.innerHTML = '';
       statusEl.textContent = '';
+      // Re-render the explainer + code snippet on every input change.
+      renderExplainer();
+      renderCode();
 
       const src = patternEl.value;
       if (!src) return;
@@ -453,6 +518,187 @@
         setTimeout(() => { statusEl.textContent = prev; }, 1200);
       });
     }
+
+    // ── Regex explainer (token-by-token, recursive on groups) ──────
+    function explainTokens(src) {
+      const out = [];
+      let i = 0;
+      const len = src.length;
+      while (i < len) {
+        const c = src[i];
+
+        // Escape sequence
+        if (c === '\\' && i + 1 < len) {
+          const next = src[i + 1];
+          const escMap = {
+            d: 'digit (0-9)', D: 'non-digit',
+            w: 'word character (A-Z, a-z, 0-9, _)', W: 'non-word character',
+            s: 'whitespace', S: 'non-whitespace',
+            b: 'word boundary', B: 'non-word boundary',
+            n: 'newline', t: 'tab', r: 'carriage return', f: 'form feed', v: 'vertical tab', '0': 'null'
+          };
+          out.push({ token: '\\' + next, desc: escMap[next] || `literal "${next}"` });
+          i += 2;
+          continue;
+        }
+
+        // Anchors
+        if (c === '^') { out.push({ token: '^', desc: 'start of string (or line in m mode)' }); i++; continue; }
+        if (c === '$') { out.push({ token: '$', desc: 'end of string (or line in m mode)' });   i++; continue; }
+        if (c === '.') { out.push({ token: '.', desc: 'any character (except newline; matches all in s mode)' }); i++; continue; }
+
+        // Character class
+        if (c === '[') {
+          let j = i + 1;
+          if (src[j] === '^') j++;
+          while (j < len && src[j] !== ']') {
+            if (src[j] === '\\') j++;
+            j++;
+          }
+          const text = src.slice(i, j + 1);
+          const negated = text.startsWith('[^');
+          const inner = text.slice(negated ? 2 : 1, -1);
+          out.push({ token: text, desc: negated ? `match any character NOT in ${inner}` : `match any character in ${inner}` });
+          i = j + 1;
+          continue;
+        }
+
+        // Group
+        if (c === '(') {
+          let depth = 1, j = i + 1;
+          while (j < len && depth > 0) {
+            if (src[j] === '\\') { j += 2; continue; }
+            if (src[j] === '(') depth++;
+            else if (src[j] === ')') { depth--; if (depth === 0) break; }
+            j++;
+          }
+          const after = src.slice(i + 1, j);
+          let groupType = 'capturing group', prefixLen = 0;
+          if (after.startsWith('?:'))      { groupType = 'non-capturing group'; prefixLen = 2; }
+          else if (after.startsWith('?<=')) { groupType = 'lookbehind';          prefixLen = 3; }
+          else if (after.startsWith('?<!')) { groupType = 'negative lookbehind'; prefixLen = 3; }
+          else if (after.startsWith('?='))  { groupType = 'lookahead';           prefixLen = 2; }
+          else if (after.startsWith('?!'))  { groupType = 'negative lookahead';  prefixLen = 2; }
+          else if (after.startsWith('?<')) {
+            const nameEnd = after.indexOf('>');
+            if (nameEnd > 1) { groupType = `named capture group "${after.slice(2, nameEnd)}"`; prefixLen = nameEnd + 1; }
+          }
+          out.push({ token: src.slice(i, i + 1 + prefixLen), desc: groupType });
+          // Recursively explain inner with one indent level.
+          const inner = explainTokens(src.slice(i + 1 + prefixLen, j));
+          for (const t of inner) out.push({ token: t.token, desc: t.desc, indent: (t.indent || 0) + 1 });
+          out.push({ token: ')', desc: 'end of group', indent: 0 });
+          i = j + 1;
+          continue;
+        }
+
+        // Quantifiers
+        if (c === '*' || c === '+' || c === '?') {
+          const lazy = src[i + 1] === '?';
+          const base = c === '*' ? 'zero or more' : c === '+' ? 'one or more' : 'optional (zero or one)';
+          out.push({ token: c + (lazy ? '?' : ''), desc: base + (lazy ? ' (lazy)' : ' (greedy)') });
+          i += lazy ? 2 : 1;
+          continue;
+        }
+        if (c === '{') {
+          const close = src.indexOf('}', i);
+          if (close > -1) {
+            const lazy = src[close + 1] === '?';
+            const range = src.slice(i + 1, close).split(',');
+            let desc;
+            if (range.length === 1) desc = `exactly ${range[0]} times`;
+            else if (range[1] === '') desc = `at least ${range[0]} times`;
+            else desc = `${range[0]} to ${range[1]} times`;
+            if (lazy) desc += ' (lazy)';
+            out.push({ token: src.slice(i, close + 1 + (lazy ? 1 : 0)), desc });
+            i = close + 1 + (lazy ? 1 : 0);
+            continue;
+          }
+        }
+
+        if (c === '|') { out.push({ token: '|', desc: 'alternation: match either side' }); i++; continue; }
+
+        // Plain literal
+        out.push({ token: c, desc: `literal "${c}"` });
+        i++;
+      }
+      return out;
+    }
+
+    function renderExplainer() {
+      const src = patternEl.value;
+      const target = document.getElementById('explainer');
+      if (!src) {
+        target.innerHTML = '<div class="text-gray-500">Type a pattern above to see a token-by-token breakdown.</div>';
+        return;
+      }
+      let tokens;
+      try { tokens = explainTokens(src); }
+      catch (err) { target.innerHTML = `<div class="text-red-400">Could not parse: ${escHtml(err.message)}</div>`; return; }
+      if (tokens.length === 0) { target.innerHTML = '<div class="text-gray-500">(empty pattern)</div>'; return; }
+      const rows = tokens.map(t => {
+        const indent = t.indent ? '&nbsp;&nbsp;'.repeat(t.indent) : '';
+        return `<div class="flex gap-4 py-0.5">
+          <span class="text-purple-400 shrink-0" style="min-width:10ch">${indent}${escHtml(t.token)}</span>
+          <span class="text-gray-400">${escHtml(t.desc)}</span>
+        </div>`;
+      }).join('');
+      target.innerHTML = rows;
+    }
+
+    // ── Generate JS code snippet for the current state ─────────────
+    function renderCode() {
+      const target = document.getElementById('code-snippet');
+      const src = patternEl.value;
+      if (!src) { target.textContent = '// Type a pattern to generate a snippet.'; return; }
+      const flagsStr = ['g','i','m','s','u','y','d'].filter(f => flags.has(f)).join('');
+      // Use new RegExp(...) form if pattern has slashes; otherwise use literal /…/flags
+      const literalSafe = !src.includes('/') ? `/${src}/${flagsStr}` : `new RegExp(${JSON.stringify(src)}, ${JSON.stringify(flagsStr)})`;
+      const testJson = JSON.stringify(testEl.value);
+
+      let body;
+      if (mode === 'match') {
+        body = `// Find every match
+const matches = [...text.matchAll(re)];
+console.log(\`Found \${matches.length} match\${matches.length === 1 ? '' : 'es'}\`);
+for (const m of matches) {
+  console.log(\`  \${m[0]} @ \${m.index}\`);
+  for (let i = 1; i < m.length; i++) {
+    if (m[i] !== undefined) console.log(\`    $\${i}: \${m[i]}\`);
+  }
+}`;
+      } else if (mode === 'replace') {
+        const replJson = JSON.stringify(replacementEl.value);
+        body = `// Run the replacement
+const replacement = ${replJson};
+const result = text.replace(re, replacement);
+console.log(result);`;
+      } else {
+        body = `// Split the input
+const parts = text.split(re);
+console.log(\`\${parts.length} part(s):\`);
+for (const [i, p] of parts.entries()) console.log(\`  [\${i}] \${JSON.stringify(p)}\`);`;
+      }
+
+      target.textContent = `const re = ${literalSafe};
+const text = ${testJson};
+
+${body}`;
+    }
+
+    function copyCode() {
+      const text = document.getElementById('code-snippet').textContent;
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        const prev = statusEl.textContent;
+        statusEl.textContent = 'Code copied!';
+        setTimeout(() => { statusEl.textContent = prev; }, 1200);
+      });
+    }
+
+    // Initial render of explainer + code (empty state).
+    renderExplainer();
+    renderCode();
 
     patternEl.focus();
   </script>
