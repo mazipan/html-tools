@@ -44,8 +44,6 @@
       <button id="btn-c2j" onclick="setDirection('c2j')" class="btn btn-secondary">CSV → JSON</button>
       <div class="w-px h-5 bg-gray-700 mx-1"></div>
       <button onclick="loadSample()" class="btn btn-secondary">Load sample</button>
-      <button onclick="copyOutput()" class="btn btn-secondary">Copy output</button>
-      <button onclick="downloadOutput()" class="btn btn-secondary">Download</button>
       <button onclick="clearAll()" class="btn btn-danger">Clear</button>
     </div>
 
@@ -138,13 +136,18 @@
       <div>
         <div class="flex items-center justify-between mb-2">
           <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" id="output-label">CSV output</label>
+          <div class="flex gap-1 items-center">
+            <button onclick="copyOutput()" class="btn btn-secondary btn-sm">Copy</button>
+            <button onclick="downloadOutput()" class="btn btn-secondary btn-sm">Download</button>
+            <span id="view-divider" class="w-px h-3 bg-gray-700 mx-0.5" style="display:none"></span>
+            <button id="btn-tree" onclick="setView('tree')" class="btn btn-secondary btn-sm" style="display:none">Tree</button>
+            <button id="btn-raw" onclick="setView('raw')" class="btn btn-secondary btn-sm" style="display:none">Raw</button>
+          </div>
         </div>
-        <textarea id="output"
-                  readonly
-                  spellcheck="false"
-                  class="w-full h-[500px] min-h-[500px] rounded-lg border border-gray-700 bg-gray-900
-                         text-gray-200 font-mono text-[0.8rem] leading-relaxed p-4 resize-y outline-none
-                         whitespace-pre"></textarea>
+
+        <div id="output"
+             class="w-full h-[500px] min-h-[500px] rounded-lg border border-gray-700 bg-gray-900
+                    text-gray-200 font-mono text-[0.8rem] leading-relaxed p-4 overflow-auto resize-y whitespace-pre"></div>
       </div>
 
     </div>
@@ -152,27 +155,28 @@
     <div id="status" class="mt-2.5 text-xs text-gray-500 min-h-[18px]"></div>
   </main>
 
+  <script src="json-utils.js"></script>
   <script>
-    const inputEl  = document.getElementById('input');
-    const outputEl = document.getElementById('output');
-    const statusEl = document.getElementById('status');
+    const inputEl     = document.getElementById('input');
+    const outputEl    = document.getElementById('output');
+    const statusEl    = document.getElementById('status');
     const inputLabel  = document.getElementById('input-label');
     const outputLabel = document.getElementById('output-label');
-    const optsJ2C = document.getElementById('opts-j2c');
-    const optsC2J = document.getElementById('opts-c2j');
+    const optsJ2C     = document.getElementById('opts-j2c');
+    const optsC2J     = document.getElementById('opts-c2j');
+    const treeBtn     = document.getElementById('btn-tree');
+    const rawBtn      = document.getElementById('btn-raw');
+    const viewDivider = document.getElementById('view-divider');
 
-    let direction = 'j2c'; // 'j2c' = JSON → CSV, 'c2j' = CSV → JSON
-    let lastOutput = '';
+    let direction   = 'j2c';   // 'j2c' = JSON → CSV, 'c2j' = CSV → JSON
+    let currentView = 'tree';  // for c2j JSON output
+    let lastOutput  = '';      // raw output text (CSV string or JSON string)
+    let lastParsed  = null;    // for c2j: the parsed JSON value
 
     // ── RFC 4180 CSV parser ─────────────────────────────────────────
     function parseCSV(text, delimiter) {
-      // Strip BOM
       if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-      const rows = [];
-      let row = [];
-      let cell = '';
-      let inQuotes = false;
-      let i = 0;
+      const rows = []; let row = []; let cell = ''; let inQuotes = false; let i = 0;
       const len = text.length;
       while (i < len) {
         const c = text[i];
@@ -183,17 +187,13 @@
           }
           cell += c; i++;
         } else {
-          if (c === '"' && cell === '') {
-            inQuotes = true; i++;
-          } else if (c === delimiter) {
-            row.push(cell); cell = ''; i++;
-          } else if (c === '\r' || c === '\n') {
+          if (c === '"' && cell === '') { inQuotes = true; i++; }
+          else if (c === delimiter) { row.push(cell); cell = ''; i++; }
+          else if (c === '\r' || c === '\n') {
             row.push(cell); cell = '';
             rows.push(row); row = [];
             if (c === '\r' && text[i + 1] === '\n') i += 2; else i++;
-          } else {
-            cell += c; i++;
-          }
+          } else { cell += c; i++; }
         }
       }
       if (cell !== '' || row.length > 0) { row.push(cell); rows.push(row); }
@@ -206,7 +206,6 @@
       if (sample.length === 0) return ',';
       let best = ',', bestScore = -1;
       for (const d of candidates) {
-        // Naive count outside quotes — good enough for detection
         const counts = sample.map(line => {
           let n = 0, inQ = false;
           for (let i = 0; i < line.length; i++) {
@@ -230,12 +229,10 @@
       if (value === '' || value === 'null') return null;
       if (value === 'true') return true;
       if (value === 'false') return false;
-      // Integers
       if (/^-?\d+$/.test(value)) {
         const n = Number(value);
         if (Number.isSafeInteger(n)) return n;
       }
-      // Floats
       if (/^-?\d*\.\d+(?:[eE][-+]?\d+)?$/.test(value) || /^-?\d+[eE][-+]?\d+$/.test(value)) {
         return Number(value);
       }
@@ -255,7 +252,7 @@
       let rows = parseCSV(text, delimiter);
       if (doTrim) rows = rows.map(r => r.map(c => c.trim()));
       if (doSkip) rows = rows.filter(r => r.some(c => c !== ''));
-      if (rows.length === 0) return { json: '[]', meta: '0 rows' };
+      if (rows.length === 0) return { json: '[]', value: [], meta: '0 rows' };
 
       let result;
       if (hasHeader) {
@@ -275,7 +272,7 @@
       const json = pretty ? JSON.stringify(result, null, 2) : JSON.stringify(result);
       const delimName = delimiter === '\t' ? 'tab' : delimiter === ',' ? 'comma' : delimiter === ';' ? 'semicolon' : 'pipe';
       const meta = `${result.length} row${result.length === 1 ? '' : 's'} · ${delimName}-delimited`;
-      return { json, meta };
+      return { json, value: result, meta };
     }
 
     // ── JSON → CSV ──────────────────────────────────────────────────
@@ -307,7 +304,8 @@
       const arrayMode   = document.getElementById('j2c-arrays').value;
       const alwaysQuote = document.getElementById('j2c-quote-all').checked;
 
-      const data = JSON.parse(text);
+      // Use tolerantParse from json-utils.js so JSON5-ish input works too.
+      const { value: data } = tolerantParse(text);
       const rows = Array.isArray(data) ? data : [data];
 
       const flatRows = rows.map(row => {
@@ -315,7 +313,6 @@
           return { value: row };
         }
         if (nestedMode === 'json') {
-          // Keep nested objects as JSON literals; arrays still follow arrayMode.
           const out = {};
           for (const [k, v] of Object.entries(row)) {
             if (v && typeof v === 'object' && !Array.isArray(v)) {
@@ -332,7 +329,6 @@
         return flatten(row, '', sep, arrayMode);
       });
 
-      // Collect keys (preserving first-seen order)
       const keys = [];
       const seen = new Set();
       for (const r of flatRows) {
@@ -357,20 +353,171 @@
       return { csv, meta };
     }
 
+    // ── Tree builder (borrowed from JSON Formatter) ────────────────
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function primitiveHtml(v) {
+      if (v === null)             return `<span class="json-null">null</span>`;
+      if (typeof v === 'boolean') return `<span class="json-bool">${v}</span>`;
+      if (typeof v === 'number')  return `<span class="json-number">${v}</span>`;
+      return `<span class="json-string">"${escHtml(v)}"</span>`;
+    }
+
+    function buildTree(value, key, isLast, counter) {
+      const node = document.createElement('div');
+      node.className = 'tree-node';
+
+      if (value === null || typeof value !== 'object') {
+        const row = document.createElement('div');
+        row.className = 'tree-row';
+        row.innerHTML =
+          `<span class="line-num">${counter.n++}</span>` +
+          '<span class="toggle-btn leaf">▶</span>' +
+          (key !== null ? `<span class="json-key">"${escHtml(key)}"</span><span class="json-punct">: </span>` : '') +
+          primitiveHtml(value) +
+          (isLast ? '' : '<span class="tree-comma">,</span>');
+        node.appendChild(row);
+        return node;
+      }
+
+      const isArray  = Array.isArray(value);
+      const keys     = isArray ? value.map((_, i) => i) : Object.keys(value);
+      const openB    = isArray ? '[' : '{';
+      const closeB   = isArray ? ']' : '}';
+      const previewLabel = isArray
+        ? `${keys.length} item${keys.length !== 1 ? 's' : ''}`
+        : `${keys.length} key${keys.length !== 1 ? 's' : ''}`;
+
+      const headerRow = document.createElement('div');
+      headerRow.className = 'tree-row';
+      headerRow.style.cursor = 'pointer';
+
+      const toggleBtn = document.createElement('span');
+      toggleBtn.className = 'toggle-btn';
+      toggleBtn.textContent = '▼';
+
+      const keyHtml = key !== null
+        ? `<span class="json-key">"${escHtml(String(key))}"</span><span class="json-punct">: </span>`
+        : '';
+
+      headerRow.innerHTML =
+        `<span class="line-num">${counter.n++}</span>` +
+        keyHtml +
+        `<span class="json-punct">${openB}</span>` +
+        `<span class="collapsed-preview" style="display:none"> ${previewLabel} </span>`;
+      headerRow.insertBefore(toggleBtn, headerRow.children[1]);
+      node.appendChild(headerRow);
+
+      const childrenEl = document.createElement('div');
+      childrenEl.className = 'tree-children';
+      keys.forEach((k, i) => {
+        childrenEl.appendChild(buildTree(value[k], isArray ? null : k, i === keys.length - 1, counter));
+      });
+      node.appendChild(childrenEl);
+
+      const footerRow = document.createElement('div');
+      footerRow.className = 'tree-row';
+      footerRow.innerHTML =
+        `<span class="line-num">${counter.n++}</span>` +
+        '<span class="toggle-btn leaf">▶</span>' +
+        `<span class="json-punct">${closeB}</span>` +
+        (isLast ? '' : '<span class="tree-comma">,</span>');
+      node.appendChild(footerRow);
+
+      const collapsedPreview = headerRow.querySelector('.collapsed-preview');
+      let collapsed = false;
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        collapsed = !collapsed;
+        toggleBtn.textContent             = collapsed ? '▶' : '▼';
+        childrenEl.style.display          = collapsed ? 'none' : '';
+        footerRow.style.display           = collapsed ? 'none' : '';
+        collapsedPreview.style.display    = collapsed ? 'inline' : 'none';
+        if (collapsed) collapsedPreview.textContent = ` ${previewLabel} ${closeB}${isLast ? '' : ','}`;
+      });
+      headerRow.addEventListener('click', () => toggleBtn.click());
+
+      return node;
+    }
+
+    function highlightRaw(json) {
+      const highlighted = escHtml(json).replace(
+        /("(?:\\u[0-9a-fA-F]{4}|\\[^u]|[^\\"])*"(\s*:)?)|(\b(?:true|false|null)\b)|(-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+        (m) => {
+          if (m.endsWith(':'))               return `<span class="json-key">${m}</span>`;
+          if (m.startsWith('"'))             return `<span class="json-string">${m}</span>`;
+          if (m === 'true' || m === 'false') return `<span class="json-bool">${m}</span>`;
+          if (m === 'null')                  return `<span class="json-null">${m}</span>`;
+          return `<span class="json-number">${m}</span>`;
+        }
+      );
+      const lines = highlighted.split('\n');
+      const pad   = String(lines.length).length;
+      return lines.map((line, i) =>
+        `<span class="line-num">${String(i + 1).padStart(pad)}</span>${line}`
+      ).join('\n');
+    }
+
     // ── UI plumbing ─────────────────────────────────────────────────
     function setDirection(d) {
+      if (d === direction) return;
       direction = d;
       const j2c = d === 'j2c';
+
       document.getElementById('btn-j2c').classList.toggle('btn-active', j2c);
       document.getElementById('btn-j2c').classList.toggle('btn-secondary', !j2c);
       document.getElementById('btn-c2j').classList.toggle('btn-active', !j2c);
       document.getElementById('btn-c2j').classList.toggle('btn-secondary', j2c);
+
       optsJ2C.style.display = j2c ? '' : 'none';
       optsC2J.style.display = j2c ? 'none' : '';
       inputLabel.textContent  = j2c ? 'JSON input' : 'CSV input';
       outputLabel.textContent = j2c ? 'CSV output' : 'JSON output';
       inputEl.placeholder     = j2c ? 'Paste JSON here...' : 'Paste CSV here...';
-      convert();
+
+      // Tree/Raw view buttons only matter when the OUTPUT is JSON (c2j).
+      const showView = !j2c;
+      treeBtn.style.display     = showView ? '' : 'none';
+      rawBtn.style.display      = showView ? '' : 'none';
+      viewDivider.style.display = showView ? '' : 'none';
+
+      // Clear both panels — input from the previous direction is always the
+      // wrong format for the new one, so leaving it would just produce a
+      // confusing parse error.
+      inputEl.value = '';
+      outputEl.innerHTML = '';
+      outputEl.classList.add('whitespace-pre');
+      lastOutput = '';
+      lastParsed = null;
+      setStatus('');
+      inputEl.focus();
+    }
+
+    function setView(view) {
+      currentView = view;
+      treeBtn.classList.toggle('btn-active', view === 'tree');
+      treeBtn.classList.toggle('btn-secondary', view !== 'tree');
+      rawBtn.classList.toggle('btn-active', view === 'raw');
+      rawBtn.classList.toggle('btn-secondary', view !== 'raw');
+      renderJsonOutput();
+    }
+
+    function renderJsonOutput() {
+      if (!lastOutput) { outputEl.innerHTML = ''; outputEl.classList.add('whitespace-pre'); return; }
+      outputEl.classList.remove('whitespace-pre');
+      if (currentView === 'tree' && lastParsed !== null) {
+        outputEl.innerHTML = '';
+        const root = document.createElement('div');
+        root.className = 'tree-root';
+        const counter = { n: 1 };
+        root.appendChild(buildTree(lastParsed, null, true, counter));
+        outputEl.appendChild(root);
+      } else {
+        outputEl.classList.add('whitespace-pre');
+        outputEl.innerHTML = highlightRaw(lastOutput);
+      }
     }
 
     function setError(msg) {
@@ -390,26 +537,33 @@
     function convert() {
       const text = inputEl.value;
       if (!text.trim()) {
-        outputEl.value = '';
+        outputEl.innerHTML = '';
+        outputEl.classList.add('whitespace-pre');
         lastOutput = '';
+        lastParsed = null;
         setStatus('');
         return;
       }
       try {
         if (direction === 'j2c') {
           const { csv, meta } = jsonToCsv(text);
-          outputEl.value = csv;
           lastOutput = csv;
+          lastParsed = null;
+          outputEl.classList.add('whitespace-pre');
+          outputEl.textContent = csv;
           setStatus(meta);
         } else {
-          const { json, meta } = csvToJson(text);
-          outputEl.value = json;
+          const { json, value, meta } = csvToJson(text);
           lastOutput = json;
+          lastParsed = value;
+          renderJsonOutput();
           setStatus(meta);
         }
       } catch (err) {
-        outputEl.value = '';
+        outputEl.innerHTML = '';
+        outputEl.classList.add('whitespace-pre');
         lastOutput = '';
+        lastParsed = null;
         setError((direction === 'j2c' ? 'JSON parse error: ' : 'CSV parse error: ') + err.message);
       }
     }
@@ -443,8 +597,10 @@
 
     function clearAll() {
       inputEl.value = '';
-      outputEl.value = '';
+      outputEl.innerHTML = '';
+      outputEl.classList.add('whitespace-pre');
       lastOutput = '';
+      lastParsed = null;
       setStatus('');
       inputEl.focus();
     }
@@ -462,6 +618,10 @@
       convert();
     }
 
+    // Default Tree view to active state on load (visible only after switching to c2j).
+    treeBtn.classList.add('btn-active');
+    treeBtn.classList.remove('btn-secondary');
+
     inputEl.focus();
   </script>
 
@@ -474,10 +634,10 @@
       <div>
         <h2 class="text-xl font-bold text-white mb-4">How to use</h2>
         <ol class="text-gray-400 leading-relaxed space-y-2 list-decimal list-inside">
-          <li>Pick a direction: <strong class="text-gray-300">JSON → CSV</strong> or <strong class="text-gray-300">CSV → JSON</strong>.</li>
+          <li>Pick a direction: <strong class="text-gray-300">JSON → CSV</strong> or <strong class="text-gray-300">CSV → JSON</strong>. Switching clears both panels so the next input starts fresh in the right format.</li>
           <li>Paste your data into the left panel; the converted result appears live on the right.</li>
+          <li>For CSV → JSON output, switch between <strong class="text-gray-300">Tree</strong> and <strong class="text-gray-300">Raw</strong> view to either explore the structure interactively or copy the plain JSON text.</li>
           <li>Tweak the options bar — delimiter, header row, nested handling, type inference — until the output looks right.</li>
-          <li>Use <strong class="text-gray-300">Copy output</strong> or <strong class="text-gray-300">Download</strong> to save the result.</li>
         </ol>
       </div>
       <div>
