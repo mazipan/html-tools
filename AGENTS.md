@@ -26,11 +26,24 @@ Current tools (all under `src/`):
 ## Adding a new tool
 
 1. Create a new `.html` file inside `src/` (e.g. `src/base64.html`) following the pattern of an existing tool.
-2. Include the shared site header at the top of `<body>` with a back-link to `index.html` — copy the header block from an existing tool.
-3. Include the shared footer at the bottom with `&copy; <span id="year"></span> Irfan Maulana<span id="deploy-time"></span>` and the matching inline footer script — copy the `<script>` block from an existing tool. It uses a `"__BUILD_TIME__"` placeholder that `scripts/build.mjs` replaces with the real ISO timestamp at build time.
-4. Add a card linking to it in `index.html` under the appropriate section (or create a new section), update the "Current tools" list in `AGENTS.md`, and add a row for the new tool in the tools table in `README.md`.
-5. Use `<link rel="stylesheet" href="styles.css">` for shared styles.
+2. Include shared partials in `<head>` — see "Shared HTML partials" below. The minimum head is `meta-base` + per-page meta + `meta-social` + per-page icon + `head-fonts` + `<link rel="stylesheet" href="styles.css">` + optional per-page `<style>` + `head-theme`.
+3. Include the shared site header at the top of `<body>` with a back-link to `index.html` — copy the header block from an existing tool.
+4. Include the shared footer at the bottom with `&copy; <span id="year"></span> Irfan Maulana<span id="deploy-time"></span>` and end with `<include src="_partials/footer-script.html"></include>`. The footer-script partial uses a `"__BUILD_TIME__"` placeholder that `scripts/build.mjs` replaces with the real ISO timestamp.
+5. Add a card linking to it in `index.html` under the appropriate section (or create a new section), update the "Current tools" list in `AGENTS.md`, and add a row for the new tool in the tools table in `README.md`.
+6. Use `<link rel="stylesheet" href="styles.css">` for shared styles.
 7. Keep all logic inline in a `<script>` tag at the bottom of the file.
+
+## Shared HTML partials
+
+Common markup lives in `src/_partials/` and is inlined at build time via `posthtml-include` (configured in `.posthtmlrc`). Use `<include src="_partials/<name>.html"></include>`:
+
+- `meta-base.html` — charset, viewport, `google-site-verification`, author, theme-color, robots. Place at the top of `<head>`.
+- `meta-social.html` — `og:type`, `og:site_name`, `og:image*`, `twitter:card`, `twitter:image`. Place after the per-page Open Graph and Twitter title/description tags.
+- `head-fonts.html` — Google Fonts preconnects + the IBM Plex Mono / Syne stylesheet. Place before `styles.css`.
+- `head-theme.html` — inline theme-init script. Place last in `<head>` so the `data-theme` attribute is set before the body renders.
+- `footer-script.html` — copyright/deploy-time init script. Place after `</footer>` (and before any tool-specific `<script>` blocks).
+
+The site header (the `HTML Tools / Tool Name` strip) is intentionally **not** a partial because the tool name varies per page; copy it from an existing tool.
 
 ## Conventions
 
