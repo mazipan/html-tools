@@ -108,7 +108,7 @@ function faqBlock(slug) {
         </summary>
         <div class="px-4 pb-4 text-sm text-gray-400 leading-relaxed">${escHtml(a)}</div>
       </details>`).join('\n      ');
-  return `<section class="max-w-[1100px] mx-auto w-full px-6 py-12 border-t border-gray-800">
+  return `<section class="max-w-[${tool.maxWidth || '1100px'}] mx-auto w-full px-6 py-8 border-t border-gray-800">
     <h2 class="text-xl font-bold text-white mb-6">FAQ</h2>
     <div class="space-y-2">
       ${items}
@@ -128,6 +128,7 @@ for (const html of htmlFiles) {
 }
 
 function crossToolBlock(currentSlug) {
+  const current = tools.tools.find(t => t.slug === currentSlug);
   const others = tools.tools.filter(t => t.slug !== currentSlug);
   const cards = others.map(t => `<a href="/${t.slug}" class="group flex items-start gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-400 transition-colors no-underline">
         <span class="text-xl shrink-0 leading-none mt-0.5" aria-hidden="true">${t.icon}</span>
@@ -136,7 +137,7 @@ function crossToolBlock(currentSlug) {
           <span class="block text-xs text-gray-500 mt-0.5 line-clamp-2">${escHtml(t.description)}</span>
         </span>
       </a>`).join('\n      ');
-  return `<section class="max-w-[1100px] mx-auto w-full px-6 py-12 border-t border-gray-800">
+  return `<section class="max-w-[${current?.maxWidth || '1100px'}] mx-auto w-full px-6 py-8 border-t border-gray-800">
     <h2 class="text-xl font-bold text-white mb-6">More tools</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
       ${cards}

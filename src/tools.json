@@ -17,11 +17,24 @@
       "category": "JSON",
       "description": "Prettify, minify, and validate JSON instantly in your browser. Features syntax highlighting and an interactive collapsible tree view.",
       "faqs": [
-        { "q": "Is JSON Formatter free?", "a": "Yes. Every tool here runs entirely in your browser — no accounts, no quotas, no rate limits." },
-        { "q": "Does my JSON ever leave my computer?", "a": "No. The page is a single static HTML file; all parsing and formatting happen locally in your browser." },
-        { "q": "What's the difference between Format and Minify?", "a": "Format pretty-prints with two-space indentation for readability. Minify strips whitespace and newlines so the output is the smallest valid JSON." },
-        { "q": "Can I search through formatted output?", "a": "Yes. Press Ctrl/Cmd+F to open an inline search that highlights matches across keys and values, even inside the collapsible tree view." }
-      ]
+        {
+          "q": "Is JSON Formatter free?",
+          "a": "Yes. Every tool here runs entirely in your browser — no accounts, no quotas, no rate limits."
+        },
+        {
+          "q": "Does my JSON ever leave my computer?",
+          "a": "No. The page is a single static HTML file; all parsing and formatting happen locally in your browser."
+        },
+        {
+          "q": "What's the difference between Format and Minify?",
+          "a": "Format pretty-prints with two-space indentation for readability. Minify strips whitespace and newlines so the output is the smallest valid JSON."
+        },
+        {
+          "q": "Can I search through formatted output?",
+          "a": "Yes. Press Ctrl/Cmd+F to open an inline search that highlights matches across keys and values, even inside the collapsible tree view."
+        }
+      ],
+      "maxWidth": "1100px"
     },
     {
       "slug": "json-to-ts",
@@ -30,11 +43,24 @@
       "category": "JSON",
       "description": "Convert JSON objects into TypeScript interface or type definitions instantly in your browser.",
       "faqs": [
-        { "q": "Should I use interface or type?", "a": "Either — toggle in the UI. Interfaces are easier to extend; type aliases compose better via unions and intersections." },
-        { "q": "Why are some fields marked optional (?:)?", "a": "If a field is missing in any element of an array, the generator marks it optional so the resulting type matches every element." },
-        { "q": "How are mixed-type arrays handled?", "a": "They're emitted as a union — for example, an array containing strings and numbers becomes (string | number)[]." },
-        { "q": "Does it handle deeply nested objects?", "a": "Yes. Nested objects are flattened into a list of named interfaces so the output stays readable instead of one massive type." }
-      ]
+        {
+          "q": "Should I use interface or type?",
+          "a": "Either — toggle in the UI. Interfaces are easier to extend; type aliases compose better via unions and intersections."
+        },
+        {
+          "q": "Why are some fields marked optional (?:)?",
+          "a": "If a field is missing in any element of an array, the generator marks it optional so the resulting type matches every element."
+        },
+        {
+          "q": "How are mixed-type arrays handled?",
+          "a": "They're emitted as a union — for example, an array containing strings and numbers becomes (string | number)[]."
+        },
+        {
+          "q": "Does it handle deeply nested objects?",
+          "a": "Yes. Nested objects are flattened into a list of named interfaces so the output stays readable instead of one massive type."
+        }
+      ],
+      "maxWidth": "1100px"
     },
     {
       "slug": "json-diff",
@@ -43,11 +69,24 @@
       "category": "JSON",
       "description": "Compare two JSON objects and instantly see what was added, removed, or changed.",
       "faqs": [
-        { "q": "Will whitespace or key-order differences show up?", "a": "No. Both inputs are normalized before diffing, so only real structural differences are highlighted." },
-        { "q": "How are arrays compared?", "a": "By index. Reordering an array shows up as a removal-then-addition pair. Use JSON Sort first if you want order-insensitive comparison." },
-        { "q": "Can it handle large JSON files?", "a": "Anything that fits comfortably in your browser memory. There's no hard limit; the diff updates as you type." },
-        { "q": "Are there really no servers involved?", "a": "Right. The page is a single static HTML file; the comparison happens entirely in your browser." }
-      ]
+        {
+          "q": "Will whitespace or key-order differences show up?",
+          "a": "No. Both inputs are normalized before diffing, so only real structural differences are highlighted."
+        },
+        {
+          "q": "How are arrays compared?",
+          "a": "By index. Reordering an array shows up as a removal-then-addition pair. Use JSON Sort first if you want order-insensitive comparison."
+        },
+        {
+          "q": "Can it handle large JSON files?",
+          "a": "Anything that fits comfortably in your browser memory. There's no hard limit; the diff updates as you type."
+        },
+        {
+          "q": "Are there really no servers involved?",
+          "a": "Right. The page is a single static HTML file; the comparison happens entirely in your browser."
+        }
+      ],
+      "maxWidth": "1100px"
     },
     {
       "slug": "json-sort",
@@ -56,11 +95,24 @@
       "category": "JSON",
       "description": "Sort JSON object keys alphabetically (A→Z or Z→A), recursively, instantly in your browser.",
       "faqs": [
-        { "q": "Will it sort arrays too?", "a": "No. Only object keys are sorted; arrays preserve their original order, since array order is usually meaningful." },
-        { "q": "Does the output stay valid JSON?", "a": "Yes. Lenient input quirks like trailing commas or comments are dropped; the output is always strict JSON." },
-        { "q": "Why would I sort JSON keys?", "a": "It produces canonical output for line-stable git diffs, repeatable fingerprints, and easier visual comparison of objects with the same shape." },
-        { "q": "Is sorting recursive?", "a": "Yes. Every nested object in the tree is sorted in one pass." }
-      ]
+        {
+          "q": "Will it sort arrays too?",
+          "a": "No. Only object keys are sorted; arrays preserve their original order, since array order is usually meaningful."
+        },
+        {
+          "q": "Does the output stay valid JSON?",
+          "a": "Yes. Lenient input quirks like trailing commas or comments are dropped; the output is always strict JSON."
+        },
+        {
+          "q": "Why would I sort JSON keys?",
+          "a": "It produces canonical output for line-stable git diffs, repeatable fingerprints, and easier visual comparison of objects with the same shape."
+        },
+        {
+          "q": "Is sorting recursive?",
+          "a": "Yes. Every nested object in the tree is sorted in one pass."
+        }
+      ],
+      "maxWidth": "1100px"
     },
     {
       "slug": "svg-to-jsx",
@@ -69,11 +121,24 @@
       "category": "Code",
       "description": "Convert SVG markup into React JSX-compatible code instantly in your browser.",
       "faqs": [
-        { "q": "What gets transformed?", "a": "Kebab-case attributes become camelCase, class becomes className, inline styles become objects, and editor metadata (like XML declarations and comments) is stripped." },
-        { "q": "Does it preserve viewBox and other SVG-specific attributes?", "a": "Yes. Attributes that JSX expects in camelCase — viewBox, preserveAspectRatio, clipPath, etc. — are converted correctly." },
-        { "q": "Can I drop the result straight into a React component?", "a": "Yes. The output is JSX you can paste directly into a function component or wrap in a generated component template." },
-        { "q": "How do I make the icon use my theme color?", "a": "After copying, replace fill or stroke values with currentColor so the icon picks up the surrounding text color via CSS." }
-      ]
+        {
+          "q": "What gets transformed?",
+          "a": "Kebab-case attributes become camelCase, class becomes className, inline styles become objects, and editor metadata (like XML declarations and comments) is stripped."
+        },
+        {
+          "q": "Does it preserve viewBox and other SVG-specific attributes?",
+          "a": "Yes. Attributes that JSX expects in camelCase — viewBox, preserveAspectRatio, clipPath, etc. — are converted correctly."
+        },
+        {
+          "q": "Can I drop the result straight into a React component?",
+          "a": "Yes. The output is JSX you can paste directly into a function component or wrap in a generated component template."
+        },
+        {
+          "q": "How do I make the icon use my theme color?",
+          "a": "After copying, replace fill or stroke values with currentColor so the icon picks up the surrounding text color via CSS."
+        }
+      ],
+      "maxWidth": "1100px"
     },
     {
       "slug": "gradients",
@@ -82,11 +147,24 @@
       "category": "Visual",
       "description": "Curated gradient collection. Copy CSS, Tailwind classes, or export as PNG.",
       "faqs": [
-        { "q": "Where do these gradients come from?", "a": "Hand-curated for typical UI use cases — heroes, banners, accent surfaces — with an eye on contrast and readability over text." },
-        { "q": "Are the Tailwind classes v3 or v4?", "a": "The output uses bg-gradient-to-* with from-/via-/to- color stops, which both Tailwind v3 and v4 support." },
-        { "q": "What size are the PNG exports?", "a": "1200×630, sized for OG and Twitter cards. Drop them straight into a meta tag or social preview without resizing." },
-        { "q": "Can I customize the colors?", "a": "The gallery itself is fixed, but the CSS output is a regular linear-gradient — copy it and tweak the stops, angle, or color space." }
-      ]
+        {
+          "q": "Where do these gradients come from?",
+          "a": "Hand-curated for typical UI use cases — heroes, banners, accent surfaces — with an eye on contrast and readability over text."
+        },
+        {
+          "q": "Are the Tailwind classes v3 or v4?",
+          "a": "The output uses bg-gradient-to-* with from-/via-/to- color stops, which both Tailwind v3 and v4 support."
+        },
+        {
+          "q": "What size are the PNG exports?",
+          "a": "1200×630, sized for OG and Twitter cards. Drop them straight into a meta tag or social preview without resizing."
+        },
+        {
+          "q": "Can I customize the colors?",
+          "a": "The gallery itself is fixed, but the CSS output is a regular linear-gradient — copy it and tweak the stops, angle, or color space."
+        }
+      ],
+      "maxWidth": "1400px"
     },
     {
       "slug": "blob",
@@ -95,11 +173,24 @@
       "category": "Visual",
       "description": "Generate organic blob shapes using CSS border-radius or SVG paths.",
       "faqs": [
-        { "q": "Should I use CSS or SVG mode?", "a": "CSS for static decorative shapes — no SVG required, works in every modern browser. SVG when you need a path you can animate, mask, or further edit." },
-        { "q": "Does the CSS version work everywhere?", "a": "Yes. The 8-value border-radius syntax is part of the CSS spec and supported in every modern browser." },
-        { "q": "Can I animate the blob?", "a": "Yes. The CSS version animates by transitioning the border-radius values; the SVG path can be tweened with CSS or any animation library." },
-        { "q": "What's Catmull-Rom?", "a": "A spline-fitting algorithm that produces smooth curves through a set of control points. SVG mode uses it so blobs look organic instead of polygonal." }
-      ]
+        {
+          "q": "Should I use CSS or SVG mode?",
+          "a": "CSS for static decorative shapes — no SVG required, works in every modern browser. SVG when you need a path you can animate, mask, or further edit."
+        },
+        {
+          "q": "Does the CSS version work everywhere?",
+          "a": "Yes. The 8-value border-radius syntax is part of the CSS spec and supported in every modern browser."
+        },
+        {
+          "q": "Can I animate the blob?",
+          "a": "Yes. The CSS version animates by transitioning the border-radius values; the SVG path can be tweened with CSS or any animation library."
+        },
+        {
+          "q": "What's Catmull-Rom?",
+          "a": "A spline-fitting algorithm that produces smooth curves through a set of control points. SVG mode uses it so blobs look organic instead of polygonal."
+        }
+      ],
+      "maxWidth": "1400px"
     },
     {
       "slug": "waves",
@@ -108,11 +199,24 @@
       "category": "Visual",
       "description": "Generate SVG wave dividers for your web projects — single or stacked layers, fully customizable.",
       "faqs": [
-        { "q": "How do I make the wave responsive?", "a": "Drop the SVG into a width:100% container; the viewBox scales fluidly with the parent." },
-        { "q": "Can I stack multiple waves?", "a": "Yes. Stacked mode lets you set layer count, vertical spacing, and color interpolation between two endpoints." },
-        { "q": "Will the gradient fill render in all browsers?", "a": "Yes. SVG gradient fills have universal support across every modern browser, including mobile." },
-        { "q": "Sweeping curves vs. choppy waves — how?", "a": "Lower frequency for sweeping, gentle curves; higher frequency for choppy, sea-style waves. Amplitude controls how tall the peaks are." }
-      ]
+        {
+          "q": "How do I make the wave responsive?",
+          "a": "Drop the SVG into a width:100% container; the viewBox scales fluidly with the parent."
+        },
+        {
+          "q": "Can I stack multiple waves?",
+          "a": "Yes. Stacked mode lets you set layer count, vertical spacing, and color interpolation between two endpoints."
+        },
+        {
+          "q": "Will the gradient fill render in all browsers?",
+          "a": "Yes. SVG gradient fills have universal support across every modern browser, including mobile."
+        },
+        {
+          "q": "Sweeping curves vs. choppy waves — how?",
+          "a": "Lower frequency for sweeping, gentle curves; higher frequency for choppy, sea-style waves. Amplitude controls how tall the peaks are."
+        }
+      ],
+      "maxWidth": "1400px"
     }
   ]
 }
