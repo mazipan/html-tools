@@ -41,9 +41,14 @@ Current tools (all under `src/`):
 - The `parcel-namer-no-hash` local plugin strips content hashes from output filenames so URLs stay stable.
 - **All JS is inlined into HTML at build time.** `scripts/build.mjs` inlines every `.js` reference into its parent HTML after bundling so `dist/` contains only `.html` and `.css` files.
 
+## Social card image
+
+The 1200×630 social card lives at `src/og-image.png` and is committed to the repo. The source is `src/og-image.svg`; rerun `npm run generate:og` whenever the SVG changes and commit the regenerated PNG. The build only copies `src/og-image.png` to `dist/` — it does not regenerate it on every build.
+
 ## Commands
 
 ```bash
-npm run dev      # start dev server (watches all *.html)
-npm run build    # production build → dist/
+npm run dev          # start dev server (watches all *.html)
+npm run build        # production build → dist/
+npm run generate:og  # regenerate src/og-image.png from src/og-image.svg
 ```
