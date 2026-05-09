@@ -14,6 +14,11 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
   <include src="_partials/head-fonts.html"></include>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .yaml-comment { color: #6a737d; font-style: italic; }
+    .yaml-anchor  { color: #56b6c2; }
+    .yaml-tag     { color: #56b6c2; font-style: italic; }
+  </style>
   <include src="_partials/head-theme.html"></include>
 </head>
 <body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
@@ -341,6 +346,151 @@
       ).join('\n');
     }
 
+    // ── YAML syntax highlight + line numbers ────────────────────────
+    // Walks each line as a small state machine: handles leading indent,
+    // list markers (- ), keys (foo:), quoted/unquoted scalars, comments,
+    // anchors/aliases (&name / *name), and tags (!!str / !Custom).
+    function highlightYamlLine(line) {
+      const len = line.length;
+      let i = 0;
+      let out = '';
+      let keyConsumed = false;
+
+      // Leading indent (preserved as plain text)
+      while (i < len && (line[i] === ' ' || line[i] === '\t')) {
+        out += line[i] === '\t' ? '\t' : ' ';
+        i++;
+      }
+
+      // Optional list marker
+      if (i < len - 1 && line[i] === '-' && line[i + 1] === ' ') {
+        out += '<span class="json-punct">- </span>';
+        i += 2;
+      } else if (i < len && line[i] === '-' && (i + 1 === len)) {
+        out += '<span class="json-punct">-</span>';
+        i++;
+      }
+
+      while (i < len) {
+        const c = line[i];
+
+        // Comments — rest of line
+        if (c === '#') {
+          out += `<span class="yaml-comment">${escHtml(line.slice(i))}</span>`;
+          return out;
+        }
+
+        // Quoted scalar (possibly a key if followed by `:`)
+        if (c === '"' || c === "'") {
+          const quote = c;
+          let j = i + 1;
+          while (j < len) {
+            if (line[j] === '\\' && quote === '"') { j += 2; continue; }
+            if (line[j] === quote) { j++; break; }
+            j++;
+          }
+          const isKey = !keyConsumed && line[j] === ':';
+          out += isKey
+            ? `<span class="json-key">${escHtml(line.slice(i, j))}</span>`
+            : `<span class="json-string">${escHtml(line.slice(i, j))}</span>`;
+          if (isKey) keyConsumed = true;
+          i = j;
+          continue;
+        }
+
+        // Anchor (&name) or alias (*name)
+        if ((c === '&' || c === '*') && i + 1 < len && /[A-Za-z_]/.test(line[i + 1])) {
+          let j = i + 1;
+          while (j < len && /[\w-]/.test(line[j])) j++;
+          out += `<span class="yaml-anchor">${escHtml(line.slice(i, j))}</span>`;
+          i = j;
+          continue;
+        }
+
+        // Tag (!!str, !Custom)
+        if (c === '!') {
+          let j = i + 1;
+          if (line[j] === '!') j++;
+          while (j < len && /[\w-]/.test(line[j])) j++;
+          if (j > i + 1) {
+            out += `<span class="yaml-tag">${escHtml(line.slice(i, j))}</span>`;
+            i = j;
+            continue;
+          }
+        }
+
+        // Identifier (could be a key, a boolean, null, or just a value)
+        if (/[A-Za-z_]/.test(c)) {
+          let j = i;
+          while (j < len && /[\w-]/.test(line[j])) j++;
+          const word = line.slice(i, j);
+          const isKey = !keyConsumed && line[j] === ':' && (j + 1 === len || line[j + 1] === ' ');
+          if (isKey) {
+            out += `<span class="json-key">${word}</span>`;
+            keyConsumed = true;
+          } else if (word === 'true' || word === 'false') {
+            out += `<span class="json-bool">${word}</span>`;
+          } else if (word === 'null') {
+            out += `<span class="json-null">${word}</span>`;
+          } else {
+            out += escHtml(word);
+          }
+          i = j;
+          continue;
+        }
+
+        // Tilde-null
+        if (c === '~' && (i + 1 === len || /\s/.test(line[i + 1]))) {
+          out += '<span class="json-null">~</span>';
+          i++;
+          continue;
+        }
+
+        // Numbers (after a space, after the key colon, or as standalone)
+        if ((c === '-' || /\d/.test(c)) && (i === 0 || /[\s:[,]/.test(line[i - 1]))) {
+          let j = i;
+          if (line[j] === '-') j++;
+          while (j < len && /[\d]/.test(line[j])) j++;
+          if (line[j] === '.' && /\d/.test(line[j + 1])) {
+            j++;
+            while (j < len && /\d/.test(line[j])) j++;
+          }
+          if (line[j] === 'e' || line[j] === 'E') {
+            j++;
+            if (line[j] === '+' || line[j] === '-') j++;
+            while (j < len && /\d/.test(line[j])) j++;
+          }
+          const num = line.slice(i, j);
+          if (/^-?\d+(\.\d+)?([eE][+\-]?\d+)?$/.test(num)) {
+            out += `<span class="json-number">${num}</span>`;
+            i = j;
+            continue;
+          }
+        }
+
+        // Punctuation we want greyed out
+        if (c === ':' || c === ',' || c === '[' || c === ']' || c === '{' || c === '}') {
+          out += `<span class="json-punct">${c}</span>`;
+          i++;
+          continue;
+        }
+
+        // Default: pass through (escaped)
+        out += escHtml(c);
+        i++;
+      }
+
+      return out;
+    }
+
+    function highlightYaml(yaml) {
+      const lines = yaml.split('\n');
+      const pad   = String(lines.length).length;
+      return lines.map((line, i) =>
+        `<span class="line-num">${String(i + 1).padStart(pad)}</span>${highlightYamlLine(line)}`
+      ).join('\n');
+    }
+
     // ── UI plumbing ─────────────────────────────────────────────────
     function setDirection(d) {
       if (d === direction) return;
@@ -429,7 +579,7 @@
           lastOutput = yaml;
           lastParsed = null;
           outputEl.classList.add('whitespace-pre');
-          outputEl.textContent = yaml;
+          outputEl.innerHTML = highlightYaml(yaml);
           setStatus(meta);
         } else {
           const { json, value, meta } = yamlToJson(text);
