@@ -1,4 +1,7 @@
 {
   "extends": "@parcel/config-default",
+  "transformers": {
+    "*.html": ["@parcel/transformer-posthtml", "..."]
+  },
   "namers": ["parcel-namer-no-hash", "..."]
 }
