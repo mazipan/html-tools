@@ -97,6 +97,41 @@
 
   </div>
 
+  <section class="max-w-[1100px] mx-auto w-full px-6 py-12 border-t border-gray-800">
+    <div class="grid gap-10 md:grid-cols-2">
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">About JSON to TypeScript</h2>
+        <p class="text-gray-400 leading-relaxed">Convert a JSON object into TypeScript <code class="text-gray-300">interface</code> or <code class="text-gray-300">type</code> declarations. Nested objects become named types, arrays are inferred from their elements, and optional fields are detected automatically.</p>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">How to use</h2>
+        <ol class="text-gray-400 leading-relaxed space-y-2 list-decimal list-inside">
+          <li>Paste a JSON object into the input.</li>
+          <li>Pick <strong class="text-gray-300">interface</strong> or <strong class="text-gray-300">type</strong> from the toggle.</li>
+          <li>Adjust the root name if you want a specific identifier.</li>
+          <li>Copy the generated TypeScript and drop it into your project.</li>
+        </ol>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">Common use cases</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Quickly typing a third-party API response without writing the shape by hand.</li>
+          <li>Bootstrapping types from a representative fixture.</li>
+          <li>Converting documentation examples into compilable types.</li>
+          <li>Sharing a typed contract derived from a real backend response.</li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">Tips</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Fields missing from any array element are emitted as optional (<code class="text-gray-300">?:</code>).</li>
+          <li>Mixed-type arrays produce a union, e.g. <code class="text-gray-300">(string | number)[]</code>.</li>
+          <li>Deeply nested shapes flatten into a clean list of named interfaces.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
   <footer class="max-w-[1100px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
     &copy; <span id="year"></span> Irfan Maulana &amp; Claude<br><span id="deploy-time"></span>
   </footer>

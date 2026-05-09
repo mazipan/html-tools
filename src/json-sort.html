@@ -331,6 +331,40 @@
     inputEl.focus();
   </script>
 
+  <section class="max-w-[1100px] mx-auto w-full px-6 py-12 border-t border-gray-800">
+    <div class="grid gap-10 md:grid-cols-2">
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">About JSON Sort</h2>
+        <p class="text-gray-400 leading-relaxed">Sort every key in a JSON object alphabetically — A→Z or Z→A — recursively through nested objects. Useful for canonicalizing config files, producing line-stable diffs, or comparing objects whose keys arrived in a different order.</p>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">How to use</h2>
+        <ol class="text-gray-400 leading-relaxed space-y-2 list-decimal list-inside">
+          <li>Paste your JSON into the input.</li>
+          <li>Choose the sort direction (A→Z or Z→A).</li>
+          <li>Copy the canonicalized output to your clipboard.</li>
+        </ol>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">Common use cases</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Making git diffs of JSON config files line-stable.</li>
+          <li>Canonicalizing a file before checking it into version control.</li>
+          <li>Comparing two objects that have the same keys in different orders.</li>
+          <li>Producing a stable fingerprint of a JSON value.</li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">Tips</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Arrays keep their original order — only object keys are sorted.</li>
+          <li>Sorting is recursive, so the entire tree is canonicalized in one pass.</li>
+          <li>The output is strict JSON; trailing commas or comments in the input are dropped.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
   <footer class="max-w-[1100px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
     &copy; <span id="year"></span> Irfan Maulana &amp; Claude<br><span id="deploy-time"></span>
   </footer>
