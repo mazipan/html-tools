@@ -8,6 +8,7 @@ Current tools (all under `src/`):
 - `json-formatter.html` — prettify, minify, validate JSON with syntax highlighting
 - `json-to-ts.html` — convert JSON to TypeScript interfaces
 - `json-diff.html` — compare two JSON objects and highlight differences
+- `regex-tester.html` — test JavaScript regular expressions live: match / replace / split modes, flag toggles, sample patterns, capture-group breakdown, cheat sheet
 - `svg-to-jsx.html` — convert SVG markup to React JSX
 - `index.html` — landing page linking all tools
 - `json-sort.html` — sort JSON object keys alphabetically (A→Z or Z→A), recursively
