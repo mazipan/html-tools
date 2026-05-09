@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <include src="_partials/meta-base.html"></include>
+  <title>JSON ↔ YAML — HTML Tools</title>
+  <meta name="description" content="Convert between JSON and YAML instantly in your browser. YAML 1.2-compatible, anchor + alias resolution, multi-document support, and configurable block / flow output.">
+  <link rel="canonical" href="https://tools.mazipan.space/json-to-yaml">
+  <meta property="og:title" content="JSON ↔ YAML — HTML Tools">
+  <meta property="og:description" content="Convert between JSON and YAML instantly in your browser. YAML 1.2-compatible, anchor + alias resolution, multi-document support, and configurable block / flow output.">
+  <meta property="og:url" content="https://tools.mazipan.space/json-to-yaml">
+  <meta name="twitter:title" content="JSON ↔ YAML — HTML Tools">
+  <meta name="twitter:description" content="Convert between JSON and YAML instantly in your browser. YAML 1.2-compatible, anchor + alias resolution, multi-document support, and configurable block / flow output.">
+  <include src="_partials/meta-social.html"></include>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+  <include src="_partials/head-fonts.html"></include>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .yaml-comment { color: #6a737d; font-style: italic; }
+    .yaml-anchor  { color: #56b6c2; }
+    .yaml-tag     { color: #56b6c2; font-style: italic; }
+  </style>
+  <include src="_partials/head-theme.html"></include>
+</head>
+<body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+
+  <!-- Site header -->
+  <header class="border-b border-gray-800 px-6 py-4">
+    <nav aria-label="Breadcrumb" class="max-w-[1100px] mx-auto flex items-center gap-3">
+      <a href="index.html" class="no-underline text-white font-bold text-lg tracking-tight hover:text-blue-400 transition-colors">
+        HTML Tools
+      </a>
+      <span class="text-gray-700">/</span>
+      <span class="text-gray-400 text-sm flex items-center gap-1.5" aria-current="page">
+        📝 JSON ↔ YAML
+      </span>
+    </nav>
+  </header>
+
+  <main class="max-w-[1100px] mx-auto w-full flex-1 py-8 px-6">
+
+    <header class="mb-7">
+      <h1 class="text-3xl font-bold text-white flex items-center gap-3">📝 JSON ↔ YAML</h1>
+      <p class="mt-1.5 text-sm text-gray-500">Round-trip JSON and YAML with sensible defaults — YAML 1.2, anchor and alias resolution, multi-document support.</p>
+    </header>
+
+    <!-- Direction toggle -->
+    <div class="flex flex-wrap gap-2 items-center mb-4">
+      <button id="btn-j2y" onclick="setDirection('j2y')" class="btn btn-active">JSON → YAML</button>
+      <button id="btn-y2j" onclick="setDirection('y2j')" class="btn btn-secondary">YAML → JSON</button>
+      <div class="w-px h-5 bg-gray-700 mx-1"></div>
+      <button onclick="loadSample()" class="btn btn-secondary">Load sample</button>
+      <button onclick="clearAll()" class="btn btn-danger">Clear</button>
+    </div>
+
+    <!-- Options (JSON → YAML) -->
+    <div id="opts-j2y" class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-4 px-3 py-2.5 rounded-lg border border-gray-800 bg-gray-900/50">
+      <label class="flex items-center gap-2 text-xs text-gray-400">
+        Indent
+        <select id="j2y-indent" onchange="convert()" class="bg-gray-900 border border-gray-700 text-xs text-gray-200 rounded-md px-2 py-1 outline-none hover:border-gray-600 focus:border-blue-400">
+          <option value="2">2</option>
+          <option value="4">4</option>
+        </select>
+      </label>
+      <label class="flex items-center gap-2 text-xs text-gray-400">
+        Style
+        <select id="j2y-style" onchange="convert()" class="bg-gray-900 border border-gray-700 text-xs text-gray-200 rounded-md px-2 py-1 outline-none hover:border-gray-600 focus:border-blue-400">
+          <option value="auto">auto</option>
+          <option value="block">block</option>
+          <option value="flow">flow</option>
+        </select>
+      </label>
+      <label class="flex items-center gap-2 text-xs text-gray-400">
+        Line width
+        <input id="j2y-width" type="number" min="40" max="200" value="80" onchange="convert()" class="bg-gray-900 border border-gray-700 text-xs text-gray-200 rounded-md px-2 py-1 w-16 outline-none hover:border-gray-600 focus:border-blue-400">
+      </label>
+      <label class="flex items-center gap-2 text-xs text-gray-400">
+        Quote style
+        <select id="j2y-quote" onchange="convert()" class="bg-gray-900 border border-gray-700 text-xs text-gray-200 rounded-md px-2 py-1 outline-none hover:border-gray-600 focus:border-blue-400">
+          <option value="auto">auto</option>
+          <option value="single">single</option>
+          <option value="double">double</option>
+        </select>
+      </label>
+      <label class="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer">
+        <input type="checkbox" id="j2y-sort" onchange="convert()" class="accent-blue-400">
+        Sort keys
+      </label>
+    </div>
+
+    <!-- Options (YAML → JSON) -->
+    <div id="opts-y2j" style="display:none" class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-4 px-3 py-2.5 rounded-lg border border-gray-800 bg-gray-900/50">
+      <label class="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer">
+        <input type="checkbox" id="y2j-pretty" checked onchange="convert()" class="accent-blue-400">
+        Pretty output
+      </label>
+      <label class="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer">
+        <input type="checkbox" id="y2j-sort" onchange="convert()" class="accent-blue-400">
+        Sort keys
+      </label>
+      <label class="flex items-center gap-2 text-xs text-gray-400">
+        Multi-document
+        <select id="y2j-multi" onchange="convert()" class="bg-gray-900 border border-gray-700 text-xs text-gray-200 rounded-md px-2 py-1 outline-none hover:border-gray-600 focus:border-blue-400">
+          <option value="first">first doc only</option>
+          <option value="array">array of docs</option>
+        </select>
+      </label>
+    </div>
+
+    <!-- Panels -->
+    <div class="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" id="input-label">JSON input</label>
+        </div>
+        <textarea id="input"
+                  placeholder="Paste JSON here..."
+                  spellcheck="false"
+                  oninput="onInput()"
+                  class="w-full h-[500px] min-h-[500px] rounded-lg border border-gray-700 bg-gray-900
+                         text-gray-200 font-mono text-[0.8rem] leading-relaxed p-4 resize-y outline-none
+                         focus:border-blue-400 transition-colors"></textarea>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" id="output-label">YAML output</label>
+          <div class="flex gap-1 items-center">
+            <button onclick="copyOutput()" class="btn btn-secondary btn-sm">Copy</button>
+            <button onclick="downloadOutput()" class="btn btn-secondary btn-sm">Download</button>
+            <span id="view-divider" class="w-px h-3 bg-gray-700 mx-0.5" style="display:none"></span>
+            <button id="btn-tree" onclick="setView('tree')" class="btn btn-secondary btn-sm" style="display:none">Tree</button>
+            <button id="btn-raw" onclick="setView('raw')" class="btn btn-secondary btn-sm" style="display:none">Raw</button>
+          </div>
+        </div>
+
+        <div id="output"
+             class="w-full h-[500px] min-h-[500px] rounded-lg border border-gray-700 bg-gray-900
+                    text-gray-200 font-mono text-[0.8rem] leading-relaxed p-4 overflow-auto resize-y whitespace-pre"></div>
+      </div>
+
+    </div>
+
+    <div id="status" class="mt-2.5 text-xs text-gray-500 min-h-[18px]"></div>
+  </main>
+
+  <script src="json-utils.js"></script>
+  <!-- The build step replaces this meta with the inlined js-yaml UMD bundle. -->
+  <meta name="x-yaml-lib-injection-point">
+  <script>
+    const inputEl     = document.getElementById('input');
+    const outputEl    = document.getElementById('output');
+    const statusEl    = document.getElementById('status');
+    const inputLabel  = document.getElementById('input-label');
+    const outputLabel = document.getElementById('output-label');
+    const optsJ2Y     = document.getElementById('opts-j2y');
+    const optsY2J     = document.getElementById('opts-y2j');
+    const treeBtn     = document.getElementById('btn-tree');
+    const rawBtn      = document.getElementById('btn-raw');
+    const viewDivider = document.getElementById('view-divider');
+
+    let direction   = 'j2y';   // 'j2y' = JSON → YAML, 'y2j' = YAML → JSON
+    let currentView = 'tree';  // for y2j JSON output
+    let lastOutput  = '';
+    let lastParsed  = null;
+
+    // ── JSON → YAML ──────────────────────────────────────────────────
+    function jsonToYaml(text) {
+      const indent     = parseInt(document.getElementById('j2y-indent').value, 10);
+      const style      = document.getElementById('j2y-style').value;
+      const lineWidth  = parseInt(document.getElementById('j2y-width').value, 10) || 80;
+      const quoteStyle = document.getElementById('j2y-quote').value;
+      const sortKeys   = document.getElementById('j2y-sort').checked;
+
+      const { value: data } = tolerantParse(text);
+
+      // js-yaml's `flowLevel`: -1 = always block, 0 = always flow, n = flow at depth n.
+      // 'auto' → use flow for objects with ≤2 keys (depth-1 heuristic).
+      const flowLevel = style === 'block' ? -1 : style === 'flow' ? 0 : 2;
+
+      const yaml = jsyaml.dump(data, {
+        indent,
+        flowLevel,
+        lineWidth,
+        sortKeys,
+        quotingType: quoteStyle === 'single' ? "'" : quoteStyle === 'double' ? '"' : "'",
+        forceQuotes: false,
+        noRefs: false,
+      });
+
+      const docCount = 1;
+      const meta = `${countNodes(data)} value${countNodes(data) === 1 ? '' : 's'} · ${yaml.split('\n').length} line${yaml.split('\n').length === 1 ? '' : 's'}`;
+      return { yaml, meta };
+    }
+
+    // ── YAML → JSON ──────────────────────────────────────────────────
+    function yamlToJson(text) {
+      const pretty   = document.getElementById('y2j-pretty').checked;
+      const sortKeys = document.getElementById('y2j-sort').checked;
+      const multi    = document.getElementById('y2j-multi').value;
+
+      // Detect multi-document YAML (presence of `---` at line start outside the first line).
+      const docs = jsyaml.loadAll(text);
+      let value;
+      let droppedDocs = 0;
+      if (docs.length === 0) {
+        value = null;
+      } else if (multi === 'array') {
+        value = docs;
+      } else {
+        value = docs[0];
+        droppedDocs = docs.length - 1;
+      }
+
+      // Drop comments — count them for the status line so loss is explicit.
+      const commentCount = (text.match(/(^|\s)#[^\n]*/g) || []).length;
+
+      if (sortKeys) value = sortDeep(value);
+      const json = pretty ? JSON.stringify(value, null, 2) : JSON.stringify(value);
+
+      const parts = [];
+      parts.push(`${docs.length} doc${docs.length === 1 ? '' : 's'}`);
+      if (droppedDocs) parts.push(`${droppedDocs} additional doc${droppedDocs === 1 ? '' : 's'} hidden — switch to "array of docs"`);
+      if (commentCount) parts.push(`${commentCount} comment${commentCount === 1 ? '' : 's'} dropped`);
+      const meta = parts.join(' · ');
+
+      return { json, value, meta };
+    }
+
+    function countNodes(v) {
+      if (v === null || typeof v !== 'object') return 1;
+      if (Array.isArray(v)) return v.reduce((acc, x) => acc + countNodes(x), 1);
+      return Object.values(v).reduce((acc, x) => acc + countNodes(x), 1);
+    }
+
+    function sortDeep(v) {
+      if (v === null || typeof v !== 'object') return v;
+      if (Array.isArray(v)) return v.map(sortDeep);
+      return Object.fromEntries(Object.keys(v).sort().map(k => [k, sortDeep(v[k])]));
+    }
+
+    // ── Tree builder (shared with JSON Formatter / CSV ↔ JSON) ──────
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function primitiveHtml(v) {
+      if (v === null)             return `<span class="json-null">null</span>`;
+      if (typeof v === 'boolean') return `<span class="json-bool">${v}</span>`;
+      if (typeof v === 'number')  return `<span class="json-number">${v}</span>`;
+      return `<span class="json-string">"${escHtml(v)}"</span>`;
+    }
+
+    function buildTree(value, key, isLast, counter) {
+      const node = document.createElement('div');
+      node.className = 'tree-node';
+
+      if (value === null || typeof value !== 'object') {
+        const row = document.createElement('div');
+        row.className = 'tree-row';
+        row.innerHTML =
+          `<span class="line-num">${counter.n++}</span>` +
+          '<span class="toggle-btn leaf">▶</span>' +
+          (key !== null ? `<span class="json-key">"${escHtml(key)}"</span><span class="json-punct">: </span>` : '') +
+          primitiveHtml(value) +
+          (isLast ? '' : '<span class="tree-comma">,</span>');
+        node.appendChild(row);
+        return node;
+      }
+
+      const isArray  = Array.isArray(value);
+      const keys     = isArray ? value.map((_, i) => i) : Object.keys(value);
+      const openB    = isArray ? '[' : '{';
+      const closeB   = isArray ? ']' : '}';
+      const previewLabel = isArray
+        ? `${keys.length} item${keys.length !== 1 ? 's' : ''}`
+        : `${keys.length} key${keys.length !== 1 ? 's' : ''}`;
+
+      const headerRow = document.createElement('div');
+      headerRow.className = 'tree-row';
+      headerRow.style.cursor = 'pointer';
+
+      const toggleBtn = document.createElement('span');
+      toggleBtn.className = 'toggle-btn';
+      toggleBtn.textContent = '▼';
+
+      const keyHtml = key !== null
+        ? `<span class="json-key">"${escHtml(String(key))}"</span><span class="json-punct">: </span>`
+        : '';
+
+      headerRow.innerHTML =
+        `<span class="line-num">${counter.n++}</span>` +
+        keyHtml +
+        `<span class="json-punct">${openB}</span>` +
+        `<span class="collapsed-preview" style="display:none"> ${previewLabel} </span>`;
+      headerRow.insertBefore(toggleBtn, headerRow.children[1]);
+      node.appendChild(headerRow);
+
+      const childrenEl = document.createElement('div');
+      childrenEl.className = 'tree-children';
+      keys.forEach((k, i) => {
+        childrenEl.appendChild(buildTree(value[k], isArray ? null : k, i === keys.length - 1, counter));
+      });
+      node.appendChild(childrenEl);
+
+      const footerRow = document.createElement('div');
+      footerRow.className = 'tree-row';
+      footerRow.innerHTML =
+        `<span class="line-num">${counter.n++}</span>` +
+        '<span class="toggle-btn leaf">▶</span>' +
+        `<span class="json-punct">${closeB}</span>` +
+        (isLast ? '' : '<span class="tree-comma">,</span>');
+      node.appendChild(footerRow);
+
+      const collapsedPreview = headerRow.querySelector('.collapsed-preview');
+      let collapsed = false;
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        collapsed = !collapsed;
+        toggleBtn.textContent             = collapsed ? '▶' : '▼';
+        childrenEl.style.display          = collapsed ? 'none' : '';
+        footerRow.style.display           = collapsed ? 'none' : '';
+        collapsedPreview.style.display    = collapsed ? 'inline' : 'none';
+        if (collapsed) collapsedPreview.textContent = ` ${previewLabel} ${closeB}${isLast ? '' : ','}`;
+      });
+      headerRow.addEventListener('click', () => toggleBtn.click());
+
+      return node;
+    }
+
+    function highlightRaw(json) {
+      const highlighted = escHtml(json).replace(
+        /("(?:\\u[0-9a-fA-F]{4}|\\[^u]|[^\\"])*"(\s*:)?)|(\b(?:true|false|null)\b)|(-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+        (m) => {
+          if (m.endsWith(':'))               return `<span class="json-key">${m}</span>`;
+          if (m.startsWith('"'))             return `<span class="json-string">${m}</span>`;
+          if (m === 'true' || m === 'false') return `<span class="json-bool">${m}</span>`;
+          if (m === 'null')                  return `<span class="json-null">${m}</span>`;
+          return `<span class="json-number">${m}</span>`;
+        }
+      );
+      const lines = highlighted.split('\n');
+      const pad   = String(lines.length).length;
+      return lines.map((line, i) =>
+        `<span class="line-num">${String(i + 1).padStart(pad)}</span>${line}`
+      ).join('\n');
+    }
+
+    // ── YAML syntax highlight + line numbers ────────────────────────
+    // Walks each line as a small state machine: handles leading indent,
+    // list markers (- ), keys (foo:), quoted/unquoted scalars, comments,
+    // anchors/aliases (&name / *name), and tags (!!str / !Custom).
+    function highlightYamlLine(line) {
+      const len = line.length;
+      let i = 0;
+      let out = '';
+      let keyConsumed = false;
+
+      // Leading indent (preserved as plain text)
+      while (i < len && (line[i] === ' ' || line[i] === '\t')) {
+        out += line[i] === '\t' ? '\t' : ' ';
+        i++;
+      }
+
+      // Optional list marker
+      if (i < len - 1 && line[i] === '-' && line[i + 1] === ' ') {
+        out += '<span class="json-punct">- </span>';
+        i += 2;
+      } else if (i < len && line[i] === '-' && (i + 1 === len)) {
+        out += '<span class="json-punct">-</span>';
+        i++;
+      }
+
+      while (i < len) {
+        const c = line[i];
+
+        // Comments — rest of line
+        if (c === '#') {
+          out += `<span class="yaml-comment">${escHtml(line.slice(i))}</span>`;
+          return out;
+        }
+
+        // Quoted scalar (possibly a key if followed by `:`)
+        if (c === '"' || c === "'") {
+          const quote = c;
+          let j = i + 1;
+          while (j < len) {
+            if (line[j] === '\\' && quote === '"') { j += 2; continue; }
+            if (line[j] === quote) { j++; break; }
+            j++;
+          }
+          const isKey = !keyConsumed && line[j] === ':';
+          out += isKey
+            ? `<span class="json-key">${escHtml(line.slice(i, j))}</span>`
+            : `<span class="json-string">${escHtml(line.slice(i, j))}</span>`;
+          if (isKey) keyConsumed = true;
+          i = j;
+          continue;
+        }
+
+        // Anchor (&name) or alias (*name)
+        if ((c === '&' || c === '*') && i + 1 < len && /[A-Za-z_]/.test(line[i + 1])) {
+          let j = i + 1;
+          while (j < len && /[\w-]/.test(line[j])) j++;
+          out += `<span class="yaml-anchor">${escHtml(line.slice(i, j))}</span>`;
+          i = j;
+          continue;
+        }
+
+        // Tag (!!str, !Custom)
+        if (c === '!') {
+          let j = i + 1;
+          if (line[j] === '!') j++;
+          while (j < len && /[\w-]/.test(line[j])) j++;
+          if (j > i + 1) {
+            out += `<span class="yaml-tag">${escHtml(line.slice(i, j))}</span>`;
+            i = j;
+            continue;
+          }
+        }
+
+        // Identifier (could be a key, a boolean, null, or just a value)
+        if (/[A-Za-z_]/.test(c)) {
+          let j = i;
+          while (j < len && /[\w-]/.test(line[j])) j++;
+          const word = line.slice(i, j);
+          const isKey = !keyConsumed && line[j] === ':' && (j + 1 === len || line[j + 1] === ' ');
+          if (isKey) {
+            out += `<span class="json-key">${word}</span>`;
+            keyConsumed = true;
+          } else if (word === 'true' || word === 'false') {
+            out += `<span class="json-bool">${word}</span>`;
+          } else if (word === 'null') {
+            out += `<span class="json-null">${word}</span>`;
+          } else {
+            out += escHtml(word);
+          }
+          i = j;
+          continue;
+        }
+
+        // Tilde-null
+        if (c === '~' && (i + 1 === len || /\s/.test(line[i + 1]))) {
+          out += '<span class="json-null">~</span>';
+          i++;
+          continue;
+        }
+
+        // Numbers (after a space, after the key colon, or as standalone)
+        if ((c === '-' || /\d/.test(c)) && (i === 0 || /[\s:[,]/.test(line[i - 1]))) {
+          let j = i;
+          if (line[j] === '-') j++;
+          while (j < len && /[\d]/.test(line[j])) j++;
+          if (line[j] === '.' && /\d/.test(line[j + 1])) {
+            j++;
+            while (j < len && /\d/.test(line[j])) j++;
+          }
+          if (line[j] === 'e' || line[j] === 'E') {
+            j++;
+            if (line[j] === '+' || line[j] === '-') j++;
+            while (j < len && /\d/.test(line[j])) j++;
+          }
+          const num = line.slice(i, j);
+          if (/^-?\d+(\.\d+)?([eE][+\-]?\d+)?$/.test(num)) {
+            out += `<span class="json-number">${num}</span>`;
+            i = j;
+            continue;
+          }
+        }
+
+        // Punctuation we want greyed out
+        if (c === ':' || c === ',' || c === '[' || c === ']' || c === '{' || c === '}') {
+          out += `<span class="json-punct">${c}</span>`;
+          i++;
+          continue;
+        }
+
+        // Default: pass through (escaped)
+        out += escHtml(c);
+        i++;
+      }
+
+      return out;
+    }
+
+    function highlightYaml(yaml) {
+      const lines = yaml.split('\n');
+      const pad   = String(lines.length).length;
+      return lines.map((line, i) =>
+        `<span class="line-num">${String(i + 1).padStart(pad)}</span>${highlightYamlLine(line)}`
+      ).join('\n');
+    }
+
+    // ── UI plumbing ─────────────────────────────────────────────────
+    function setDirection(d) {
+      if (d === direction) return;
+      direction = d;
+      const j2y = d === 'j2y';
+
+      document.getElementById('btn-j2y').classList.toggle('btn-active', j2y);
+      document.getElementById('btn-j2y').classList.toggle('btn-secondary', !j2y);
+      document.getElementById('btn-y2j').classList.toggle('btn-active', !j2y);
+      document.getElementById('btn-y2j').classList.toggle('btn-secondary', j2y);
+
+      optsJ2Y.style.display = j2y ? '' : 'none';
+      optsY2J.style.display = j2y ? 'none' : '';
+      inputLabel.textContent  = j2y ? 'JSON input' : 'YAML input';
+      outputLabel.textContent = j2y ? 'YAML output' : 'JSON output';
+      inputEl.placeholder     = j2y ? 'Paste JSON here...' : 'Paste YAML here...';
+
+      // Tree/Raw view buttons only matter when the OUTPUT is JSON (y2j).
+      const showView = !j2y;
+      treeBtn.style.display     = showView ? '' : 'none';
+      rawBtn.style.display      = showView ? '' : 'none';
+      viewDivider.style.display = showView ? '' : 'none';
+
+      // Clear both panels — input from the previous direction is the wrong format.
+      inputEl.value = '';
+      outputEl.innerHTML = '';
+      outputEl.classList.add('whitespace-pre');
+      lastOutput = '';
+      lastParsed = null;
+      setStatus('');
+      inputEl.focus();
+    }
+
+    function setView(view) {
+      currentView = view;
+      treeBtn.classList.toggle('btn-active', view === 'tree');
+      treeBtn.classList.toggle('btn-secondary', view !== 'tree');
+      rawBtn.classList.toggle('btn-active', view === 'raw');
+      rawBtn.classList.toggle('btn-secondary', view !== 'raw');
+      renderJsonOutput();
+    }
+
+    function renderJsonOutput() {
+      if (!lastOutput) { outputEl.innerHTML = ''; outputEl.classList.add('whitespace-pre'); return; }
+      outputEl.classList.remove('whitespace-pre');
+      if (currentView === 'tree' && lastParsed !== null) {
+        outputEl.innerHTML = '';
+        const root = document.createElement('div');
+        root.className = 'tree-root';
+        const counter = { n: 1 };
+        root.appendChild(buildTree(lastParsed, null, true, counter));
+        outputEl.appendChild(root);
+      } else {
+        outputEl.classList.add('whitespace-pre');
+        outputEl.innerHTML = highlightRaw(lastOutput);
+      }
+    }
+
+    function setError(msg) {
+      outputEl.classList.remove('border-gray-700');
+      outputEl.classList.add('border-red-500');
+      statusEl.textContent = msg;
+      statusEl.className = 'mt-2.5 text-xs text-red-400 min-h-[18px]';
+    }
+
+    function setStatus(msg) {
+      outputEl.classList.remove('border-red-500');
+      outputEl.classList.add('border-gray-700');
+      statusEl.textContent = msg || '';
+      statusEl.className = 'mt-2.5 text-xs text-gray-500 min-h-[18px]';
+    }
+
+    function convert() {
+      const text = inputEl.value;
+      if (!text.trim()) {
+        outputEl.innerHTML = '';
+        outputEl.classList.add('whitespace-pre');
+        lastOutput = '';
+        lastParsed = null;
+        setStatus('');
+        return;
+      }
+      try {
+        if (direction === 'j2y') {
+          const { yaml, meta } = jsonToYaml(text);
+          lastOutput = yaml;
+          lastParsed = null;
+          outputEl.classList.add('whitespace-pre');
+          outputEl.innerHTML = highlightYaml(yaml);
+          setStatus(meta);
+        } else {
+          const { json, value, meta } = yamlToJson(text);
+          lastOutput = json;
+          lastParsed = value;
+          renderJsonOutput();
+          setStatus(meta);
+        }
+      } catch (err) {
+        outputEl.innerHTML = '';
+        outputEl.classList.add('whitespace-pre');
+        lastOutput = '';
+        lastParsed = null;
+        setError((direction === 'j2y' ? 'JSON parse error: ' : 'YAML parse error: ') + err.message);
+      }
+    }
+
+    let debounceTimer;
+    function onInput() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(convert, 200);
+    }
+
+    function copyOutput() {
+      if (!lastOutput) return;
+      navigator.clipboard.writeText(lastOutput).then(() => {
+        const prev = statusEl.textContent;
+        statusEl.textContent = 'Copied!';
+        setTimeout(() => { statusEl.textContent = prev; }, 1200);
+      });
+    }
+
+    function downloadOutput() {
+      if (!lastOutput) return;
+      const isYaml = direction === 'j2y';
+      const blob = new Blob([lastOutput], { type: isYaml ? 'application/yaml' : 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = isYaml ? 'output.yaml' : 'output.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearAll() {
+      inputEl.value = '';
+      outputEl.innerHTML = '';
+      outputEl.classList.add('whitespace-pre');
+      lastOutput = '';
+      lastParsed = null;
+      setStatus('');
+      inputEl.focus();
+    }
+
+    function loadSample() {
+      if (direction === 'j2y') {
+        inputEl.value = JSON.stringify({
+          name: 'html-tools',
+          version: '1.0.0',
+          private: true,
+          scripts: { dev: 'parcel src/*.html', build: 'parcel build src/*.html', test: null },
+          dependencies: { parcel: '^2.16.0' },
+          authors: ['Ada Lovelace', 'Alan Turing', 'Grace Hopper'],
+          config: { strict: true, lineWidth: 80, indent: 2 }
+        }, null, 2);
+      } else {
+        inputEl.value = `# package config\nname: html-tools\nversion: 1.0.0\nprivate: true\nscripts:\n  dev: parcel src/*.html\n  build: parcel build src/*.html\n  test: ~\ndependencies:\n  parcel: ^2.16.0\nauthors:\n  - Ada Lovelace\n  - Alan Turing\n  - Grace Hopper\nconfig:\n  strict: true\n  lineWidth: 80\n  indent: 2`;
+      }
+      convert();
+    }
+
+    // Default Tree view to active state on load (visible only after switching to y2j).
+    treeBtn.classList.add('btn-active');
+    treeBtn.classList.remove('btn-secondary');
+
+    inputEl.focus();
+  </script>
+
+  <section class="max-w-[1100px] mx-auto w-full px-6 py-8 border-t border-gray-800">
+    <div class="grid gap-6 md:grid-cols-2">
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">About JSON ↔ YAML</h2>
+        <p class="text-gray-400 leading-relaxed">Convert between JSON and YAML without leaving the browser. The converter is YAML 1.2-compatible — anchors and aliases are resolved into duplicated values when going to JSON, multi-document YAML (<code class="text-gray-300">---</code>) can be flattened or kept as an array, and special scalars (<code class="text-gray-300">~</code>, ISO timestamps, hex numbers) survive the round-trip when they should.</p>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">How to use</h2>
+        <ol class="text-gray-400 leading-relaxed space-y-2 list-decimal list-inside">
+          <li>Pick a direction: <strong class="text-gray-300">JSON → YAML</strong> or <strong class="text-gray-300">YAML → JSON</strong>. Switching clears both panels so the next input starts fresh in the right format.</li>
+          <li>Paste your data into the left panel; the converted result appears live on the right.</li>
+          <li>For YAML → JSON output, switch between <strong class="text-gray-300">Tree</strong> and <strong class="text-gray-300">Raw</strong> to either explore the structure interactively or copy the plain JSON text.</li>
+          <li>Tweak the options bar — indent, block vs flow style, line width, sort keys, multi-document handling — until the output looks right.</li>
+        </ol>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">Common use cases</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Reading a Kubernetes / Docker Compose / OpenAPI spec without YAML eye-strain.</li>
+          <li>Writing a config in JSON's predictable shape, then exporting to YAML for a tool that needs it.</li>
+          <li>Diffing two YAML files by normalizing both to JSON first.</li>
+          <li>Quickly checking what a YAML anchor / alias actually resolves to.</li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">Tips</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Block style is the typical "outline" YAML look; flow style is closer to JSON (<code class="text-gray-300">{a: 1, b: [x, y]}</code>). Auto picks block for larger structures and flow for small inline ones.</li>
+          <li>Comments are <strong>dropped</strong> when converting YAML → JSON — JSON has no comment syntax. The status bar tells you how many were stripped.</li>
+          <li>Following YAML 1.2 by default, only <code class="text-gray-300">true</code>/<code class="text-gray-300">false</code> are booleans. <code class="text-gray-300">yes</code>/<code class="text-gray-300">no</code> stay as strings (a YAML 1.1 quirk we don't reintroduce).</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <include src="_partials/footer-script.html"></include>
+
+  <footer class="max-w-[1100px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
+    &copy; <span id="year"></span> Irfan Maulana &amp; Claude<br><span id="deploy-time"></span>
+  </footer>
+
+</body>
+</html>

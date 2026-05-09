@@ -1,8 +1,10 @@
 import { Parcel } from '@parcel/core';
-import { writeFileSync, readFileSync, rmSync, copyFileSync } from 'fs';
+import { writeFileSync, readFileSync, rmSync, copyFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import { glob } from 'fs/promises';
+
+const existsFile = existsSync;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
@@ -84,6 +86,24 @@ copyFileSync(resolve(root, 'src/robots.txt'), resolve(distDir, 'robots.txt'));
 copyFileSync(resolve(root, 'src/_headers'), resolve(distDir, '_headers'));
 copyFileSync(resolve(root, 'src/og-image.png'), resolve(distDir, 'og-image.png'));
 log('📥 copied static assets — robots.txt, _headers, og-image.png');
+
+// Inline js-yaml's UMD bundle into json-to-yaml.html. Parcel's bundler
+// can't split js-yaml's internal ES modules into a classic script and
+// `type="module"` leaves the imports unresolved, so we side-step it by
+// pasting the pre-built UMD bundle. After this, `window.jsyaml` is global.
+const yamlPagePath = resolve(distDir, 'json-to-yaml.html');
+if (existsFile(yamlPagePath)) {
+  const yamlUmd = readFileSync(resolve(root, 'node_modules/js-yaml/dist/js-yaml.min.js'), 'utf8');
+  const marker = /<meta\s+name=["']?x-yaml-lib-injection-point["']?\s*\/?>/;
+  const content = readFileSync(yamlPagePath, 'utf8');
+  if (marker.test(content)) {
+    const injected = content.replace(marker, `<script>${yamlUmd}</script>`);
+    writeFileSync(yamlPagePath, injected);
+    log(`📚 inlined js-yaml UMD into json-to-yaml.html (${(yamlUmd.length / 1024).toFixed(1)} kB)`);
+  } else {
+    log('⚠️  json-to-yaml.html missing x-yaml-lib-injection-point meta — js-yaml NOT inlined');
+  }
+}
 
 const cleanPath = f => f === 'index.html' ? '/' : `/${f.replace(/\.html$/, '')}`;
 const indexable = htmlFiles.filter(f => !f.startsWith('google')).sort();
