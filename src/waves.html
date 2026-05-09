@@ -212,6 +212,41 @@
 
   <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg bg-gray-800 border border-gray-600 text-sm text-gray-200 shadow-lg transition-all duration-200 opacity-0 translate-y-2 pointer-events-none select-none z-50"></div>
 
+  <section class="max-w-[1100px] mx-auto w-full px-6 py-12 border-t border-gray-800">
+    <div class="grid gap-10 md:grid-cols-2">
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">About Wave Generator</h2>
+        <p class="text-gray-400 leading-relaxed">Generate SVG wave dividers — single waves or stacked layers — with full control over amplitude, frequency, and color. Output is a clean SVG you can paste directly into a section between two backgrounds.</p>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">How to use</h2>
+        <ol class="text-gray-400 leading-relaxed space-y-2 list-decimal list-inside">
+          <li>Pick single-wave or stacked mode.</li>
+          <li>Tweak amplitude, frequency, and the gradient or solid fill.</li>
+          <li>For stacked mode, adjust the layer count and spacing.</li>
+          <li>Copy the SVG markup or download the file.</li>
+        </ol>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">Common use cases</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Creating a section break between two background colors on a landing page.</li>
+          <li>Adding a wavy divider above a footer or call-to-action.</li>
+          <li>Generating decorative SVG headers for blog posts or articles.</li>
+          <li>Stacking subtly differing layers for parallax-like depth.</li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">Tips</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>The output viewBox scales fluidly — drop the SVG into a <code class="text-gray-300">width:100%</code> container and it follows the layout.</li>
+          <li>Small frequency values give sweeping curves; large values give choppy sea-style waves.</li>
+          <li>Stacked mode interpolates colors automatically; pick two and the layers in between fall in line.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
   <footer class="max-w-[1400px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
     &copy; <span id="year"></span> Irfan Maulana &amp; Claude<br><span id="deploy-time"></span>
   </footer>

@@ -103,6 +103,41 @@
 
   </main>
 
+  <section class="max-w-[1100px] mx-auto w-full px-6 py-12 border-t border-gray-800">
+    <div class="grid gap-10 md:grid-cols-2">
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">About SVG to JSX</h2>
+        <p class="text-gray-400 leading-relaxed">Paste raw SVG markup and get JSX-ready output. Kebab-case attributes are camel-cased, <code class="text-gray-300">class</code> becomes <code class="text-gray-300">className</code>, inline styles become objects, and editor metadata is stripped.</p>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">How to use</h2>
+        <ol class="text-gray-400 leading-relaxed space-y-2 list-decimal list-inside">
+          <li>Copy SVG markup from a file or design tool export.</li>
+          <li>Paste it into the input panel.</li>
+          <li>Optionally wrap the output in a React component template.</li>
+          <li>Copy the JSX into your component.</li>
+        </ol>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">Common use cases</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Embedding icons exported from Figma or Sketch as React components.</li>
+          <li>Inlining hero illustrations without setting up a sprite system.</li>
+          <li>Converting design system SVGs into per-component snippets.</li>
+          <li>Cleaning up an SVG without hand-editing each attribute.</li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">Tips</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>XML declarations, comments, and editor metadata are removed automatically.</li>
+          <li>Numeric attribute values stay quoted — JSX accepts them either way.</li>
+          <li>For dynamic colors, swap fill values for <code class="text-gray-300">currentColor</code> after copying.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
   <footer class="max-w-[1100px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
     &copy; <span id="year"></span> Irfan Maulana &amp; Claude<br><span id="deploy-time"></span>
   </footer>

@@ -165,6 +165,41 @@
 
   </main>
 
+  <section class="max-w-[1100px] mx-auto w-full px-6 py-12 border-t border-gray-800">
+    <div class="grid gap-10 md:grid-cols-2">
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">About JSON Diff</h2>
+        <p class="text-gray-400 leading-relaxed">Paste two JSON objects to instantly see what was added, removed, or changed. Differences are color-coded inline so you can scan at a glance — green for additions, red for removals, amber for modifications.</p>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">How to use</h2>
+        <ol class="text-gray-400 leading-relaxed space-y-2 list-decimal list-inside">
+          <li>Paste the original JSON in the left panel.</li>
+          <li>Paste the updated version in the right panel.</li>
+          <li>Review the inline diff; toggle <strong class="text-gray-300">show unchanged</strong> if you want surrounding context.</li>
+          <li>Use the badges in the header to jump between change types.</li>
+        </ol>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">Common use cases</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Comparing API responses before and after a code change.</li>
+          <li>Reviewing what changed in a configuration file across environments.</li>
+          <li>Verifying that a serialization round-trip preserved every field.</li>
+          <li>Catching unintended additions or removals during a refactor.</li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-3">Tips</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Whitespace and key-order differences never show up — inputs are normalized before diffing.</li>
+          <li>Arrays diff by index, so a reorder shows as a removal-then-addition pair.</li>
+          <li>The diff updates as you type; no button to click.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
   <footer class="max-w-[1100px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
     &copy; <span id="year"></span> Irfan Maulana &amp; Claude<br><span id="deploy-time"></span>
   </footer>
