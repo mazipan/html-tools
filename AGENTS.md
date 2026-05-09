@@ -48,7 +48,12 @@ The site header (the `HTML Tools / Tool Name` strip) is intentionally **not** a 
 
 ## Tools manifest
 
-`src/tools.json` is the single source of truth for the site name, publisher, and per-tool metadata (slug, name, icon, category, description). `scripts/build.mjs` reads it to inject JSON-LD `WebApplication` + `BreadcrumbList` blocks on each tool page and `WebSite` on the index. New tools must be registered here so the build picks them up.
+`src/tools.json` is the single source of truth for the site name, publisher, and per-tool metadata (slug, name, icon, category, description). `scripts/build.mjs` reads it to:
+
+- Inject JSON-LD `WebApplication` + `BreadcrumbList` blocks on each tool page (and `WebSite` on the index).
+- Inject a "More tools" cross-link block before the footer on every tool page (excluding the current tool and the index).
+
+New tools must be registered here so the build picks them up. **Note:** these injections happen only at production build time (`npm run build`), not in dev (`npm run dev`).
 
 ## Conventions
 

@@ -93,6 +93,38 @@ ${sitemapUrls}
 `;
 writeFileSync(resolve(distDir, 'sitemap.xml'), sitemap);
 
+// Inject a "More tools" cross-link block before the footer on every tool
+// page (not on index — it already lists every tool). Keeps internal-link
+// equity flowing across the suite without hand-editing each tool file.
+const escHtml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+function crossToolBlock(currentSlug) {
+  const others = tools.tools.filter(t => t.slug !== currentSlug);
+  const cards = others.map(t => `<a href="/${t.slug}" class="group flex items-start gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-400 transition-colors no-underline">
+        <span class="text-xl shrink-0 leading-none mt-0.5" aria-hidden="true">${t.icon}</span>
+        <span class="min-w-0 flex-1">
+          <span class="block text-sm font-medium text-white group-hover:text-blue-400 transition-colors">${escHtml(t.name)}</span>
+          <span class="block text-xs text-gray-500 mt-0.5 line-clamp-2">${escHtml(t.description)}</span>
+        </span>
+      </a>`).join('\n      ');
+  return `<section class="max-w-[1100px] mx-auto w-full px-6 py-12 border-t border-gray-800">
+    <h2 class="text-xl font-bold text-white mb-6">More tools</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+      ${cards}
+    </div>
+  </section>
+  `;
+}
+
+for (const html of htmlFiles) {
+  if (html === 'index.html') continue;
+  const slug = html.replace(/\.html$/, '');
+  if (!tools.tools.some(t => t.slug === slug)) continue;
+  const htmlPath = resolve(distDir, html);
+  const content = readFileSync(htmlPath, 'utf8');
+  writeFileSync(htmlPath, content.replace(/<footer/, `${crossToolBlock(slug)}<footer`));
+}
+
 // Inject JSON-LD structured data per page (WebSite for index;
 // WebApplication + BreadcrumbList for each tool).
 const ldScript = obj => `<script type="application/ld+json">${JSON.stringify(obj)}</script>`;
