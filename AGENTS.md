@@ -48,12 +48,13 @@ The site header (the `HTML Tools / Tool Name` strip) is intentionally **not** a 
 
 ## Tools manifest
 
-`src/tools.json` is the single source of truth for the site name, publisher, and per-tool metadata (slug, name, icon, category, description). `scripts/build.mjs` reads it to:
+`src/tools.json` is the single source of truth for the site name, publisher, and per-tool metadata (slug, name, icon, category, description, faqs). `scripts/build.mjs` reads it to:
 
-- Inject JSON-LD `WebApplication` + `BreadcrumbList` blocks on each tool page (and `WebSite` on the index).
+- Inject JSON-LD `WebApplication` + `BreadcrumbList` + `FAQPage` blocks on each tool page (and `WebSite` on the index).
+- Inject a visible FAQ section (collapsible `<details>` blocks) before the cross-tool block on every tool page.
 - Inject a "More tools" cross-link block before the footer on every tool page (excluding the current tool and the index).
 
-New tools must be registered here so the build picks them up. **Note:** these injections happen only at production build time (`npm run build`), not in dev (`npm run dev`).
+Each tool's `faqs` is an array of `{ q, a }` entries; aim for 3–5 genuinely common questions per tool. New tools must be registered here so the build picks them up. **Note:** these injections happen only at production build time (`npm run build`), not in dev (`npm run dev`).
 
 ## Conventions
 
