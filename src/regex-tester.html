@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <include src="_partials/meta-base.html"></include>
+  <title>Regex Tester — HTML Tools</title>
+  <meta name="description" content="Test JavaScript regular expressions live in your browser. Match, replace, or split mode; flag toggles; sample patterns; capture-group breakdown; cheat sheet.">
+  <link rel="canonical" href="https://tools.mazipan.space/regex-tester">
+  <meta property="og:title" content="Regex Tester — HTML Tools">
+  <meta property="og:description" content="Test JavaScript regular expressions live in your browser. Match, replace, or split mode; flag toggles; sample patterns; capture-group breakdown; cheat sheet.">
+  <meta property="og:url" content="https://tools.mazipan.space/regex-tester">
+  <meta name="twitter:title" content="Regex Tester — HTML Tools">
+  <meta name="twitter:description" content="Test JavaScript regular expressions live in your browser. Match, replace, or split mode; flag toggles; sample patterns; capture-group breakdown; cheat sheet.">
+  <include src="_partials/meta-social.html"></include>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧪</text></svg>">
+  <include src="_partials/head-fonts.html"></include>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .flag-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid #374151;
+      background: #1f2937;
+      color: #6b7280;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.12s;
+    }
+    .flag-pill:hover { color: #d1d5db; border-color: #4b5563; }
+    .flag-pill.on   { background: #1e3a8a; border-color: #3b82f6; color: #f9fafb; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid #374151;
+      background: #1f2937;
+      color: #d1d5db;
+      font-size: 0.75rem;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.12s;
+    }
+    .chip:hover { border-color: #4b5563; color: #f9fafb; }
+    .chip.on    { background: #1e3a8a; border-color: #3b82f6; color: #fff; }
+    .pattern-row {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      border: 1px solid #374151;
+      border-radius: 0.5rem;
+      background: #111827;
+      overflow: hidden;
+    }
+    .pattern-row:focus-within { border-color: #3b82f6; }
+    .pattern-row .slash {
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      color: #6b7280;
+      background: #0b1220;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    }
+    .pattern-row input.pattern {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #e5e7eb;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 0.85rem;
+      padding: 0.55rem 0.5rem;
+      min-width: 0;
+    }
+    .match-item { padding: 0.5rem 0.75rem; border-radius: 6px; margin-bottom: 0.4rem; border: 1px solid transparent; }
+    .match-item:hover { background: #111827; border-color: #374151; }
+    .match-num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.7rem; color: #6b7280; margin-right: 0.5rem; }
+    .match-pos { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.7rem; color: #6b7280; float: right; }
+    .match-text { color: #c3e88d; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.8rem; word-break: break-all; }
+    .match-captures { margin-top: 0.4rem; padding-left: 1rem; border-left: 2px solid #1f2937; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.75rem; color: #9ca3af; }
+    .match-captures .cap-name { color: #c792ea; }
+    .match-captures .cap-val  { color: #c3e88d; }
+    .cheat-table { width: 100%; border-collapse: collapse; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.78rem; }
+    .cheat-table th, .cheat-table td { text-align: left; padding: 0.35rem 0.6rem; border-bottom: 1px solid #1f2937; }
+    .cheat-table th { color: #9ca3af; font-weight: 600; }
+    .cheat-table td:first-child { color: #c792ea; white-space: nowrap; }
+    .cheat-table td:nth-child(2) { color: #d1d5db; }
+  </style>
+  <include src="_partials/head-theme.html"></include>
+</head>
+<body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+
+  <header class="border-b border-gray-800 px-6 py-4">
+    <nav aria-label="Breadcrumb" class="max-w-[1100px] mx-auto flex items-center gap-3">
+      <a href="index.html" class="no-underline text-white font-bold text-lg tracking-tight hover:text-blue-400 transition-colors">HTML Tools</a>
+      <span class="text-gray-700">/</span>
+      <span class="text-gray-400 text-sm flex items-center gap-1.5" aria-current="page">🧪 Regex Tester</span>
+    </nav>
+  </header>
+
+  <main class="max-w-[1100px] mx-auto w-full flex-1 py-8 px-6">
+
+    <header class="mb-7">
+      <h1 class="text-3xl font-bold text-white flex items-center gap-3">🧪 Regex Tester</h1>
+      <p class="mt-1.5 text-sm text-gray-500">Test JavaScript regular expressions live — match, replace, or split, with capture-group breakdown.</p>
+    </header>
+
+    <!-- Pattern row -->
+    <div class="pattern-row mb-3">
+      <span class="slash">/</span>
+      <input id="pattern" type="text" class="pattern" placeholder="Pattern, e.g. \b(\w+)@(\w+\.\w+)\b" spellcheck="false" autocomplete="off">
+      <span class="slash" id="flags-display">/</span>
+    </div>
+
+    <!-- Flags + mode -->
+    <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-1">
+      <div class="flex items-center gap-1.5">
+        <span class="text-xs text-gray-500 mr-0.5">Flags:</span>
+        <button class="flag-pill" data-flag="g" title="global — find every match">g</button>
+        <button class="flag-pill" data-flag="i" title="case-insensitive">i</button>
+        <button class="flag-pill" data-flag="m" title="multiline — ^/$ match each line">m</button>
+        <button class="flag-pill" data-flag="s" title="dotAll — . matches newlines">s</button>
+        <button class="flag-pill" data-flag="u" title="unicode — full unicode-aware classes">u</button>
+        <button class="flag-pill" data-flag="y" title="sticky — match at lastIndex only">y</button>
+        <button class="flag-pill" data-flag="d" title="indices — expose start/end of each capture">d</button>
+      </div>
+
+      <div class="flex items-center gap-1">
+        <span class="text-xs text-gray-500 mr-0.5">Mode:</span>
+        <button id="mode-match"   onclick="setMode('match')"   class="btn btn-active btn-sm">Match</button>
+        <button id="mode-replace" onclick="setMode('replace')" class="btn btn-secondary btn-sm">Replace</button>
+        <button id="mode-split"   onclick="setMode('split')"   class="btn btn-secondary btn-sm">Split</button>
+      </div>
+
+      <button onclick="clearAll()" class="btn btn-danger">Clear</button>
+    </div>
+
+    <!-- Flag descriptions (always visible, compact) -->
+    <p class="text-[0.7rem] text-gray-600 leading-snug mb-3">
+      <span class="text-gray-400 font-medium">g</span> global ·
+      <span class="text-gray-400 font-medium">i</span> case-insensitive ·
+      <span class="text-gray-400 font-medium">m</span> multiline (<code>^</code>/<code>$</code> per line) ·
+      <span class="text-gray-400 font-medium">s</span> dotAll (<code>.</code> matches newlines) ·
+      <span class="text-gray-400 font-medium">u</span> unicode ·
+      <span class="text-gray-400 font-medium">y</span> sticky ·
+      <span class="text-gray-400 font-medium">d</span> indices on captures
+    </p>
+
+    <div id="pattern-error" class="text-xs text-red-400 mb-2 min-h-[16px]"></div>
+
+    <!-- Replacement input (Replace mode only) -->
+    <div id="replace-row" style="display:none" class="mb-3">
+      <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Replacement string ($1, $2, $&lt;name&gt;, $&amp;)</label>
+      <input id="replacement" type="text" oninput="onInput()" placeholder="e.g. <a href=&quot;mailto:$&amp;&quot;>$1</a>" class="w-full bg-gray-900 border border-gray-700 text-gray-200 font-mono text-[0.8rem] rounded-lg px-3 py-2 outline-none focus:border-blue-400">
+    </div>
+
+    <!-- Sample chips (above the test input) -->
+    <div class="flex flex-wrap items-center gap-1.5 mb-2">
+      <span class="text-xs text-gray-500 mr-1">Samples:</span>
+      <button class="chip" data-sample="email"     onclick="loadSample('email')">📧 Email</button>
+      <button class="chip" data-sample="url"       onclick="loadSample('url')">🔗 URL</button>
+      <button class="chip" data-sample="ipv4"      onclick="loadSample('ipv4')">🌐 IPv4</button>
+      <button class="chip" data-sample="iso-date"  onclick="loadSample('iso-date')">📅 ISO date</button>
+      <button class="chip" data-sample="hex-color" onclick="loadSample('hex-color')">🎨 Hex color</button>
+      <button class="chip" data-sample="slug"      onclick="loadSample('slug')">🔤 Slug</button>
+    </div>
+
+    <!-- Two-panel grid -->
+    <div class="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Test string</label>
+        </div>
+        <textarea id="test"
+                  placeholder="Type or paste text to match against..."
+                  spellcheck="false"
+                  oninput="onInput()"
+                  class="w-full h-[480px] min-h-[480px] rounded-lg border border-gray-700 bg-gray-900
+                         text-gray-200 font-mono text-[0.8rem] leading-relaxed p-4 resize-y outline-none
+                         focus:border-blue-400 transition-colors"></textarea>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" id="results-label">Matches</label>
+          <button onclick="copyOutput()" id="copy-btn" class="btn btn-secondary btn-sm" style="display:none">Copy</button>
+        </div>
+        <div id="results"
+             class="w-full h-[480px] min-h-[480px] rounded-lg border border-gray-700 bg-gray-900
+                    text-gray-200 font-mono text-[0.8rem] leading-relaxed p-4 overflow-auto resize-y"></div>
+      </div>
+
+    </div>
+
+    <div id="status" class="mt-2.5 text-xs text-gray-500 min-h-[18px]"></div>
+
+    <!-- Regex explainer (token-by-token) -->
+    <details class="mt-6 rounded-lg border border-gray-800 hover:border-gray-700 transition-colors open:border-gray-700">
+      <summary class="cursor-pointer list-none px-4 py-3 text-sm font-medium text-gray-200 flex items-center justify-between gap-3 select-none">
+        <span>Explain this regex</span>
+        <span class="text-gray-500" aria-hidden="true">▾</span>
+      </summary>
+      <div id="explainer" class="px-4 pb-4 text-xs text-gray-400 leading-relaxed font-mono">
+        <div class="text-gray-500">Type a pattern above to see a token-by-token breakdown.</div>
+      </div>
+    </details>
+
+    <!-- Copy as code (runnable JS snippet) -->
+    <details class="mt-3 rounded-lg border border-gray-800 hover:border-gray-700 transition-colors open:border-gray-700">
+      <summary class="cursor-pointer list-none px-4 py-3 text-sm font-medium text-gray-200 flex items-center justify-between gap-3 select-none">
+        <span>Copy as code</span>
+        <span class="text-gray-500" aria-hidden="true">▾</span>
+      </summary>
+      <div class="px-4 pb-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs text-gray-500">Runnable JavaScript snippet — paste into any console or playground.</span>
+          <button onclick="copyCode()" class="btn btn-secondary btn-sm">Copy</button>
+        </div>
+        <pre id="code-snippet"
+             class="bg-gray-900 border border-gray-800 rounded-lg p-4 text-xs text-gray-200 font-mono leading-relaxed overflow-x-auto whitespace-pre"></pre>
+      </div>
+    </details>
+
+    <!-- Cheat sheet -->
+    <details class="mt-6 rounded-lg border border-gray-800 hover:border-gray-700 transition-colors open:border-gray-700">
+      <summary class="cursor-pointer list-none px-4 py-3 text-sm font-medium text-gray-200 flex items-center justify-between gap-3 select-none">
+        <span>Cheat sheet</span>
+        <span class="text-gray-500 transition-transform group-open:rotate-180" aria-hidden="true">▾</span>
+      </summary>
+      <div class="px-4 pb-4 grid gap-4 md:grid-cols-2">
+        <div>
+          <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Anchors &amp; classes</h3>
+          <table class="cheat-table">
+            <tbody>
+              <tr><td>^ $</td><td>start / end of string (line in <code>m</code> mode)</td></tr>
+              <tr><td>\b \B</td><td>word / non-word boundary</td></tr>
+              <tr><td>.</td><td>any char except newline (matches all in <code>s</code> mode)</td></tr>
+              <tr><td>\d \D</td><td>digit / non-digit</td></tr>
+              <tr><td>\w \W</td><td>word char / non-word char</td></tr>
+              <tr><td>\s \S</td><td>whitespace / non-whitespace</td></tr>
+              <tr><td>[abc] [^abc]</td><td>any of / not any of</td></tr>
+              <tr><td>[a-z]</td><td>character range</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Quantifiers &amp; groups</h3>
+          <table class="cheat-table">
+            <tbody>
+              <tr><td>* + ?</td><td>zero+ / one+ / optional</td></tr>
+              <tr><td>{n} {n,} {n,m}</td><td>exactly / at least / range</td></tr>
+              <tr><td>*? +? ??</td><td>lazy variants</td></tr>
+              <tr><td>(abc)</td><td>capturing group</td></tr>
+              <tr><td>(?:abc)</td><td>non-capturing group</td></tr>
+              <tr><td>(?&lt;name&gt;abc)</td><td>named group — back-ref via <code>$&lt;name&gt;</code></td></tr>
+              <tr><td>(?=abc)</td><td>lookahead</td></tr>
+              <tr><td>(?!abc)</td><td>negative lookahead</td></tr>
+              <tr><td>(?&lt;=abc)</td><td>lookbehind</td></tr>
+              <tr><td>(?&lt;!abc)</td><td>negative lookbehind</td></tr>
+              <tr><td>a|b</td><td>alternation</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+
+  </main>
+
+  <script>
+    const patternEl     = document.getElementById('pattern');
+    const flagsDisplay  = document.getElementById('flags-display');
+    const testEl        = document.getElementById('test');
+    const resultsEl     = document.getElementById('results');
+    const statusEl      = document.getElementById('status');
+    const errorEl       = document.getElementById('pattern-error');
+    const replaceRow    = document.getElementById('replace-row');
+    const replacementEl = document.getElementById('replacement');
+    const resultsLabel  = document.getElementById('results-label');
+    const copyBtn       = document.getElementById('copy-btn');
+
+    let mode = 'match';   // 'match' | 'replace' | 'split'
+    const flags = new Set(['g']);  // default to global
+    let lastOutput = '';  // for copy
+
+    const SAMPLES = {
+      email:     { pattern: '\\b[\\w.+-]+@[\\w-]+\\.[\\w.-]+\\b', flags: 'g',  test: 'Email me at ada@example.com or babbage@machines.io.\nBackup: hopper+admin@navy.mil' },
+      url:       { pattern: 'https?://[^\\s]+',                    flags: 'g',  test: 'Visit https://example.com/foo?bar=1 or http://localhost:3000.' },
+      ipv4:      { pattern: '\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b',    flags: 'g',  test: 'Server logs show 10.0.0.1 and 192.168.1.100 connected. Bad: 999.999.0.1.' },
+      'iso-date':{ pattern: '\\b\\d{4}-\\d{2}-\\d{2}\\b',          flags: 'g',  test: 'Released on 2024-08-15 and patched on 2024-09-02.' },
+      'hex-color': { pattern: '#(?:[0-9a-fA-F]{3}){1,2}\\b',        flags: 'g',  test: 'colors:\n  primary: #3b82f6\n  accent:  #f97316\n  light:   #fff\n  bad: #1234' },
+      slug:      { pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$',          flags: '',   test: 'hello-world\nfoo_bar\nFOO-BAR\nthis-is-fine\n' }
+    };
+
+    // Flag pills
+    document.querySelectorAll('.flag-pill').forEach(el => {
+      const f = el.dataset.flag;
+      if (flags.has(f)) el.classList.add('on');
+      el.addEventListener('click', () => {
+        if (flags.has(f)) { flags.delete(f); el.classList.remove('on'); }
+        else              { flags.add(f);    el.classList.add('on'); }
+        updateFlagsDisplay();
+        run();
+      });
+    });
+    function updateFlagsDisplay() {
+      const s = ['g','i','m','s','u','y','d'].filter(f => flags.has(f)).join('');
+      flagsDisplay.textContent = '/' + s;
+    }
+    updateFlagsDisplay();
+
+    // Detect /pattern/flags literal pasted into the pattern input.
+    patternEl.addEventListener('paste', (e) => {
+      const text = (e.clipboardData || window.clipboardData).getData('text');
+      const m = text.match(/^\/(.+)\/([gimsuyd]*)$/);
+      if (m) {
+        e.preventDefault();
+        patternEl.value = m[1];
+        flags.clear();
+        for (const f of m[2]) flags.add(f);
+        document.querySelectorAll('.flag-pill').forEach(el => {
+          el.classList.toggle('on', flags.has(el.dataset.flag));
+        });
+        updateFlagsDisplay();
+        run();
+      }
+    });
+    patternEl.addEventListener('input', () => {
+      // User edited the pattern manually — deselect any active sample chip.
+      document.querySelectorAll('.chip[data-sample].on').forEach(el => el.classList.remove('on'));
+      onInput();
+    });
+
+    function setMode(m) {
+      mode = m;
+      ['match','replace','split'].forEach(x => {
+        const btn = document.getElementById('mode-' + x);
+        btn.classList.toggle('btn-active', x === m);
+        btn.classList.toggle('btn-secondary', x !== m);
+      });
+      replaceRow.style.display = m === 'replace' ? '' : 'none';
+      resultsLabel.textContent = m === 'match' ? 'Matches' : m === 'replace' ? 'Replaced output' : 'Split parts';
+      copyBtn.style.display = m === 'match' ? 'none' : '';
+      run();
+    }
+
+    function loadSample(name) {
+      if (!name) return;
+      const s = SAMPLES[name];
+      if (!s) return;
+      patternEl.value = s.pattern;
+      flags.clear();
+      for (const f of s.flags) flags.add(f);
+      document.querySelectorAll('.flag-pill').forEach(el => {
+        el.classList.toggle('on', flags.has(el.dataset.flag));
+      });
+      updateFlagsDisplay();
+      testEl.value = s.test;
+      // Highlight the active sample chip
+      document.querySelectorAll('.chip[data-sample]').forEach(el => {
+        el.classList.toggle('on', el.dataset.sample === name);
+      });
+      run();
+    }
+
+    function clearAll() {
+      patternEl.value = '';
+      testEl.value = '';
+      replacementEl.value = '';
+      flags.clear(); flags.add('g');
+      document.querySelectorAll('.flag-pill').forEach(el => {
+        el.classList.toggle('on', flags.has(el.dataset.flag));
+      });
+      document.querySelectorAll('.chip[data-sample]').forEach(el => el.classList.remove('on'));
+      updateFlagsDisplay();
+      resultsEl.innerHTML = '';
+      statusEl.textContent = '';
+      errorEl.textContent = '';
+      lastOutput = '';
+      renderExplainer();
+      renderCode();
+      patternEl.focus();
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function buildRegex() {
+      const src = patternEl.value;
+      if (!src) return null;
+      let f = ['g','i','m','s','u','y','d'].filter(x => flags.has(x)).join('');
+      // For Match mode we always want all matches; force `g` if user didn't pick it.
+      if (mode === 'match' && !f.includes('g')) f += 'g';
+      return new RegExp(src, f);
+    }
+
+    function run() {
+      errorEl.textContent = '';
+      lastOutput = '';
+      resultsEl.innerHTML = '';
+      statusEl.textContent = '';
+      // Re-render the explainer + code snippet on every input change.
+      renderExplainer();
+      renderCode();
+
+      const src = patternEl.value;
+      if (!src) return;
+
+      let re;
+      try { re = buildRegex(); }
+      catch (err) { errorEl.textContent = err.message; return; }
+
+      const text = testEl.value;
+      const t0 = performance.now();
+
+      try {
+        if (mode === 'match') {
+          renderMatches(re, text);
+        } else if (mode === 'replace') {
+          renderReplace(re, text);
+        } else {
+          renderSplit(re, text);
+        }
+      } catch (err) {
+        errorEl.textContent = err.message;
+        return;
+      }
+
+      const elapsed = performance.now() - t0;
+      const elapsedStr = elapsed < 1 ? '<1ms' : `${elapsed.toFixed(1)}ms`;
+      const slow = elapsed > 200;
+      const prev = statusEl.textContent;
+      statusEl.textContent = (prev ? prev + ' · ' : '') + `${elapsedStr}${slow ? ' ⚠️ slow — possible catastrophic backtracking' : ''}`;
+      statusEl.className = slow ? 'mt-2.5 text-xs text-yellow-400 min-h-[18px]' : 'mt-2.5 text-xs text-gray-500 min-h-[18px]';
+    }
+
+    function renderMatches(re, text) {
+      const matches = [...text.matchAll(re)];
+      if (matches.length === 0) {
+        resultsEl.innerHTML = '<div class="text-xs text-gray-500">No matches.</div>';
+        statusEl.textContent = `0 matches`;
+        return;
+      }
+      let html = '';
+      matches.forEach((m, idx) => {
+        const num   = `<span class="match-num">#${idx + 1}</span>`;
+        const pos   = `<span class="match-pos">pos ${m.index} · len ${m[0].length}</span>`;
+        const text0 = `<span class="match-text">${escHtml(m[0]) || '<em class="text-gray-500">empty match</em>'}</span>`;
+        let captures = '';
+        // Numbered captures
+        for (let i = 1; i < m.length; i++) {
+          if (m[i] !== undefined) {
+            captures += `<div><span class="cap-name">$${i}</span> = <span class="cap-val">${escHtml(m[i])}</span></div>`;
+          }
+        }
+        // Named captures
+        if (m.groups) {
+          for (const [name, val] of Object.entries(m.groups)) {
+            if (val !== undefined) {
+              captures += `<div><span class="cap-name">$&lt;${escHtml(name)}&gt;</span> = <span class="cap-val">${escHtml(val)}</span></div>`;
+            }
+          }
+        }
+        // d-flag indices
+        if (m.indices) {
+          captures += `<div class="text-gray-500 text-[0.7rem] mt-1">indices: ${JSON.stringify(m.indices)}</div>`;
+        }
+        const captureBlock = captures ? `<div class="match-captures">${captures}</div>` : '';
+        html += `<div class="match-item">${num}${text0}${pos}${captureBlock}</div>`;
+      });
+      resultsEl.innerHTML = html;
+      statusEl.textContent = `${matches.length} match${matches.length === 1 ? '' : 'es'}`;
+    }
+
+    function renderReplace(re, text) {
+      const replacement = replacementEl.value;
+      const result = text.replace(re, replacement);
+      lastOutput = result;
+      resultsEl.classList.add('whitespace-pre-wrap');
+      resultsEl.textContent = result;
+      // Count replacements (approx by re-matching)
+      const matchRe = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g');
+      const count = (text.match(matchRe) || []).length;
+      statusEl.textContent = `${count} replacement${count === 1 ? '' : 's'}`;
+    }
+
+    function renderSplit(re, text) {
+      const parts = text.split(re);
+      lastOutput = JSON.stringify(parts, null, 2);
+      let html = '';
+      parts.forEach((p, i) => {
+        const display = p === '' ? '<em class="text-gray-500">(empty string)</em>' : escHtml(p);
+        html += `<div class="match-item"><span class="match-num">[${i}]</span><span class="match-text">${display}</span></div>`;
+      });
+      resultsEl.innerHTML = html;
+      statusEl.textContent = `${parts.length} part${parts.length === 1 ? '' : 's'}`;
+    }
+
+    let debounceTimer;
+    function onInput() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(run, 150);
+    }
+
+    function copyOutput() {
+      if (!lastOutput) return;
+      navigator.clipboard.writeText(lastOutput).then(() => {
+        const prev = statusEl.textContent;
+        statusEl.textContent = 'Copied!';
+        setTimeout(() => { statusEl.textContent = prev; }, 1200);
+      });
+    }
+
+    // ── Regex explainer (token-by-token, recursive on groups) ──────
+    function explainTokens(src) {
+      const out = [];
+      let i = 0;
+      const len = src.length;
+      while (i < len) {
+        const c = src[i];
+
+        // Escape sequence
+        if (c === '\\' && i + 1 < len) {
+          const next = src[i + 1];
+          const escMap = {
+            d: 'digit (0-9)', D: 'non-digit',
+            w: 'word character (A-Z, a-z, 0-9, _)', W: 'non-word character',
+            s: 'whitespace', S: 'non-whitespace',
+            b: 'word boundary', B: 'non-word boundary',
+            n: 'newline', t: 'tab', r: 'carriage return', f: 'form feed', v: 'vertical tab', '0': 'null'
+          };
+          out.push({ token: '\\' + next, desc: escMap[next] || `literal "${next}"` });
+          i += 2;
+          continue;
+        }
+
+        // Anchors
+        if (c === '^') { out.push({ token: '^', desc: 'start of string (or line in m mode)' }); i++; continue; }
+        if (c === '$') { out.push({ token: '$', desc: 'end of string (or line in m mode)' });   i++; continue; }
+        if (c === '.') { out.push({ token: '.', desc: 'any character (except newline; matches all in s mode)' }); i++; continue; }
+
+        // Character class
+        if (c === '[') {
+          let j = i + 1;
+          if (src[j] === '^') j++;
+          while (j < len && src[j] !== ']') {
+            if (src[j] === '\\') j++;
+            j++;
+          }
+          const text = src.slice(i, j + 1);
+          const negated = text.startsWith('[^');
+          const inner = text.slice(negated ? 2 : 1, -1);
+          out.push({ token: text, desc: negated ? `match any character NOT in ${inner}` : `match any character in ${inner}` });
+          i = j + 1;
+          continue;
+        }
+
+        // Group
+        if (c === '(') {
+          let depth = 1, j = i + 1;
+          while (j < len && depth > 0) {
+            if (src[j] === '\\') { j += 2; continue; }
+            if (src[j] === '(') depth++;
+            else if (src[j] === ')') { depth--; if (depth === 0) break; }
+            j++;
+          }
+          const after = src.slice(i + 1, j);
+          let groupType = 'capturing group', prefixLen = 0;
+          if (after.startsWith('?:'))      { groupType = 'non-capturing group'; prefixLen = 2; }
+          else if (after.startsWith('?<=')) { groupType = 'lookbehind';          prefixLen = 3; }
+          else if (after.startsWith('?<!')) { groupType = 'negative lookbehind'; prefixLen = 3; }
+          else if (after.startsWith('?='))  { groupType = 'lookahead';           prefixLen = 2; }
+          else if (after.startsWith('?!'))  { groupType = 'negative lookahead';  prefixLen = 2; }
+          else if (after.startsWith('?<')) {
+            const nameEnd = after.indexOf('>');
+            if (nameEnd > 1) { groupType = `named capture group "${after.slice(2, nameEnd)}"`; prefixLen = nameEnd + 1; }
+          }
+          out.push({ token: src.slice(i, i + 1 + prefixLen), desc: groupType });
+          // Recursively explain inner with one indent level.
+          const inner = explainTokens(src.slice(i + 1 + prefixLen, j));
+          for (const t of inner) out.push({ token: t.token, desc: t.desc, indent: (t.indent || 0) + 1 });
+          out.push({ token: ')', desc: 'end of group', indent: 0 });
+          i = j + 1;
+          continue;
+        }
+
+        // Quantifiers
+        if (c === '*' || c === '+' || c === '?') {
+          const lazy = src[i + 1] === '?';
+          const base = c === '*' ? 'zero or more' : c === '+' ? 'one or more' : 'optional (zero or one)';
+          out.push({ token: c + (lazy ? '?' : ''), desc: base + (lazy ? ' (lazy)' : ' (greedy)') });
+          i += lazy ? 2 : 1;
+          continue;
+        }
+        if (c === '{') {
+          const close = src.indexOf('}', i);
+          if (close > -1) {
+            const lazy = src[close + 1] === '?';
+            const range = src.slice(i + 1, close).split(',');
+            let desc;
+            if (range.length === 1) desc = `exactly ${range[0]} times`;
+            else if (range[1] === '') desc = `at least ${range[0]} times`;
+            else desc = `${range[0]} to ${range[1]} times`;
+            if (lazy) desc += ' (lazy)';
+            out.push({ token: src.slice(i, close + 1 + (lazy ? 1 : 0)), desc });
+            i = close + 1 + (lazy ? 1 : 0);
+            continue;
+          }
+        }
+
+        if (c === '|') { out.push({ token: '|', desc: 'alternation: match either side' }); i++; continue; }
+
+        // Plain literal
+        out.push({ token: c, desc: `literal "${c}"` });
+        i++;
+      }
+      return out;
+    }
+
+    function renderExplainer() {
+      const src = patternEl.value;
+      const target = document.getElementById('explainer');
+      if (!src) {
+        target.innerHTML = '<div class="text-gray-500">Type a pattern above to see a token-by-token breakdown.</div>';
+        return;
+      }
+      let tokens;
+      try { tokens = explainTokens(src); }
+      catch (err) { target.innerHTML = `<div class="text-red-400">Could not parse: ${escHtml(err.message)}</div>`; return; }
+      if (tokens.length === 0) { target.innerHTML = '<div class="text-gray-500">(empty pattern)</div>'; return; }
+      const rows = tokens.map(t => {
+        const indent = t.indent ? '&nbsp;&nbsp;'.repeat(t.indent) : '';
+        return `<div class="flex gap-4 py-0.5">
+          <span class="text-purple-400 shrink-0" style="min-width:10ch">${indent}${escHtml(t.token)}</span>
+          <span class="text-gray-400">${escHtml(t.desc)}</span>
+        </div>`;
+      }).join('');
+      target.innerHTML = rows;
+    }
+
+    // ── Generate JS code snippet for the current state ─────────────
+    function renderCode() {
+      const target = document.getElementById('code-snippet');
+      const src = patternEl.value;
+      if (!src) { target.textContent = '// Type a pattern to generate a snippet.'; return; }
+      const flagsStr = ['g','i','m','s','u','y','d'].filter(f => flags.has(f)).join('');
+      // Use new RegExp(...) form if pattern has slashes; otherwise use literal /…/flags
+      const literalSafe = !src.includes('/') ? `/${src}/${flagsStr}` : `new RegExp(${JSON.stringify(src)}, ${JSON.stringify(flagsStr)})`;
+      const testJson = JSON.stringify(testEl.value);
+
+      let body;
+      if (mode === 'match') {
+        body = `// Find every match
+const matches = [...text.matchAll(re)];
+console.log(\`Found \${matches.length} match\${matches.length === 1 ? '' : 'es'}\`);
+for (const m of matches) {
+  console.log(\`  \${m[0]} @ \${m.index}\`);
+  for (let i = 1; i < m.length; i++) {
+    if (m[i] !== undefined) console.log(\`    $\${i}: \${m[i]}\`);
+  }
+}`;
+      } else if (mode === 'replace') {
+        const replJson = JSON.stringify(replacementEl.value);
+        body = `// Run the replacement
+const replacement = ${replJson};
+const result = text.replace(re, replacement);
+console.log(result);`;
+      } else {
+        body = `// Split the input
+const parts = text.split(re);
+console.log(\`\${parts.length} part(s):\`);
+for (const [i, p] of parts.entries()) console.log(\`  [\${i}] \${JSON.stringify(p)}\`);`;
+      }
+
+      target.textContent = `const re = ${literalSafe};
+const text = ${testJson};
+
+${body}`;
+    }
+
+    function copyCode() {
+      const text = document.getElementById('code-snippet').textContent;
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        const prev = statusEl.textContent;
+        statusEl.textContent = 'Code copied!';
+        setTimeout(() => { statusEl.textContent = prev; }, 1200);
+      });
+    }
+
+    // Initial render of explainer + code (empty state).
+    renderExplainer();
+    renderCode();
+
+    patternEl.focus();
+  </script>
+
+  <section class="max-w-[1100px] mx-auto w-full px-6 py-8 border-t border-gray-800">
+    <div class="grid gap-6 md:grid-cols-2">
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">About Regex Tester</h2>
+        <p class="text-gray-400 leading-relaxed">Write a JavaScript regular expression and watch it run against test text live — with a per-match capture-group breakdown, three modes (match / replace / split), and the standard flag toggles (<code class="text-gray-300">g i m s u y d</code>). Pure browser <code class="text-gray-300">RegExp</code>; no server, no remote evaluation.</p>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">How to use</h2>
+        <ol class="text-gray-400 leading-relaxed space-y-2 list-decimal list-inside">
+          <li>Type or paste a pattern in the slashes. You can paste a literal like <code class="text-gray-300">/foo/gi</code> and the flags split out automatically.</li>
+          <li>Toggle the flag pills as needed. <code class="text-gray-300">g</code> is on by default in Match mode.</li>
+          <li>Pick a mode — <strong class="text-gray-300">Match</strong> to see every hit and its captures, <strong class="text-gray-300">Replace</strong> to preview a substitution, <strong class="text-gray-300">Split</strong> to see how the regex slices the input.</li>
+          <li>Try a sample from the dropdown if you need a starting point.</li>
+        </ol>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">Common use cases</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Validating that a regex actually matches what you think it does.</li>
+          <li>Building a non-trivial replacement (named groups, lookarounds) and previewing the output before committing it to code.</li>
+          <li>Splitting a delimited string and seeing exactly which empty strings end up in the result.</li>
+          <li>Debugging a regex that "works locally but fails in CI" — paste both inputs, compare match counts.</li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">Tips</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>The <code class="text-gray-300">d</code> flag exposes start/end indices of every capture — invaluable when locations matter.</li>
+          <li>Match elapsed time is shown after every run; if it exceeds 200 ms the status bar warns about possible catastrophic backtracking.</li>
+          <li>This is the JavaScript flavor — features like atomic groups, recursion, and possessive quantifiers don't exist here. Stick to the cheat sheet at the bottom.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <include src="_partials/footer-script.html"></include>
+
+  <footer class="max-w-[1100px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
+    &copy; <span id="year"></span> Irfan Maulana &amp; Claude<br><span id="deploy-time"></span>
+  </footer>
+
+</body>
+</html>

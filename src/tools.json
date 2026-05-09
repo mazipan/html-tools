@@ -175,6 +175,36 @@
       "maxWidth": "1100px"
     },
     {
+      "slug": "regex-tester",
+      "name": "Regex Tester",
+      "icon": "🧪",
+      "category": "Code",
+      "description": "Test JavaScript regular expressions live in your browser. Match, replace, or split mode; flag toggles; sample patterns; capture-group breakdown; cheat sheet.",
+      "faqs": [
+        {
+          "q": "Which regex flavor does this use?",
+          "a": "JavaScript's built-in RegExp (the same engine your browser runs). It's close to PCRE but not identical — features like atomic groups, recursion, and possessive quantifiers don't exist here."
+        },
+        {
+          "q": "Why is my regex matching nothing?",
+          "a": "Most often: the g flag is off (so only the first match shows), or the pattern is anchored to the start (^) or end ($) without m, or character classes need escaping. Check the flag pills and the cheat sheet at the bottom."
+        },
+        {
+          "q": "What does the d flag do?",
+          "a": "It exposes the start/end indices of each capture group. Without it you only get the matched text; with it you get exact positions."
+        },
+        {
+          "q": "Can I test against a huge file?",
+          "a": "Anything that fits in your browser memory. The status bar warns if a run exceeds 200ms, which usually means catastrophic backtracking — try rewriting nested quantifiers."
+        },
+        {
+          "q": "Are my regex and test text saved anywhere?",
+          "a": "No. The page is a single static HTML file; nothing leaves your browser. We don't even persist to localStorage."
+        }
+      ],
+      "maxWidth": "1100px"
+    },
+    {
       "slug": "svg-to-jsx",
       "name": "SVG to JSX",
       "icon": "⚛️",
