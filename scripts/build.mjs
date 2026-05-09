@@ -3,7 +3,6 @@ import { writeFileSync, readFileSync, rmSync, copyFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import { glob } from 'fs/promises';
-import { Resvg } from '@resvg/resvg-js';
 
 const SITE_URL = 'https://tools.mazipan.space';
 
@@ -62,17 +61,11 @@ for (const js of jsFiles) {
 const mapFiles = await Array.fromAsync(glob('*.map', { cwd: distDir }));
 for (const f of mapFiles) rmSync(resolve(distDir, f));
 
-// Copy robots.txt and _headers; generate sitemap.xml and _redirects at the dist root.
+// Copy static assets at the dist root. og-image.png is pre-generated and
+// committed; rerun `npm run generate:og` to refresh it from src/og-image.svg.
 copyFileSync(resolve(root, 'src/robots.txt'), resolve(distDir, 'robots.txt'));
 copyFileSync(resolve(root, 'src/_headers'), resolve(distDir, '_headers'));
-
-// Render the social-card SVG to a 1200x630 PNG.
-const svg = readFileSync(resolve(root, 'src/og-image.svg'));
-const png = new Resvg(svg, {
-  fitTo: { mode: 'width', value: 1200 },
-  font: { loadSystemFonts: true },
-}).render().asPng();
-writeFileSync(resolve(distDir, 'og-image.png'), png);
+copyFileSync(resolve(root, 'src/og-image.png'), resolve(distDir, 'og-image.png'));
 
 const cleanPath = f => f === 'index.html' ? '/' : `/${f.replace(/\.html$/, '')}`;
 const indexable = htmlFiles.filter(f => !f.startsWith('google')).sort();
