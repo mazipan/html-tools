@@ -98,6 +98,35 @@ writeFileSync(resolve(distDir, 'sitemap.xml'), sitemap);
 // equity flowing across the suite without hand-editing each tool file.
 const escHtml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+function faqBlock(slug) {
+  const tool = tools.tools.find(t => t.slug === slug);
+  if (!tool || !tool.faqs?.length) return '';
+  const items = tool.faqs.map(({ q, a }) => `<details class="group rounded-lg border border-gray-800 hover:border-gray-700 transition-colors open:border-gray-700">
+        <summary class="cursor-pointer list-none px-4 py-3 text-sm font-medium text-gray-200 flex items-center justify-between gap-3 select-none">
+          <span>${escHtml(q)}</span>
+          <span class="text-gray-500 transition-transform group-open:rotate-180" aria-hidden="true">▾</span>
+        </summary>
+        <div class="px-4 pb-4 text-sm text-gray-400 leading-relaxed">${escHtml(a)}</div>
+      </details>`).join('\n      ');
+  return `<section class="max-w-[1100px] mx-auto w-full px-6 py-12 border-t border-gray-800">
+    <h2 class="text-xl font-bold text-white mb-6">FAQ</h2>
+    <div class="space-y-2">
+      ${items}
+    </div>
+  </section>
+  `;
+}
+
+for (const html of htmlFiles) {
+  if (html === 'index.html') continue;
+  const slug = html.replace(/\.html$/, '');
+  const block = faqBlock(slug);
+  if (!block) continue;
+  const htmlPath = resolve(distDir, html);
+  const content = readFileSync(htmlPath, 'utf8');
+  writeFileSync(htmlPath, content.replace(/<footer/, `${block}<footer`));
+}
+
 function crossToolBlock(currentSlug) {
   const others = tools.tools.filter(t => t.slug !== currentSlug);
   const cards = others.map(t => `<a href="/${t.slug}" class="group flex items-start gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-400 transition-colors no-underline">
@@ -148,7 +177,7 @@ function jsonLdForPage(filename) {
   const tool = tools.tools.find(t => t.slug === slug);
   if (!tool) return [];
   const toolUrl = `${SITE_URL}/${tool.slug}`;
-  return [
+  const blocks = [
     {
       '@context': 'https://schema.org',
       '@type': 'WebApplication',
@@ -170,6 +199,18 @@ function jsonLdForPage(filename) {
       ],
     },
   ];
+  if (tool.faqs?.length) {
+    blocks.push({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: tool.faqs.map(({ q, a }) => ({
+        '@type': 'Question',
+        name: q,
+        acceptedAnswer: { '@type': 'Answer', text: a },
+      })),
+    });
+  }
+  return blocks;
 }
 
 // Parcel's HTML minifier strips the optional </head> tag, so inject right
