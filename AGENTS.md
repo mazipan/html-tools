@@ -28,11 +28,12 @@ Current tools (all under `src/`):
 1. Create a new `.html` file inside `src/` (e.g. `src/base64.html`) following the pattern of an existing tool.
 2. Add an entry for the tool in `src/tools.json` (`slug`, `name`, `icon`, `category`, `description`). The build uses this manifest to emit per-tool JSON-LD structured data; future cross-tool features (related links, FAQ, etc.) will read it too.
 3. Include shared partials in `<head>` — see "Shared HTML partials" below. The minimum head is `meta-base` + per-page meta + `meta-social` + per-page icon + `head-fonts` + `<link rel="stylesheet" href="styles.css">` + optional per-page `<style>` + `head-theme`.
-4. Include the shared site header at the top of `<body>` with a back-link to `index.html` — copy the header block from an existing tool.
-5. Include the shared footer at the bottom with `&copy; <span id="year"></span> Irfan Maulana<span id="deploy-time"></span>` and end with `<include src="_partials/footer-script.html"></include>`. The footer-script partial uses a `"__BUILD_TIME__"` placeholder that `scripts/build.mjs` replaces with the real ISO timestamp.
-6. Add a card linking to it in `index.html` under the appropriate section (or create a new section), update the "Current tools" list in `AGENTS.md`, and add a row for the new tool in the tools table in `README.md`.
-7. Use `<link rel="stylesheet" href="styles.css">` for shared styles.
-8. Keep all logic inline in a `<script>` tag at the bottom of the file.
+4. Include the shared site header at the top of `<body>` with a `<nav aria-label="Breadcrumb">` linking back to `index.html` — copy the header block from an existing tool. Mark the current page span with `aria-current="page"`. See "Semantic landmarks" below.
+5. Wrap the tool UI in `<main class="…">` (exactly one `<main>` per page). Inside, the page heading goes in an `<h1>` that matches the tool name.
+6. Include the shared footer at the bottom with `&copy; <span id="year"></span> Irfan Maulana<span id="deploy-time"></span>` and end with `<include src="_partials/footer-script.html"></include>`. The footer-script partial uses a `"__BUILD_TIME__"` placeholder that `scripts/build.mjs` replaces with the real ISO timestamp.
+7. Add a card linking to it in `index.html` under the appropriate section (or create a new section), update the "Current tools" list in `AGENTS.md`, and add a row for the new tool in the tools table in `README.md`.
+8. Use `<link rel="stylesheet" href="styles.css">` for shared styles.
+9. Keep all logic inline in a `<script>` tag at the bottom of the file.
 
 ## Shared HTML partials
 
@@ -58,6 +59,38 @@ The site header (the `HTML Tools / Tool Name` strip) is intentionally **not** a 
 - Build output goes to `dist/` — do not commit this directory.
 - The `parcel-namer-no-hash` local plugin strips content hashes from output filenames so URLs stay stable.
 - **All JS is inlined into HTML at build time.** `scripts/build.mjs` inlines every `.js` reference into its parent HTML after bundling so `dist/` contains only `.html` and `.css` files.
+
+## Semantic landmarks (every page)
+
+Each page must follow this skeleton so screen readers, search engines, and Lighthouse audits all see the same structure:
+
+```html
+<body>
+  <header>            <!-- site banner -->
+    <nav aria-label="Breadcrumb" class="…">  <!-- tool pages only; index has a hero header here instead -->
+      <a href="index.html">HTML Tools</a>
+      <span>/</span>
+      <span aria-current="page">🛠️ Tool Name</span>
+    </nav>
+  </header>
+
+  <main class="…">     <!-- exactly one per page; wraps the tool UI + content + FAQ + cross-tool block -->
+    <header class="mb-7">
+      <h1>🛠️ Tool Name</h1>   <!-- exactly one h1, matches the page topic -->
+    </header>
+    <!-- tool UI, content sections, FAQ, More tools -->
+  </main>
+
+  <footer>…</footer>   <!-- one per page, sibling of <main> -->
+</body>
+```
+
+Rules:
+
+- Exactly one `<h1>` per page; it should match the page topic, not the site name.
+- Heading order must not skip levels: `<h1>` → `<h2>` → `<h3>`. Don't drop directly from `<h2>` to `<h4>`.
+- Wrap the page's primary content in `<main>`. The `<header>` and `<footer>` are siblings of `<main>`, not children.
+- The breadcrumb in the site banner uses `<nav aria-label="Breadcrumb">`; mark the current page span with `aria-current="page"`.
 
 ## Social card image
 
