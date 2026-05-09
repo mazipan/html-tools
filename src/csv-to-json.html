@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <include src="_partials/meta-base.html"></include>
+  <title>JSON ↔ CSV — HTML Tools</title>
+  <meta name="description" content="Convert between JSON and CSV instantly in your browser. RFC 4180-compliant parser, smart type inference, configurable delimiters, and nested-object handling.">
+  <link rel="canonical" href="https://tools.mazipan.space/csv-to-json">
+  <meta property="og:title" content="JSON ↔ CSV — HTML Tools">
+  <meta property="og:description" content="Convert between JSON and CSV instantly in your browser. RFC 4180-compliant parser, smart type inference, configurable delimiters, and nested-object handling.">
+  <meta property="og:url" content="https://tools.mazipan.space/csv-to-json">
+  <meta name="twitter:title" content="JSON ↔ CSV — HTML Tools">
+  <meta name="twitter:description" content="Convert between JSON and CSV instantly in your browser. RFC 4180-compliant parser, smart type inference, configurable delimiters, and nested-object handling.">
+  <include src="_partials/meta-social.html"></include>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+  <include src="_partials/head-fonts.html"></include>
+  <link rel="stylesheet" href="styles.css">
+  <include src="_partials/head-theme.html"></include>
+</head>
+<body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+
+  <!-- Site header -->
+  <header class="border-b border-gray-800 px-6 py-4">
+    <nav aria-label="Breadcrumb" class="max-w-[1100px] mx-auto flex items-center gap-3">
+      <a href="index.html" class="no-underline text-white font-bold text-lg tracking-tight hover:text-blue-400 transition-colors">
+        HTML Tools
+      </a>
+      <span class="text-gray-700">/</span>
+      <span class="text-gray-400 text-sm flex items-center gap-1.5" aria-current="page">
+        📊 JSON ↔ CSV
+      </span>
+    </nav>
+  </header>
+
+  <main class="max-w-[1100px] mx-auto w-full flex-1 py-8 px-6">
+
+    <header class="mb-7">
+      <h1 class="text-3xl font-bold text-white flex items-center gap-3">📊 JSON ↔ CSV</h1>
+      <p class="mt-1.5 text-sm text-gray-500">Round-trip JSON and CSV with sensible defaults — RFC 4180-compliant, type-inferring, configurable.</p>
+    </header>
+
+    <!-- Direction toggle -->
+    <div class="flex flex-wrap gap-2 items-center mb-4">
+      <button id="btn-j2c" onclick="setDirection('j2c')" class="btn btn-active">JSON → CSV</button>
+      <button id="btn-c2j" onclick="setDirection('c2j')" class="btn btn-secondary">CSV → JSON</button>
+      <div class="w-px h-5 bg-gray-700 mx-1"></div>
+      <button onclick="loadSample()" class="btn btn-secondary">Load sample</button>
+      <button onclick="copyOutput()" class="btn btn-secondary">Copy output</button>
+      <button onclick="downloadOutput()" class="btn btn-secondary">Download</button>
+      <button onclick="clearAll()" class="btn btn-danger">Clear</button>
+    </div>
+
+    <!-- Options (JSON → CSV) -->
+    <div id="opts-j2c" class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-4 px-3 py-2.5 rounded-lg border border-gray-800 bg-gray-900/50">
+      <label class="flex items-center gap-2 text-xs text-gray-400">
+        Delimiter
+        <select id="j2c-delim" onchange="convert()" class="bg-gray-900 border border-gray-700 text-xs text-gray-200 rounded-md px-2 py-1 outline-none hover:border-gray-600 focus:border-blue-400">
+          <option value=",">,  (comma)</option>
+          <option value=";">;  (semicolon)</option>
+          <option value="\t">\t (tab)</option>
+          <option value="|">|  (pipe)</option>
+        </select>
+      </label>
+      <label class="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer">
+        <input type="checkbox" id="j2c-header" checked onchange="convert()" class="accent-blue-400">
+        Include header row
+      </label>
+      <label class="flex items-center gap-2 text-xs text-gray-400">
+        Nested
+        <select id="j2c-nested" onchange="convert()" class="bg-gray-900 border border-gray-700 text-xs text-gray-200 rounded-md px-2 py-1 outline-none hover:border-gray-600 focus:border-blue-400">
+          <option value="dot">dot path (a.b)</option>
+          <option value="underscore">underscore (a_b)</option>
+          <option value="json">JSON literal</option>
+        </select>
+      </label>
+      <label class="flex items-center gap-2 text-xs text-gray-400">
+        Arrays
+        <select id="j2c-arrays" onchange="convert()" class="bg-gray-900 border border-gray-700 text-xs text-gray-200 rounded-md px-2 py-1 outline-none hover:border-gray-600 focus:border-blue-400">
+          <option value="commaSeparated">comma-separated</option>
+          <option value="json">JSON literal</option>
+        </select>
+      </label>
+      <label class="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer">
+        <input type="checkbox" id="j2c-quote-all" onchange="convert()" class="accent-blue-400">
+        Quote all cells
+      </label>
+    </div>
+
+    <!-- Options (CSV → JSON) -->
+    <div id="opts-c2j" style="display:none" class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-4 px-3 py-2.5 rounded-lg border border-gray-800 bg-gray-900/50">
+      <label class="flex items-center gap-2 text-xs text-gray-400">
+        Delimiter
+        <select id="c2j-delim" onchange="convert()" class="bg-gray-900 border border-gray-700 text-xs text-gray-200 rounded-md px-2 py-1 outline-none hover:border-gray-600 focus:border-blue-400">
+          <option value="auto">auto-detect</option>
+          <option value=",">,  (comma)</option>
+          <option value=";">;  (semicolon)</option>
+          <option value="\t">\t (tab)</option>
+          <option value="|">|  (pipe)</option>
+        </select>
+      </label>
+      <label class="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer">
+        <input type="checkbox" id="c2j-header" checked onchange="convert()" class="accent-blue-400">
+        First row is header
+      </label>
+      <label class="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer">
+        <input type="checkbox" id="c2j-infer" checked onchange="convert()" class="accent-blue-400">
+        Infer types
+      </label>
+      <label class="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer">
+        <input type="checkbox" id="c2j-trim" checked onchange="convert()" class="accent-blue-400">
+        Trim whitespace
+      </label>
+      <label class="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer">
+        <input type="checkbox" id="c2j-skip-empty" checked onchange="convert()" class="accent-blue-400">
+        Skip empty rows
+      </label>
+      <label class="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer">
+        <input type="checkbox" id="c2j-pretty" checked onchange="convert()" class="accent-blue-400">
+        Pretty output
+      </label>
+    </div>
+
+    <!-- Panels -->
+    <div class="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" id="input-label">JSON input</label>
+        </div>
+        <textarea id="input"
+                  placeholder="Paste JSON here..."
+                  spellcheck="false"
+                  oninput="onInput()"
+                  class="w-full h-[500px] min-h-[500px] rounded-lg border border-gray-700 bg-gray-900
+                         text-gray-200 font-mono text-[0.8rem] leading-relaxed p-4 resize-y outline-none
+                         focus:border-blue-400 transition-colors"></textarea>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" id="output-label">CSV output</label>
+        </div>
+        <textarea id="output"
+                  readonly
+                  spellcheck="false"
+                  class="w-full h-[500px] min-h-[500px] rounded-lg border border-gray-700 bg-gray-900
+                         text-gray-200 font-mono text-[0.8rem] leading-relaxed p-4 resize-y outline-none
+                         whitespace-pre"></textarea>
+      </div>
+
+    </div>
+
+    <div id="status" class="mt-2.5 text-xs text-gray-500 min-h-[18px]"></div>
+  </main>
+
+  <script>
+    const inputEl  = document.getElementById('input');
+    const outputEl = document.getElementById('output');
+    const statusEl = document.getElementById('status');
+    const inputLabel  = document.getElementById('input-label');
+    const outputLabel = document.getElementById('output-label');
+    const optsJ2C = document.getElementById('opts-j2c');
+    const optsC2J = document.getElementById('opts-c2j');
+
+    let direction = 'j2c'; // 'j2c' = JSON → CSV, 'c2j' = CSV → JSON
+    let lastOutput = '';
+
+    // ── RFC 4180 CSV parser ─────────────────────────────────────────
+    function parseCSV(text, delimiter) {
+      // Strip BOM
+      if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+      const rows = [];
+      let row = [];
+      let cell = '';
+      let inQuotes = false;
+      let i = 0;
+      const len = text.length;
+      while (i < len) {
+        const c = text[i];
+        if (inQuotes) {
+          if (c === '"') {
+            if (text[i + 1] === '"') { cell += '"'; i += 2; continue; }
+            inQuotes = false; i++; continue;
+          }
+          cell += c; i++;
+        } else {
+          if (c === '"' && cell === '') {
+            inQuotes = true; i++;
+          } else if (c === delimiter) {
+            row.push(cell); cell = ''; i++;
+          } else if (c === '\r' || c === '\n') {
+            row.push(cell); cell = '';
+            rows.push(row); row = [];
+            if (c === '\r' && text[i + 1] === '\n') i += 2; else i++;
+          } else {
+            cell += c; i++;
+          }
+        }
+      }
+      if (cell !== '' || row.length > 0) { row.push(cell); rows.push(row); }
+      return rows;
+    }
+
+    function detectDelimiter(text) {
+      const candidates = [',', ';', '\t', '|'];
+      const sample = text.split(/\r?\n/).slice(0, 10).filter(l => l.length > 0);
+      if (sample.length === 0) return ',';
+      let best = ',', bestScore = -1;
+      for (const d of candidates) {
+        // Naive count outside quotes — good enough for detection
+        const counts = sample.map(line => {
+          let n = 0, inQ = false;
+          for (let i = 0; i < line.length; i++) {
+            const c = line[i];
+            if (c === '"') {
+              if (line[i + 1] === '"') { i++; continue; }
+              inQ = !inQ;
+            } else if (!inQ && c === d) n++;
+          }
+          return n;
+        });
+        if (counts[0] === 0) continue;
+        const consistent = counts.every(c => c === counts[0]);
+        const score = (consistent ? 1000 : 0) + counts[0];
+        if (score > bestScore) { bestScore = score; best = d; }
+      }
+      return best;
+    }
+
+    function inferType(value) {
+      if (value === '' || value === 'null') return null;
+      if (value === 'true') return true;
+      if (value === 'false') return false;
+      // Integers
+      if (/^-?\d+$/.test(value)) {
+        const n = Number(value);
+        if (Number.isSafeInteger(n)) return n;
+      }
+      // Floats
+      if (/^-?\d*\.\d+(?:[eE][-+]?\d+)?$/.test(value) || /^-?\d+[eE][-+]?\d+$/.test(value)) {
+        return Number(value);
+      }
+      return value;
+    }
+
+    // ── CSV → JSON ──────────────────────────────────────────────────
+    function csvToJson(text) {
+      const delimSel = document.getElementById('c2j-delim').value;
+      const delimiter = delimSel === 'auto' ? detectDelimiter(text) : delimSel.replace('\\t', '\t');
+      const hasHeader = document.getElementById('c2j-header').checked;
+      const doInfer   = document.getElementById('c2j-infer').checked;
+      const doTrim    = document.getElementById('c2j-trim').checked;
+      const doSkip    = document.getElementById('c2j-skip-empty').checked;
+      const pretty    = document.getElementById('c2j-pretty').checked;
+
+      let rows = parseCSV(text, delimiter);
+      if (doTrim) rows = rows.map(r => r.map(c => c.trim()));
+      if (doSkip) rows = rows.filter(r => r.some(c => c !== ''));
+      if (rows.length === 0) return { json: '[]', meta: '0 rows' };
+
+      let result;
+      if (hasHeader) {
+        const header = rows[0];
+        result = rows.slice(1).map(r => {
+          const obj = {};
+          header.forEach((key, i) => {
+            const val = r[i] !== undefined ? r[i] : '';
+            obj[key] = doInfer ? inferType(val) : val;
+          });
+          return obj;
+        });
+      } else {
+        result = rows.map(r => r.map(c => doInfer ? inferType(c) : c));
+      }
+
+      const json = pretty ? JSON.stringify(result, null, 2) : JSON.stringify(result);
+      const delimName = delimiter === '\t' ? 'tab' : delimiter === ',' ? 'comma' : delimiter === ';' ? 'semicolon' : 'pipe';
+      const meta = `${result.length} row${result.length === 1 ? '' : 's'} · ${delimName}-delimited`;
+      return { json, meta };
+    }
+
+    // ── JSON → CSV ──────────────────────────────────────────────────
+    function escapeCell(val, delim, alwaysQuote) {
+      const s = val === null || val === undefined ? '' : String(val);
+      const needs = alwaysQuote || s.includes(delim) || s.includes('"') || s.includes('\n') || s.includes('\r');
+      return needs ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }
+
+    function flatten(obj, prefix, sep, arrayMode) {
+      const out = {};
+      for (const [k, v] of Object.entries(obj)) {
+        const key = prefix ? prefix + sep + k : k;
+        if (v && typeof v === 'object' && !Array.isArray(v)) {
+          Object.assign(out, flatten(v, key, sep, arrayMode));
+        } else if (Array.isArray(v)) {
+          out[key] = arrayMode === 'json' ? JSON.stringify(v) : v.join(',');
+        } else {
+          out[key] = v;
+        }
+      }
+      return out;
+    }
+
+    function jsonToCsv(text) {
+      const delim       = document.getElementById('j2c-delim').value.replace('\\t', '\t');
+      const includeHead = document.getElementById('j2c-header').checked;
+      const nestedMode  = document.getElementById('j2c-nested').value;
+      const arrayMode   = document.getElementById('j2c-arrays').value;
+      const alwaysQuote = document.getElementById('j2c-quote-all').checked;
+
+      const data = JSON.parse(text);
+      const rows = Array.isArray(data) ? data : [data];
+
+      const flatRows = rows.map(row => {
+        if (row === null || typeof row !== 'object' || Array.isArray(row)) {
+          return { value: row };
+        }
+        if (nestedMode === 'json') {
+          // Keep nested objects as JSON literals; arrays still follow arrayMode.
+          const out = {};
+          for (const [k, v] of Object.entries(row)) {
+            if (v && typeof v === 'object' && !Array.isArray(v)) {
+              out[k] = JSON.stringify(v);
+            } else if (Array.isArray(v)) {
+              out[k] = arrayMode === 'json' ? JSON.stringify(v) : v.join(',');
+            } else {
+              out[k] = v;
+            }
+          }
+          return out;
+        }
+        const sep = nestedMode === 'underscore' ? '_' : '.';
+        return flatten(row, '', sep, arrayMode);
+      });
+
+      // Collect keys (preserving first-seen order)
+      const keys = [];
+      const seen = new Set();
+      for (const r of flatRows) {
+        for (const k of Object.keys(r)) {
+          if (!seen.has(k)) { keys.push(k); seen.add(k); }
+        }
+      }
+
+      const lines = [];
+      if (includeHead) {
+        lines.push(keys.map(k => escapeCell(k, delim, alwaysQuote)).join(delim));
+      }
+      for (const r of flatRows) {
+        lines.push(keys.map(k => {
+          const v = r[k];
+          return escapeCell(v === undefined ? '' : v, delim, alwaysQuote);
+        }).join(delim));
+      }
+
+      const csv = lines.join('\n');
+      const meta = `${rows.length} row${rows.length === 1 ? '' : 's'} · ${keys.length} column${keys.length === 1 ? '' : 's'}`;
+      return { csv, meta };
+    }
+
+    // ── UI plumbing ─────────────────────────────────────────────────
+    function setDirection(d) {
+      direction = d;
+      const j2c = d === 'j2c';
+      document.getElementById('btn-j2c').classList.toggle('btn-active', j2c);
+      document.getElementById('btn-j2c').classList.toggle('btn-secondary', !j2c);
+      document.getElementById('btn-c2j').classList.toggle('btn-active', !j2c);
+      document.getElementById('btn-c2j').classList.toggle('btn-secondary', j2c);
+      optsJ2C.style.display = j2c ? '' : 'none';
+      optsC2J.style.display = j2c ? 'none' : '';
+      inputLabel.textContent  = j2c ? 'JSON input' : 'CSV input';
+      outputLabel.textContent = j2c ? 'CSV output' : 'JSON output';
+      inputEl.placeholder     = j2c ? 'Paste JSON here...' : 'Paste CSV here...';
+      convert();
+    }
+
+    function setError(msg) {
+      outputEl.classList.remove('border-gray-700');
+      outputEl.classList.add('border-red-500');
+      statusEl.textContent = msg;
+      statusEl.className = 'mt-2.5 text-xs text-red-400 min-h-[18px]';
+    }
+
+    function setStatus(msg) {
+      outputEl.classList.remove('border-red-500');
+      outputEl.classList.add('border-gray-700');
+      statusEl.textContent = msg || '';
+      statusEl.className = 'mt-2.5 text-xs text-gray-500 min-h-[18px]';
+    }
+
+    function convert() {
+      const text = inputEl.value;
+      if (!text.trim()) {
+        outputEl.value = '';
+        lastOutput = '';
+        setStatus('');
+        return;
+      }
+      try {
+        if (direction === 'j2c') {
+          const { csv, meta } = jsonToCsv(text);
+          outputEl.value = csv;
+          lastOutput = csv;
+          setStatus(meta);
+        } else {
+          const { json, meta } = csvToJson(text);
+          outputEl.value = json;
+          lastOutput = json;
+          setStatus(meta);
+        }
+      } catch (err) {
+        outputEl.value = '';
+        lastOutput = '';
+        setError((direction === 'j2c' ? 'JSON parse error: ' : 'CSV parse error: ') + err.message);
+      }
+    }
+
+    let debounceTimer;
+    function onInput() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(convert, 200);
+    }
+
+    function copyOutput() {
+      if (!lastOutput) return;
+      navigator.clipboard.writeText(lastOutput).then(() => {
+        const prev = statusEl.textContent;
+        statusEl.textContent = 'Copied!';
+        setTimeout(() => { statusEl.textContent = prev; }, 1200);
+      });
+    }
+
+    function downloadOutput() {
+      if (!lastOutput) return;
+      const isCsv = direction === 'j2c';
+      const blob = new Blob([lastOutput], { type: isCsv ? 'text/csv' : 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = isCsv ? 'output.csv' : 'output.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearAll() {
+      inputEl.value = '';
+      outputEl.value = '';
+      lastOutput = '';
+      setStatus('');
+      inputEl.focus();
+    }
+
+    function loadSample() {
+      if (direction === 'j2c') {
+        inputEl.value = JSON.stringify([
+          { id: 1, name: 'Ada Lovelace',  email: 'ada@example.com',     active: true,  tags: ['admin', 'founder'], address: { city: 'London',  country: 'UK' } },
+          { id: 2, name: 'Alan Turing',   email: 'alan@example.com',    active: true,  tags: ['cryptanalyst'],     address: { city: 'Bletchley', country: 'UK' } },
+          { id: 3, name: 'Grace Hopper',  email: 'grace@example.com',   active: false, tags: ['compiler', 'navy'], address: { city: 'New York', country: 'US' } }
+        ], null, 2);
+      } else {
+        inputEl.value = 'id,name,email,active,score\n1,Ada Lovelace,ada@example.com,true,98.5\n2,"Hopper, Grace",grace@example.com,true,99\n3,Alan Turing,alan@example.com,false,87.3';
+      }
+      convert();
+    }
+
+    inputEl.focus();
+  </script>
+
+  <section class="max-w-[1100px] mx-auto w-full px-6 py-8 border-t border-gray-800">
+    <div class="grid gap-6 md:grid-cols-2">
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">About JSON ↔ CSV</h2>
+        <p class="text-gray-400 leading-relaxed">Convert between JSON and CSV without leaving the browser. The CSV side is RFC 4180-compliant — quoted fields, embedded delimiters, doubled quotes, and BOM-prefixed input all round-trip cleanly. Type inference, delimiter auto-detection, and configurable nested-object handling cover the cases that usually trip plain copy-paste tools.</p>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">How to use</h2>
+        <ol class="text-gray-400 leading-relaxed space-y-2 list-decimal list-inside">
+          <li>Pick a direction: <strong class="text-gray-300">JSON → CSV</strong> or <strong class="text-gray-300">CSV → JSON</strong>.</li>
+          <li>Paste your data into the left panel; the converted result appears live on the right.</li>
+          <li>Tweak the options bar — delimiter, header row, nested handling, type inference — until the output looks right.</li>
+          <li>Use <strong class="text-gray-300">Copy output</strong> or <strong class="text-gray-300">Download</strong> to save the result.</li>
+        </ol>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">Common use cases</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Turning an API response into a spreadsheet row dump.</li>
+          <li>Pulling a CSV export from a database dashboard into JSON for a script.</li>
+          <li>Auditing or sorting data in a spreadsheet, then converting back to JSON.</li>
+          <li>Quickly reshaping nested JSON for a flat reporting tool.</li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">Tips</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Auto-detect picks among <code class="text-gray-300">,</code> <code class="text-gray-300">;</code> <code class="text-gray-300">\t</code> <code class="text-gray-300">|</code> by looking at the first ~10 rows.</li>
+          <li>Nested objects flatten to dot-paths by default — switch to JSON-literal mode if you'd rather keep them whole in one cell.</li>
+          <li>Type inference treats empty cells as <code class="text-gray-300">null</code>; turn it off to keep everything as strings.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <include src="_partials/footer-script.html"></include>
+
+  <footer class="max-w-[1100px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
+    &copy; <span id="year"></span> Irfan Maulana &amp; Claude<br><span id="deploy-time"></span>
+  </footer>
+
+</body>
+</html>

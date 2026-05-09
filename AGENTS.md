@@ -11,6 +11,7 @@ Current tools (all under `src/`):
 - `svg-to-jsx.html` — convert SVG markup to React JSX
 - `index.html` — landing page linking all tools
 - `json-sort.html` — sort JSON object keys alphabetically (A→Z or Z→A), recursively
+- `csv-to-json.html` — convert between JSON and CSV with smart type inference, RFC 4180 quoting, and configurable nested-object handling
 - `gradients.html` — curated gradient gallery (87 gradients); copy CSS/Tailwind or export PNG
 - `blob.html` — blob generator: CSS border-radius blobs (8-value syntax, animate) + SVG blobs (catmull-rom path, copy/download)
 - `waves.html` — wave generator: single SVG wave (amplitude, frequency, position, gradient fill) + stacked waves (layers, spacing, color interpolation); copy/download SVG
