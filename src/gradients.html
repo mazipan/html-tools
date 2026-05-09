@@ -19,16 +19,16 @@
 <body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
 
   <header class="border-b border-gray-800 px-6 py-4">
-    <div class="max-w-[1400px] mx-auto flex items-center gap-3">
+    <nav aria-label="Breadcrumb" class="max-w-[1400px] mx-auto flex items-center gap-3">
       <a href="index.html" class="no-underline text-white font-bold text-lg tracking-tight hover:text-blue-400 transition-colors">
         HTML Tools
       </a>
       <span class="text-gray-700">/</span>
-      <span class="text-gray-400 text-sm flex items-center gap-1.5">🎨 Gradients</span>
-    </div>
+      <span class="text-gray-400 text-sm flex items-center gap-1.5" aria-current="page">🎨 Gradients</span>
+    </nav>
   </header>
 
-  <div class="max-w-[1400px] mx-auto w-full flex-1 py-8 px-6">
+  <main class="max-w-[1400px] mx-auto w-full flex-1 py-8 px-6">
 
     <header class="mb-7">
       <h1 class="text-3xl font-bold text-white flex items-center gap-3">🎨 Gradients</h1>
@@ -37,7 +37,7 @@
 
     <div id="grid" class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr))"></div>
 
-  </div>
+  </main>
 
   <!-- Toast -->
   <div id="toast"

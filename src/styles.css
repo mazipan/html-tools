@@ -246,10 +246,14 @@ html[data-theme="light"] .tweaks-swatch.on { border-color: #111827; box-shadow: 
 
 /* Minimized state: shrink to a floating round button. */
 #tweaks-panel.is-minimized {
-  padding: 0;
+  width: 36px;
+  height: 36px;
   min-width: 0;
-  background: transparent;
-  border: none;
+  padding: 0;
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 50%;
   box-shadow: none;
 }
 #tweaks-panel.is-minimized .tweaks-minimize {
