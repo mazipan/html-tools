@@ -244,6 +244,43 @@ html[data-theme="light"] .tweaks-seg button:not(.on):hover { color: #374151; }
 .tweaks-swatch.on { border-color: #f9fafb; box-shadow: 0 0 0 1px rgba(255,255,255,0.25); }
 html[data-theme="light"] .tweaks-swatch.on { border-color: #111827; box-shadow: 0 0 0 1px rgba(0,0,0,0.15); }
 
+/* Minimized state: shrink to a floating round button. */
+#tweaks-panel.is-minimized {
+  padding: 0;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+#tweaks-panel.is-minimized .tweaks-minimize {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  background: #111827;
+  border: 1px solid #1f2937;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  color: #9ca3af;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#tweaks-panel.is-minimized .tweaks-minimize:hover {
+  color: #f9fafb;
+  background: #1f2937;
+}
+html[data-theme="light"] #tweaks-panel.is-minimized .tweaks-minimize {
+  background: #ffffff;
+  border-color: #e5e7eb;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  color: #6b7280;
+}
+html[data-theme="light"] #tweaks-panel.is-minimized .tweaks-minimize:hover {
+  color: #111827;
+  background: #f3f4f6;
+}
+
 /* ── Button variants ─────────────────────────────────────────── */
 .btn {
   display: inline-flex;
