@@ -1,0 +1,70 @@
+{
+  "site": {
+    "name": "HTML Tools",
+    "url": "https://tools.mazipan.space",
+    "description": "A collection of simple, focused utilities that run entirely in your browser. No installs, no servers, no tracking.",
+    "tagline": "Browser-native utilities for developers",
+    "publisher": {
+      "name": "Irfan Maulana",
+      "url": "https://mazipan.space/"
+    }
+  },
+  "tools": [
+    {
+      "slug": "json-formatter",
+      "name": "JSON Formatter",
+      "icon": "🗂️",
+      "category": "JSON",
+      "description": "Prettify, minify, and validate JSON instantly in your browser. Features syntax highlighting and an interactive collapsible tree view."
+    },
+    {
+      "slug": "json-to-ts",
+      "name": "JSON to TypeScript",
+      "icon": "🔷",
+      "category": "JSON",
+      "description": "Convert JSON objects into TypeScript interface or type definitions instantly in your browser."
+    },
+    {
+      "slug": "json-diff",
+      "name": "JSON Diff",
+      "icon": "🔍",
+      "category": "JSON",
+      "description": "Compare two JSON objects and instantly see what was added, removed, or changed."
+    },
+    {
+      "slug": "json-sort",
+      "name": "JSON Sort",
+      "icon": "🔤",
+      "category": "JSON",
+      "description": "Sort JSON object keys alphabetically (A→Z or Z→A), recursively, instantly in your browser."
+    },
+    {
+      "slug": "svg-to-jsx",
+      "name": "SVG to JSX",
+      "icon": "⚛️",
+      "category": "Code",
+      "description": "Convert SVG markup into React JSX-compatible code instantly in your browser."
+    },
+    {
+      "slug": "gradients",
+      "name": "Gradients",
+      "icon": "🎨",
+      "category": "Visual",
+      "description": "Curated gradient collection. Copy CSS, Tailwind classes, or export as PNG."
+    },
+    {
+      "slug": "blob",
+      "name": "Blob Generator",
+      "icon": "🫧",
+      "category": "Visual",
+      "description": "Generate organic blob shapes using CSS border-radius or SVG paths."
+    },
+    {
+      "slug": "waves",
+      "name": "Wave Generator",
+      "icon": "〰️",
+      "category": "Visual",
+      "description": "Generate SVG wave dividers for your web projects — single or stacked layers, fully customizable."
+    }
+  ]
+}

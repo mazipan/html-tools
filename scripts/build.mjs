@@ -4,11 +4,14 @@ import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import { glob } from 'fs/promises';
 
-const SITE_URL = 'https://tools.mazipan.space';
-
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 const distDir = resolve(root, 'dist');
+
+const tools = JSON.parse(readFileSync(resolve(root, 'src/tools.json'), 'utf8'));
+const SITE = tools.site;
+const SITE_URL = SITE.url;
+const SITE_HOME = `${SITE_URL}/`;
 
 const entries = await Array.fromAsync(glob('src/*.html', { cwd: root }));
 
@@ -89,3 +92,61 @@ ${sitemapUrls}
 </urlset>
 `;
 writeFileSync(resolve(distDir, 'sitemap.xml'), sitemap);
+
+// Inject JSON-LD structured data per page (WebSite for index;
+// WebApplication + BreadcrumbList for each tool).
+const ldScript = obj => `<script type="application/ld+json">${JSON.stringify(obj)}</script>`;
+
+function jsonLdForPage(filename) {
+  if (filename === 'index.html') {
+    return [{
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: SITE.name,
+      url: SITE_HOME,
+      description: SITE.description,
+      publisher: {
+        '@type': 'Person',
+        name: SITE.publisher.name,
+        url: SITE.publisher.url,
+      },
+    }];
+  }
+  const slug = filename.replace(/\.html$/, '');
+  const tool = tools.tools.find(t => t.slug === slug);
+  if (!tool) return [];
+  const toolUrl = `${SITE_URL}/${tool.slug}`;
+  return [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      name: tool.name,
+      url: toolUrl,
+      description: tool.description,
+      applicationCategory: 'DeveloperApplication',
+      operatingSystem: 'Any',
+      browserRequirements: 'Requires JavaScript',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+      isPartOf: { '@type': 'WebSite', name: SITE.name, url: SITE_HOME },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: SITE.name, item: SITE_HOME },
+        { '@type': 'ListItem', position: 2, name: tool.name, item: toolUrl },
+      ],
+    },
+  ];
+}
+
+// Parcel's HTML minifier strips the optional </head> tag, so inject right
+// before the opening <body> instead.
+for (const html of htmlFiles) {
+  const ldObjs = jsonLdForPage(html);
+  if (ldObjs.length === 0) continue;
+  const htmlPath = resolve(distDir, html);
+  const content = readFileSync(htmlPath, 'utf8');
+  const ldHtml = ldObjs.map(ldScript).join('');
+  writeFileSync(htmlPath, content.replace(/<body(\s|>)/, `${ldHtml}<body$1`));
+}
