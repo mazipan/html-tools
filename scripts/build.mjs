@@ -8,12 +8,17 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 const distDir = resolve(root, 'dist');
 
+const t0 = Date.now();
+const log = (...args) => console.log('[build]', ...args);
+
 const tools = JSON.parse(readFileSync(resolve(root, 'src/tools.json'), 'utf8'));
 const SITE = tools.site;
 const SITE_URL = SITE.url;
 const SITE_HOME = `${SITE_URL}/`;
+log(`📋 tools.json loaded — ${tools.tools.length} tools: ${tools.tools.map(t => t.slug).join(', ')}`);
 
 const entries = await Array.fromAsync(glob('src/*.html', { cwd: root }));
+log(`📦 Parcel entries — ${entries.length} HTML files`);
 
 const bundler = new Parcel({
   entries: entries.map(f => resolve(root, f)),
@@ -34,6 +39,7 @@ await bundler.run();
 // Post-process each HTML: replace __BUILD_TIME__ and fix absolute asset paths.
 const buildTime = JSON.stringify(new Date().toISOString());
 const htmlFiles = await Array.fromAsync(glob('*.html', { cwd: distDir }));
+log(`📄 Parcel produced ${htmlFiles.length} dist HTML files: ${htmlFiles.join(', ')}`);
 for (const html of htmlFiles) {
   const htmlPath = resolve(distDir, html);
   const updated = readFileSync(htmlPath, 'utf8')
@@ -43,32 +49,41 @@ for (const html of htmlFiles) {
     .replace(/href=("?)index\.html\1(?=[ >])/g, 'href="/"');
   writeFileSync(htmlPath, updated);
 }
+log(`🔧 post-process pass — replaced __BUILD_TIME__ and rewrote relative paths in ${htmlFiles.length} files`);
 
 // Inline all .js files into the HTML that reference them, then remove them.
 // The Hub serves .js with application/octet-stream + nosniff, which browsers refuse.
 const jsFiles = await Array.fromAsync(glob('*.js', { cwd: distDir }));
+let inlinedCount = 0;
 for (const js of jsFiles) {
   const jsContent = readFileSync(resolve(distDir, js), 'utf8');
   const tag = new RegExp(`<script[^>]+src=["']?\\.?\\/?${js}["']?[^>]*><\\/script>`, 'g');
+  let perFileHits = 0;
   for (const html of htmlFiles) {
     const htmlPath = resolve(distDir, html);
     const content = readFileSync(htmlPath, 'utf8');
     if (tag.test(content)) {
       writeFileSync(htmlPath, content.replace(tag, `<script>${jsContent}</script>`));
+      perFileHits++;
+      inlinedCount++;
     }
   }
   rmSync(resolve(distDir, js));
+  log(`   ↪️  ${js} → ${perFileHits} page${perFileHits === 1 ? '' : 's'} (${(jsContent.length / 1024).toFixed(1)} kB)`);
 }
+log(`📜 JS inlining — ${jsFiles.length} files, ${inlinedCount} total inlinings`);
 
 // Remove source maps.
 const mapFiles = await Array.fromAsync(glob('*.map', { cwd: distDir }));
 for (const f of mapFiles) rmSync(resolve(distDir, f));
+if (mapFiles.length) log(`🗑️  removed ${mapFiles.length} source map file${mapFiles.length === 1 ? '' : 's'}`);
 
 // Copy static assets at the dist root. og-image.png is pre-generated and
 // committed; rerun `npm run generate:og` to refresh it from src/og-image.svg.
 copyFileSync(resolve(root, 'src/robots.txt'), resolve(distDir, 'robots.txt'));
 copyFileSync(resolve(root, 'src/_headers'), resolve(distDir, '_headers'));
 copyFileSync(resolve(root, 'src/og-image.png'), resolve(distDir, 'og-image.png'));
+log('📥 copied static assets — robots.txt, _headers, og-image.png');
 
 const cleanPath = f => f === 'index.html' ? '/' : `/${f.replace(/\.html$/, '')}`;
 const indexable = htmlFiles.filter(f => !f.startsWith('google')).sort();
@@ -78,6 +93,7 @@ const redirects = indexable
   .map(f => `/${f}  ${cleanPath(f)}  301!`)
   .join('\n');
 writeFileSync(resolve(distDir, '_redirects'), redirects + '\n');
+log(`🔀 generated _redirects — ${indexable.length} entries`);
 
 const today = new Date().toISOString().split('T')[0];
 const sitemapUrls = indexable
@@ -92,6 +108,7 @@ ${sitemapUrls}
 </urlset>
 `;
 writeFileSync(resolve(distDir, 'sitemap.xml'), sitemap);
+log(`🧭 generated sitemap.xml — ${indexable.length} URLs (lastmod ${today})`);
 
 // Inject a "More tools" cross-link block before the footer on every tool
 // page (not on index — it already lists every tool). Keeps internal-link
@@ -117,15 +134,23 @@ function faqBlock(slug) {
   `;
 }
 
+let faqInjected = 0;
+const faqSkipped = [];
 for (const html of htmlFiles) {
   if (html === 'index.html') continue;
   const slug = html.replace(/\.html$/, '');
   const block = faqBlock(slug);
-  if (!block) continue;
+  if (!block) {
+    if (tools.tools.some(t => t.slug === slug)) faqSkipped.push(`${slug} (no faqs)`);
+    else faqSkipped.push(`${slug} (not in tools.json)`);
+    continue;
+  }
   const htmlPath = resolve(distDir, html);
   const content = readFileSync(htmlPath, 'utf8');
   writeFileSync(htmlPath, content.replace(/<footer/, `${block}<footer`));
+  faqInjected++;
 }
+log(`❓ FAQ block injection — ${faqInjected} pages${faqSkipped.length ? ` (skipped: ${faqSkipped.join(', ')})` : ''}`);
 
 function crossToolBlock(currentSlug) {
   const current = tools.tools.find(t => t.slug === currentSlug);
@@ -146,14 +171,21 @@ function crossToolBlock(currentSlug) {
   `;
 }
 
+let crossInjected = 0;
+const crossSkipped = [];
 for (const html of htmlFiles) {
   if (html === 'index.html') continue;
   const slug = html.replace(/\.html$/, '');
-  if (!tools.tools.some(t => t.slug === slug)) continue;
+  if (!tools.tools.some(t => t.slug === slug)) {
+    crossSkipped.push(`${slug} (not in tools.json)`);
+    continue;
+  }
   const htmlPath = resolve(distDir, html);
   const content = readFileSync(htmlPath, 'utf8');
   writeFileSync(htmlPath, content.replace(/<footer/, `${crossToolBlock(slug)}<footer`));
+  crossInjected++;
 }
+log(`🔗 cross-tool block injection — ${crossInjected} pages${crossSkipped.length ? ` (skipped: ${crossSkipped.join(', ')})` : ''}`);
 
 // Inject JSON-LD structured data per page (WebSite for index;
 // WebApplication + BreadcrumbList for each tool).
@@ -216,6 +248,8 @@ function jsonLdForPage(filename) {
 
 // Parcel's HTML minifier strips the optional </head> tag, so inject right
 // before the opening <body> instead.
+let ldPages = 0;
+let ldBlocks = 0;
 for (const html of htmlFiles) {
   const ldObjs = jsonLdForPage(html);
   if (ldObjs.length === 0) continue;
@@ -223,4 +257,8 @@ for (const html of htmlFiles) {
   const content = readFileSync(htmlPath, 'utf8');
   const ldHtml = ldObjs.map(ldScript).join('');
   writeFileSync(htmlPath, content.replace(/<body(\s|>)/, `${ldHtml}<body$1`));
+  ldPages++;
+  ldBlocks += ldObjs.length;
 }
+log(`🏷️  JSON-LD injection — ${ldPages} pages, ${ldBlocks} structured-data blocks total`);
+log(`🎉 done in ${((Date.now() - t0) / 1000).toFixed(2)}s`);

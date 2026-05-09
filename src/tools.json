@@ -115,6 +115,36 @@
       "maxWidth": "1100px"
     },
     {
+      "slug": "csv-to-json",
+      "name": "JSON ↔ CSV",
+      "icon": "📊",
+      "category": "JSON",
+      "description": "Convert between JSON and CSV instantly in your browser. RFC 4180-compliant, smart type inference, configurable delimiters, and nested-object handling.",
+      "faqs": [
+        {
+          "q": "How are nested JSON objects handled?",
+          "a": "Flattened to dot-path columns by default (so address.city becomes its own column). Switch to underscore or JSON-literal modes if you'd rather keep them whole."
+        },
+        {
+          "q": "How are arrays inside objects handled?",
+          "a": "Joined with commas by default — for example [\"red\",\"blue\"] becomes \"red,blue\" — or kept as JSON literals via the option toggle."
+        },
+        {
+          "q": "Why are numbers in my CSV becoming strings?",
+          "a": "Type inference is on by default. Make sure the value isn't surrounded by extra whitespace or quoted twice. Switch to off if you want exact CSV → JSON.string round-trip."
+        },
+        {
+          "q": "Does it auto-detect the delimiter?",
+          "a": "Yes for CSV → JSON. The detector samples the first ~10 lines and picks whichever of comma, semicolon, tab, or pipe produces the most consistent column count."
+        },
+        {
+          "q": "Will the CSV preserve quotes and commas in cell values?",
+          "a": "Yes. RFC 4180 quoting is applied automatically: cells with the delimiter, a double-quote, or a newline get quoted, and any internal double-quote is doubled."
+        }
+      ],
+      "maxWidth": "1100px"
+    },
+    {
       "slug": "svg-to-jsx",
       "name": "SVG to JSX",
       "icon": "⚛️",

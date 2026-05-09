@@ -14,6 +14,7 @@ A collection of single-file browser-native utilities. All logic runs client-side
 | [JSON → TypeScript](src/json-to-ts.html) | Convert a JSON object into TypeScript interfaces |
 | [JSON Diff](src/json-diff.html) | Compare two JSON objects and highlight differences |
 | [JSON Sort](src/json-sort.html) | Sort JSON object keys alphabetically, recursively |
+| [JSON ↔ CSV](src/csv-to-json.html) | Round-trip JSON and CSV with smart type inference and delimiter detection |
 | [SVG → JSX](src/svg-to-jsx.html) | Convert SVG markup to React JSX |
 | [Gradients](src/gradients.html) | Curated gradient gallery — copy CSS, Tailwind, or export PNG |
 | [Blob Generator](src/blob.html) | Generate organic blob shapes via CSS border-radius or SVG path |

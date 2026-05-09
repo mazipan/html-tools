@@ -1,0 +1,9 @@
+[build]
+  command  = "npm run build"
+  publish  = "dist"
+
+[build.environment]
+  # `scripts/build.mjs` uses Array.fromAsync (Node 22+). Pin to the version in
+  # .nvmrc so deploy previews don't fall back to Netlify's default and silently
+  # ship a stale build.
+  NODE_VERSION = "24.15.0"
