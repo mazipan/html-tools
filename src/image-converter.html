@@ -294,9 +294,9 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-gray-800">
-        <button id="reencode-btn" class="btn btn-secondary btn-sm" type="button">Re-encode all</button>
-        <button id="zip-btn" class="btn btn-primary btn-sm" type="button">Download all (zip)</button>
-        <button id="clear-btn" class="btn btn-danger btn-sm" type="button">Clear</button>
+        <button id="reencode-btn" class="btn btn-secondary" type="button">Re-encode all</button>
+        <button id="zip-btn" class="btn btn-primary" type="button">Download all (zip)</button>
+        <button id="clear-btn" class="btn btn-danger" type="button">Clear</button>
         <span id="summary" class="ml-auto stats text-gray-400"></span>
       </div>
     </section>
@@ -644,8 +644,8 @@
           </div>
         </div>
         <div class="flex gap-2 mt-3">
-          <button class="btn btn-primary btn-sm" data-action="download" data-id="${item.id}" ${item.dstBlob ? '' : 'disabled'}>Download</button>
-          <button class="btn btn-secondary btn-sm" data-action="reencode" data-id="${item.id}">Re-run</button>
+          <button class="btn btn-primary" data-action="download" data-id="${item.id}" ${item.dstBlob ? '' : 'disabled'}>Download</button>
+          <button class="btn btn-secondary" data-action="reencode" data-id="${item.id}">Re-run</button>
         </div>
       `;
     }
