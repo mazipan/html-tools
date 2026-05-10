@@ -378,6 +378,42 @@ html[data-theme="light"] .btn-danger:hover { background-color: color-mix(in srgb
 /* Documented and demoed at design-system.html. When you reach for one of */
 /* these patterns in a tool, use the class — don't redefine it inline.    */
 
+/* ── Focus ring (keyboard navigation) ────────────────────────── */
+/* Universal :focus-visible ring so every interactive element shows a clear */
+/* accent outline when reached via keyboard. Mouse-focus stays unstyled.   */
+/* outline (not border) follows the element's own border-radius in modern  */
+/* browsers, so it adapts to pills, chips, circular radios, etc.           */
+:focus-visible {
+  outline: 2px solid var(--accent-h);
+  outline-offset: 2px;
+}
+/* Keep the ring snug to inputs/textareas (their borders are already thin). */
+.input:focus-visible,
+.textarea:focus-visible,
+.num-input:focus-visible,
+.select:focus-visible { outline-offset: 1px; }
+/* Tab buttons own their own bottom-border indicator — no offset gap. */
+.tab-btn:focus-visible { outline-offset: 0; }
+/* The opacity-0 diff slider would draw a ring across the whole image; the
+   wrapper already shows focus via the handle, so suppress the slider's. */
+.diff-slider:focus-visible { outline: none; }
+
+/* ── Native checkbox + radio — bigger, accent-colored ────────── */
+/* Applies to every checkbox/radio on the site so labels stay tappable on  */
+/* mobile without per-tool styling. Pairs with accent-color so the swatch  */
+/* follows the theme.                                                      */
+input[type="checkbox"],
+input[type="radio"] {
+  width: 1.2rem;
+  height: 1.2rem;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+input[type="checkbox"]:disabled,
+input[type="radio"]:disabled { cursor: not-allowed; opacity: 0.5; }
+
 /* ── Pills (toggle / radio button feel) ──────────────────────── */
 .pill {
   display: inline-flex;
@@ -499,21 +535,27 @@ input[type="range"].range {
 input[type="range"].range::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: var(--accent);
   cursor: pointer;
-  border: 0;
+  border: 2px solid #0b1220;
+  box-shadow: 0 0 0 1px var(--accent);
+  transition: transform 0.12s ease;
 }
+input[type="range"].range::-webkit-slider-thumb:active { transform: scale(1.1); }
 input[type="range"].range::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: var(--accent);
   cursor: pointer;
-  border: 0;
+  border: 2px solid #0b1220;
+  box-shadow: 0 0 0 1px var(--accent);
+  transition: transform 0.12s ease;
 }
+input[type="range"].range::-moz-range-thumb:active { transform: scale(1.1); }
 input[type="range"].range:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* ── Color swatch (for color picker labels) ──────────────────── */
@@ -592,7 +634,9 @@ input[type="range"].range:disabled { opacity: 0.4; cursor: not-allowed; }
 .disclosure > summary::-webkit-details-marker { display: none; }
 .disclosure > summary::after {
   content: '▾';
-  color: #6b7280;
+  color: #9ca3af;
+  font-size: 1.15rem;
+  line-height: 1;
   transition: transform 0.22s ease;
   flex-shrink: 0;
 }
