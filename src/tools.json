@@ -283,6 +283,36 @@
       "maxWidth": "1400px"
     },
     {
+      "slug": "image-converter",
+      "name": "Image Format Converter",
+      "icon": "🖼️",
+      "category": "Image",
+      "description": "Convert images between PNG, JPEG, WebP, and AVIF entirely in your browser. Quality slider with live before/after byte size and a drag-to-compare visual diff.",
+      "faqs": [
+        {
+          "q": "Does my image ever leave my computer?",
+          "a": "No. Decoding, conversion, and download all happen in your browser — nothing is uploaded."
+        },
+        {
+          "q": "Which formats can I convert between?",
+          "a": "Input: PNG, JPEG, WebP, AVIF, GIF, BMP. Output: PNG, JPEG, WebP, AVIF. AVIF encoding requires a recent browser (Chrome/Edge 121+, Firefox 116+, Safari 16.4+); the pill is disabled if your browser can't do it."
+        },
+        {
+          "q": "Why is the quality slider disabled for PNG output?",
+          "a": "PNG is lossless — there's no quality knob to turn. Use WebP or AVIF if you want to trade quality for size."
+        },
+        {
+          "q": "What happens to animated GIFs?",
+          "a": "Only the first frame is converted. Multi-frame output isn't supported here; if you need animation, keep the original."
+        },
+        {
+          "q": "Are EXIF and color profiles preserved?",
+          "a": "No. The Canvas pipeline strips EXIF/IPTC and converts to sRGB. That's a privacy plus for sharing photos but worth knowing if you rely on a wide-gamut color profile."
+        }
+      ],
+      "maxWidth": "1200px"
+    },
+    {
       "slug": "waves",
       "name": "Wave Generator",
       "icon": "〰️",
