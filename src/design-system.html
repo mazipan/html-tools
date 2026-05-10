@@ -9,13 +9,35 @@
   <include src="_partials/head-fonts.html"></include>
   <link rel="stylesheet" href="styles.css">
   <style>
-    .ds-toc {
-      position: sticky;
-      top: 1rem;
-      max-height: calc(100vh - 2rem);
-      overflow-y: auto;
+    .ds-toc-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      gap: 0.6rem;
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 0.5rem;
+      padding: 0.6rem 0.85rem;
+      color: #e5e7eb;
+      font-weight: 500;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-family: inherit;
+      text-align: left;
     }
-    .ds-toc a {
+    .ds-toc-toggle .chevron { color: #9ca3af; transition: transform 0.18s ease; }
+    .ds-toc-toggle[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+    .ds-toc-list {
+      display: none;
+      margin-top: 0.5rem;
+      border: 1px solid #1f2937;
+      border-radius: 0.5rem;
+      background: rgba(17, 24, 39, 0.4);
+      padding: 0.4rem 0;
+    }
+    .ds-toc-list.is-open { display: block; }
+    .ds-toc-list a {
       display: block;
       padding: 0.3rem 0.6rem;
       font-size: 0.78rem;
@@ -24,14 +46,24 @@
       border-left: 2px solid transparent;
       transition: color 0.12s, border-color 0.12s;
     }
-    .ds-toc a:hover { color: #f9fafb; border-color: #374151; }
-    .ds-toc h3 {
+    .ds-toc-list a:hover { color: #f9fafb; border-color: #374151; }
+    .ds-toc-list h3 {
       font-size: 0.65rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: #6b7280;
       padding: 0.6rem 0.6rem 0.3rem;
       font-weight: 600;
+    }
+    @media (min-width: 768px) {
+      .ds-toc { position: sticky; top: 1rem; }
+      .ds-toc-toggle { display: none; }
+      .ds-toc-list {
+        display: block;
+        margin-top: 0;
+        max-height: calc(100vh - 2rem);
+        overflow-y: auto;
+      }
     }
     .ds-section {
       scroll-margin-top: 1.5rem;
@@ -80,6 +112,7 @@
       border-radius: 0.5rem;
       margin: 0.75rem 0;
       overflow: hidden;
+      min-width: 0;
     }
     .ds-snippet pre {
       margin: 0;
@@ -159,37 +192,43 @@
       <strong>Internal page.</strong> This is a contributor reference — not linked from the index, not in the sitemap, not in the cross-tool footer. Tweak any class in <code>src/styles.css</code> and reload to see the change reflected here.
     </div>
 
-    <div class="grid md:grid-cols-[200px_1fr] gap-6 items-start">
+    <div class="grid md:grid-cols-[200px_minmax(0,1fr)] gap-6 items-start">
 
-      <nav class="ds-toc bg-gray-900/40 border border-gray-800 rounded-xl py-2" aria-label="Sections">
-        <h3>Foundations</h3>
-        <a href="#colors">Colors</a>
-        <a href="#typography">Typography</a>
-        <h3>Forms</h3>
-        <a href="#buttons">Buttons</a>
-        <a href="#pills">Pills</a>
-        <a href="#chips">Chips</a>
-        <a href="#text-input">Text input</a>
-        <a href="#textarea">Textarea</a>
-        <a href="#num-input">Number input</a>
-        <a href="#select">Select</a>
-        <a href="#checkbox-radio">Checkbox &amp; radio</a>
-        <a href="#range">Range slider</a>
-        <a href="#color-picker">Color picker</a>
-        <a href="#drop-zone">Drop zone</a>
-        <h3>Layout &amp; content</h3>
-        <a href="#cards">Cards</a>
-        <a href="#disclosure">Disclosure</a>
-        <a href="#cheat-table">Cheat table</a>
-        <a href="#code">Code blocks</a>
-        <a href="#json-tree">JSON tree</a>
-        <h3>Feedback</h3>
-        <a href="#error-bar">Error / warn bars</a>
-        <a href="#stats">Stats &amp; deltas</a>
-        <a href="#diff-slider">Diff slider</a>
+      <nav class="ds-toc" aria-label="Sections">
+        <button id="ds-toc-toggle" class="ds-toc-toggle" type="button" aria-expanded="false" aria-controls="ds-toc-list">
+          <span>📑 Sections</span>
+          <span class="chevron" aria-hidden="true">▾</span>
+        </button>
+        <div id="ds-toc-list" class="ds-toc-list">
+          <h3>Foundations</h3>
+          <a href="#colors">Colors</a>
+          <a href="#typography">Typography</a>
+          <h3>Forms</h3>
+          <a href="#buttons">Buttons</a>
+          <a href="#pills">Pills</a>
+          <a href="#chips">Chips</a>
+          <a href="#text-input">Text input</a>
+          <a href="#textarea">Textarea</a>
+          <a href="#num-input">Number input</a>
+          <a href="#select">Select</a>
+          <a href="#checkbox-radio">Checkbox &amp; radio</a>
+          <a href="#range">Range slider</a>
+          <a href="#color-picker">Color picker</a>
+          <a href="#drop-zone">Drop zone</a>
+          <h3>Layout &amp; content</h3>
+          <a href="#cards">Cards</a>
+          <a href="#disclosure">Disclosure</a>
+          <a href="#cheat-table">Cheat table</a>
+          <a href="#code">Code blocks</a>
+          <a href="#json-tree">JSON tree</a>
+          <h3>Feedback</h3>
+          <a href="#error-bar">Error / warn bars</a>
+          <a href="#stats">Stats &amp; deltas</a>
+          <a href="#diff-slider">Diff slider</a>
+        </div>
       </nav>
 
-      <div>
+      <div class="min-w-0">
 
         <!-- Foundations -->
         <section id="colors" class="ds-section">
@@ -703,6 +742,24 @@ console.log([...text.matchAll(re)]);</pre>
   </main>
 
   <script>
+    // Mobile TOC: collapsible toggle. On md+, the toggle is hidden by CSS
+    // and the list is always shown — no JS needed for that case.
+    const tocToggle = document.getElementById('ds-toc-toggle');
+    const tocList = document.getElementById('ds-toc-list');
+    if (tocToggle && tocList) {
+      tocToggle.addEventListener('click', () => {
+        const open = tocList.classList.toggle('is-open');
+        tocToggle.setAttribute('aria-expanded', String(open));
+      });
+      // Close when an anchor is tapped (mobile UX — user wants the section, not the menu).
+      tocList.addEventListener('click', e => {
+        if (e.target.tagName === 'A' && tocList.classList.contains('is-open')) {
+          tocList.classList.remove('is-open');
+          tocToggle.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+
     // Snippet copy buttons
     document.querySelectorAll('.ds-snippet').forEach(box => {
       const btn = box.querySelector('button.copy');
