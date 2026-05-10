@@ -18,8 +18,8 @@ Current tools (all under `src/`):
 - `blob.html` — blob generator: CSS border-radius blobs (8-value syntax, animate) + SVG blobs (catmull-rom path, copy/download)
 - `waves.html` — wave generator: single SVG wave (amplitude, frequency, position, gradient fill) + stacked waves (layers, spacing, color interpolation); copy/download SVG
 - `image-converter.html` — image format converter: drop PNG/JPEG/WebP/AVIF/GIF/BMP, re-encode as PNG/JPEG/WebP/AVIF with quality slider, before/after byte size, drag-to-compare visual diff, optional max-dimension resize, batch zip download
-- `json-utils.js` — shared JSON parsing/validation helpers used by the JSON tools (inlined into HTML at build time)
-- `image-utils.js` — shared image helpers (`supportsMime`, `formatBytes`, `formatPct`, `computeTargetSize`, `sourceHasAlpha`, `swapExtension`, `FORMAT_INFO`, `buildStoreZip`); inlined into HTML at build time
+- `json-utils.js` — shared JSON parsing/validation helpers used by the JSON tools (separate hashed bundle, long-cached)
+- `image-utils.js` — shared image helpers (`supportsMime`, `formatBytes`, `formatPct`, `computeTargetSize`, `sourceHasAlpha`, `swapExtension`, `FORMAT_INFO`, `buildStoreZip`); separate hashed bundle, long-cached
 
 ## Stack
 
@@ -96,8 +96,8 @@ Examples:
 - Match the dark UI style: `bg-gray-950` body, `border-gray-800` borders, `text-gray-200` base text, blue hover accents (`hover:border-blue-400`).
 - Each tool page has a shared site header with a back-link to `index.html`.
 - Build output goes to `dist/` — do not commit this directory.
-- The `parcel-namer-no-hash` local plugin strips content hashes from output filenames so URLs stay stable.
-- **All JS is inlined into HTML at build time.** `scripts/build.mjs` inlines every `.js` reference into its parent HTML after bundling so `dist/` contains only `.html` and `.css` files.
+- **HTML pages keep stable filenames** (`index.html`, `image-converter.html`, etc.) — they're entry bundles, served at predictable URLs. **Every other asset Parcel emits gets a content hash** in the filename (`styles.{hash}.css`, `theme.{hash}.js`, `json-utils.{hash}.js`, …). Hashed assets are cached forever (`Cache-Control: public, max-age=31536000, immutable` via `_headers`); HTML revalidates after 60s so a deploy propagates within ~60s.
+- Per-tool logic stays in an inline `<script>` at the bottom of each HTML file (see "Adding a new tool" step 9). Only **shared** helpers (`theme.js`, `json-utils.js`, `image-utils.js`) live as separate hashed bundles so they cache once across the suite.
 
 ## Semantic landmarks (every page)
 

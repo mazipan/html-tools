@@ -1,21 +1,29 @@
-# Default headers applied to every response
+# Default headers applied to every response. Netlify automatically sends ETag
+# + Last-Modified on every asset; the Cache-Control policies below tell the
+# browser when (and how) to revalidate.
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: SAMEORIGIN
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Cache-Control: public, max-age=300, must-revalidate
+  Cache-Control: public, max-age=60, must-revalidate
 
-# Stable static assets — daily cache (URLs are stable per parcel-namer-no-hash)
-/styles.css
-  Cache-Control: public, max-age=86400
+# Hashed assets (Parcel content-hashes everything imported by an HTML entry):
+# the URL itself changes when the content changes, so we can cache forever.
+/*.css
+  Cache-Control: public, max-age=31536000, immutable
 
+/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+# OG image is unhashed (URL must stay stable for crawlers / shared links) —
+# day-long cache + must-revalidate so a regenerated PNG eventually propagates.
 /og-image.png
-  Cache-Control: public, max-age=86400
+  Cache-Control: public, max-age=86400, must-revalidate
 
-# SEO files — hourly cache so updates reach crawlers quickly
+# SEO files — hourly cache so updates reach crawlers quickly.
 /sitemap.xml
-  Cache-Control: public, max-age=3600
+  Cache-Control: public, max-age=3600, must-revalidate
 
 /robots.txt
-  Cache-Control: public, max-age=3600
+  Cache-Control: public, max-age=3600, must-revalidate
