@@ -18,6 +18,7 @@ A collection of single-file browser-native utilities. All logic runs client-side
 | [JSON ↔ YAML](src/json-to-yaml.html) | Round-trip JSON and YAML with anchor resolution and multi-document support |
 | [Regex Tester](src/regex-tester.html) | Test JavaScript regular expressions live with capture-group breakdown |
 | [SVG → JSX](src/svg-to-jsx.html) | Convert SVG markup to React JSX |
+| [Image Format Converter](src/image-converter.html) | Re-encode images between PNG, JPEG, WebP, and AVIF with a quality slider and visual diff |
 | [Gradients](src/gradients.html) | Curated gradient gallery — copy CSS, Tailwind, or export PNG |
 | [Blob Generator](src/blob.html) | Generate organic blob shapes via CSS border-radius or SVG path |
 | [Wave Generator](src/waves.html) | Generate SVG wave dividers — single wave or stacked layers |

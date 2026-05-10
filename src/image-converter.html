@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <include src="_partials/meta-base.html"></include>
+  <title>Image Format Converter — HTML Tools</title>
+  <meta name="description" content="Convert images between PNG, JPEG, WebP, and AVIF entirely in your browser. Quality slider with live before/after byte size and visual diff.">
+  <link rel="canonical" href="https://tools.mazipan.space/image-converter">
+  <meta property="og:title" content="Image Format Converter — HTML Tools">
+  <meta property="og:description" content="Convert images between PNG, JPEG, WebP, and AVIF entirely in your browser. Quality slider with live before/after byte size and visual diff.">
+  <meta property="og:url" content="https://tools.mazipan.space/image-converter">
+  <meta name="twitter:title" content="Image Format Converter — HTML Tools">
+  <meta name="twitter:description" content="Convert images between PNG, JPEG, WebP, and AVIF entirely in your browser. Quality slider with live before/after byte size and visual diff.">
+  <include src="_partials/meta-social.html"></include>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖼️</text></svg>">
+  <include src="_partials/head-fonts.html"></include>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .drop-zone {
+      border: 2px dashed #374151;
+      border-radius: 0.75rem;
+      background: #0b1220;
+      transition: border-color 0.15s, background-color 0.15s;
+      cursor: pointer;
+    }
+    .drop-zone:hover { border-color: #4b5563; background: #111827; }
+    .drop-zone.dragover { border-color: #3b82f6; background: rgba(59, 130, 246, 0.05); }
+    .drop-zone.compact { padding: 0.75rem 1rem; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.4rem 0.85rem;
+      border-radius: 6px;
+      border: 1px solid #374151;
+      background: #1f2937;
+      color: #9ca3af;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.12s;
+    }
+    .pill:hover:not(:disabled) { color: #d1d5db; border-color: #4b5563; }
+    .pill.on   { background: #1e3a8a; border-color: #3b82f6; color: #f9fafb; }
+    .pill:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .file-card {
+      border: 1px solid #1f2937;
+      border-radius: 0.625rem;
+      background: #0b1220;
+      padding: 0.85rem;
+      transition: border-color 0.12s;
+    }
+    .file-card:hover { border-color: #374151; }
+
+    .thumb-box {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background:
+        linear-gradient(45deg, #1f2937 25%, transparent 25%),
+        linear-gradient(-45deg, #1f2937 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #1f2937 75%),
+        linear-gradient(-45deg, transparent 75%, #1f2937 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+      border-radius: 0.4rem;
+      overflow: hidden;
+    }
+    .thumb-box img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .thumb-label {
+      position: absolute;
+      top: 0.35rem;
+      left: 0.35rem;
+      padding: 0.1rem 0.45rem;
+      background: rgba(0,0,0,0.6);
+      color: #d1d5db;
+      font-size: 0.65rem;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      border-radius: 4px;
+      pointer-events: none;
+    }
+
+    .diff-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background:
+        linear-gradient(45deg, #1f2937 25%, transparent 25%),
+        linear-gradient(-45deg, #1f2937 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #1f2937 75%),
+        linear-gradient(-45deg, transparent 75%, #1f2937 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+      border-radius: 0.4rem;
+      overflow: hidden;
+      --split: 50%;
+    }
+    .diff-wrap img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      pointer-events: none;
+    }
+    .diff-wrap img.before {
+      clip-path: inset(0 calc(100% - var(--split)) 0 0);
+    }
+    .diff-handle {
+      position: absolute;
+      top: 0; bottom: 0;
+      left: var(--split);
+      width: 2px;
+      background: rgba(255,255,255,0.85);
+      transform: translateX(-1px);
+      pointer-events: none;
+    }
+    .diff-handle::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 24px;
+      height: 24px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: rgba(255,255,255,0.9);
+      border: 2px solid #1f2937;
+    }
+    .diff-slider {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: ew-resize;
+    }
+    .diff-tag {
+      position: absolute;
+      top: 0.4rem;
+      padding: 0.1rem 0.45rem;
+      background: rgba(0,0,0,0.6);
+      color: #d1d5db;
+      font-size: 0.65rem;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      border-radius: 4px;
+      pointer-events: none;
+    }
+    .diff-tag.before { left: 0.4rem; }
+    .diff-tag.after  { right: 0.4rem; }
+
+    .stats { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.78rem; }
+    .delta-good { color: #4ade80; }
+    .delta-bad  { color: #f87171; }
+    .delta-neutral { color: #9ca3af; }
+
+    input[type="range"].quality {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      background: #1f2937;
+      border-radius: 2px;
+      outline: none;
+    }
+    input[type="range"].quality::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #3b82f6;
+      cursor: pointer;
+      border: 0;
+    }
+    input[type="range"].quality::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #3b82f6;
+      cursor: pointer;
+      border: 0;
+    }
+
+    .num-input {
+      background: #111827;
+      border: 1px solid #374151;
+      color: #e5e7eb;
+      border-radius: 6px;
+      padding: 0.35rem 0.6rem;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 0.78rem;
+      width: 7ch;
+      outline: none;
+    }
+    .num-input:focus { border-color: #3b82f6; }
+
+    .swatch {
+      display: inline-block;
+      width: 1.1rem;
+      height: 1.1rem;
+      border-radius: 4px;
+      border: 1px solid #374151;
+      vertical-align: middle;
+    }
+  </style>
+  <include src="_partials/head-theme.html"></include>
+</head>
+<body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+
+  <header class="border-b border-gray-800 px-6 py-4">
+    <nav aria-label="Breadcrumb" class="max-w-[1200px] mx-auto flex items-center gap-3">
+      <a href="index.html" class="no-underline text-white font-bold text-lg tracking-tight hover:text-blue-400 transition-colors">HTML Tools</a>
+      <span class="text-gray-700">/</span>
+      <span class="text-gray-400 text-sm flex items-center gap-1.5" aria-current="page">🖼️ Image Format Converter</span>
+    </nav>
+  </header>
+
+  <main class="max-w-[1200px] mx-auto w-full flex-1 py-8 px-6">
+
+    <header class="mb-7">
+      <h1 class="text-3xl font-bold text-white flex items-center gap-3">🖼️ Image Format Converter</h1>
+      <p class="mt-1.5 text-sm text-gray-500">Re-encode PNG, JPEG, WebP, and AVIF images locally — quality slider, live before/after byte size, drag-the-slider visual diff.</p>
+    </header>
+
+    <!-- Drop zone (always visible; compacts when files are present) -->
+    <div id="drop" class="drop-zone p-8 mb-5 text-center" tabindex="0" role="button" aria-label="Drop images here, or click to choose files">
+      <div id="drop-empty">
+        <div class="text-3xl mb-2" aria-hidden="true">🖼️</div>
+        <p class="text-sm text-gray-300 font-medium">Drop image(s) here, click to choose, or paste with Ctrl/Cmd+V</p>
+        <p class="text-xs text-gray-500 mt-1.5">Accepts PNG, JPEG, WebP, AVIF, GIF, BMP — multi-file OK</p>
+      </div>
+      <div id="drop-compact" class="hidden text-xs text-gray-500">+ Drop more · click · paste</div>
+    </div>
+    <input id="file-input" type="file" accept="image/*" multiple class="hidden">
+
+    <div id="error-bar" class="hidden mb-4 p-3 rounded-lg border border-red-500/40 bg-red-500/10 text-red-300 text-xs"></div>
+
+    <!-- Controls (revealed once a file is loaded) -->
+    <section id="controls" class="hidden border border-gray-800 rounded-xl bg-gray-900/40 p-5 mb-5">
+      <div class="grid gap-5 md:grid-cols-2">
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Output format</label>
+          <div class="flex flex-wrap gap-1.5">
+            <button class="pill" data-format="png"  type="button">PNG</button>
+            <button class="pill" data-format="jpeg" type="button">JPEG</button>
+            <button class="pill" data-format="webp" type="button">WebP</button>
+            <button class="pill" data-format="avif" type="button">AVIF</button>
+          </div>
+          <p id="format-note" class="text-[0.7rem] text-gray-600 mt-1.5"></p>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Quality</label>
+            <span id="quality-val" class="text-xs text-gray-400 font-mono">0.85</span>
+          </div>
+          <input id="quality" type="range" min="0.30" max="1.00" step="0.01" value="0.85" class="quality" aria-label="Output quality">
+          <p id="quality-note" class="text-[0.7rem] text-gray-600 mt-1.5">Higher quality = larger file. Disabled for PNG (lossless).</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Background (when JPEG output of an image with transparency)</label>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button class="pill" data-bg="#ffffff" type="button"><span class="swatch" style="background:#fff"></span>&nbsp;White</button>
+            <button class="pill" data-bg="#000000" type="button"><span class="swatch" style="background:#000"></span>&nbsp;Black</button>
+            <input id="bg-custom" type="color" value="#ffffff" class="w-10 h-9 rounded border border-gray-700 bg-transparent cursor-pointer" title="Pick a custom background color">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+            <input id="resize-toggle" type="checkbox" class="mr-1.5 align-middle">
+            Resize (max dimensions, never upscale)
+          </label>
+          <div class="flex items-center gap-2 text-sm text-gray-400">
+            max W <input id="resize-w" type="number" min="1" max="20000" value="2400" class="num-input" aria-label="Max width in pixels" disabled>
+            <span>×</span>
+            max H <input id="resize-h" type="number" min="1" max="20000" value="2400" class="num-input" aria-label="Max height in pixels" disabled>
+          </div>
+          <p class="text-[0.7rem] text-gray-600 mt-1.5">Leave on for "shrink to at most this big" — aspect ratio kept.</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-gray-800">
+        <button id="reencode-btn" class="btn btn-secondary" type="button">Re-encode all</button>
+        <button id="zip-btn" class="btn btn-primary" type="button">Download all (zip)</button>
+        <button id="clear-btn" class="btn btn-danger" type="button">Clear</button>
+        <span id="summary" class="ml-auto stats text-gray-400"></span>
+      </div>
+    </section>
+
+    <!-- File grid -->
+    <section id="files" class="grid grid-cols-1 md:grid-cols-2 gap-3"></section>
+
+    <p id="status" class="mt-3 text-xs text-gray-600" aria-live="polite"></p>
+
+  </main>
+
+  <script src="image-utils.js"></script>
+  <script>
+    const dropEl       = document.getElementById('drop');
+    const dropEmpty    = document.getElementById('drop-empty');
+    const dropCompact  = document.getElementById('drop-compact');
+    const fileInput    = document.getElementById('file-input');
+    const controlsEl   = document.getElementById('controls');
+    const filesEl      = document.getElementById('files');
+    const errorBar     = document.getElementById('error-bar');
+    const statusEl     = document.getElementById('status');
+    const summaryEl    = document.getElementById('summary');
+    const qualityEl    = document.getElementById('quality');
+    const qualityVal   = document.getElementById('quality-val');
+    const qualityNote  = document.getElementById('quality-note');
+    const formatNote   = document.getElementById('format-note');
+    const resizeToggle = document.getElementById('resize-toggle');
+    const resizeW      = document.getElementById('resize-w');
+    const resizeH      = document.getElementById('resize-h');
+    const bgCustom     = document.getElementById('bg-custom');
+    const reencodeBtn  = document.getElementById('reencode-btn');
+    const zipBtn       = document.getElementById('zip-btn');
+    const clearBtn     = document.getElementById('clear-btn');
+
+    const support = {
+      png:  supportsMime('image/png'),
+      jpeg: supportsMime('image/jpeg'),
+      webp: supportsMime('image/webp'),
+      avif: supportsMime('image/avif'),
+    };
+
+    const settings = {
+      format: support.webp ? 'webp' : 'jpeg',
+      quality: 0.85,
+      background: '#ffffff',
+      resize: { enabled: false, maxW: 2400, maxH: 2400, keepAspect: true },
+    };
+
+    /** @type {Array<{id:string,file:File,name:string,bitmap:ImageBitmap|null,srcMime:string,srcSize:number,srcW:number,srcH:number,srcUrl:string,dstBlob:Blob|null,dstUrl:string|null,dstW:number,dstH:number,error:string|null,encoding:boolean}>} */
+    const items = [];
+    let nextId = 1;
+
+    // ── Format pills ──────────────────────────────────────────────
+    function syncFormatPills() {
+      document.querySelectorAll('.pill[data-format]').forEach(p => {
+        const f = p.dataset.format;
+        const ok = support[f];
+        p.disabled = !ok;
+        p.classList.toggle('on', settings.format === f);
+        p.title = ok ? '' : `Your browser can't encode ${f.toUpperCase()}.`;
+      });
+      qualityEl.disabled = settings.format === 'png';
+      qualityEl.style.opacity = settings.format === 'png' ? '0.4' : '';
+      qualityNote.textContent = settings.format === 'png'
+        ? 'PNG is lossless — quality slider has no effect.'
+        : 'Higher quality = larger file. Disabled for PNG (lossless).';
+      formatNote.textContent = (settings.format === 'avif' && support.avif)
+        ? 'AVIF encoding is slower than other formats — be patient with large images.'
+        : '';
+    }
+
+    document.querySelectorAll('.pill[data-format]').forEach(p => {
+      p.addEventListener('click', () => {
+        if (p.disabled) return;
+        settings.format = p.dataset.format;
+        syncFormatPills();
+        scheduleReencode();
+      });
+    });
+
+    // ── Quality slider ────────────────────────────────────────────
+    qualityEl.addEventListener('input', () => {
+      const v = parseFloat(qualityEl.value);
+      settings.quality = v;
+      qualityVal.textContent = v.toFixed(2);
+    });
+    qualityEl.addEventListener('change', () => scheduleReencode());
+
+    // ── Background pills + custom picker ──────────────────────────
+    function syncBgPills() {
+      document.querySelectorAll('.pill[data-bg]').forEach(p => {
+        p.classList.toggle('on', settings.background.toLowerCase() === p.dataset.bg.toLowerCase());
+      });
+      bgCustom.value = settings.background;
+    }
+    document.querySelectorAll('.pill[data-bg]').forEach(p => {
+      p.addEventListener('click', () => {
+        settings.background = p.dataset.bg;
+        syncBgPills();
+        scheduleReencode();
+      });
+    });
+    bgCustom.addEventListener('input', () => {
+      settings.background = bgCustom.value;
+      syncBgPills();
+    });
+    bgCustom.addEventListener('change', () => scheduleReencode());
+
+    // ── Resize controls ───────────────────────────────────────────
+    resizeToggle.addEventListener('change', () => {
+      settings.resize.enabled = resizeToggle.checked;
+      resizeW.disabled = !resizeToggle.checked;
+      resizeH.disabled = !resizeToggle.checked;
+      scheduleReencode();
+    });
+    resizeW.addEventListener('change', () => {
+      settings.resize.maxW = Math.max(1, parseInt(resizeW.value, 10) || 0);
+      scheduleReencode();
+    });
+    resizeH.addEventListener('change', () => {
+      settings.resize.maxH = Math.max(1, parseInt(resizeH.value, 10) || 0);
+      scheduleReencode();
+    });
+
+    // ── Action buttons ────────────────────────────────────────────
+    reencodeBtn.addEventListener('click', () => reencodeAll());
+    clearBtn.addEventListener('click', () => clearAll());
+    zipBtn.addEventListener('click', () => downloadZip());
+
+    // ── Drop zone ─────────────────────────────────────────────────
+    ['dragenter', 'dragover'].forEach(evt => {
+      dropEl.addEventListener(evt, e => {
+        e.preventDefault();
+        dropEl.classList.add('dragover');
+      });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+      dropEl.addEventListener(evt, e => {
+        e.preventDefault();
+        if (evt === 'dragleave' && dropEl.contains(e.relatedTarget)) return;
+        dropEl.classList.remove('dragover');
+      });
+    });
+    dropEl.addEventListener('drop', e => {
+      const files = [...(e.dataTransfer?.files || [])];
+      if (files.length) addFiles(files);
+    });
+    dropEl.addEventListener('click', () => fileInput.click());
+    dropEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        fileInput.click();
+      }
+    });
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files?.length) addFiles([...fileInput.files]);
+      fileInput.value = '';
+    });
+    window.addEventListener('paste', e => {
+      const items = [...(e.clipboardData?.items || [])];
+      const pasted = items.filter(i => i.type.startsWith('image/')).map(i => i.getAsFile()).filter(Boolean);
+      if (pasted.length) addFiles(pasted);
+    });
+
+    // ── Add + decode files ────────────────────────────────────────
+    async function addFiles(rawFiles) {
+      const imgFiles = rawFiles.filter(f => f.type.startsWith('image/'));
+      const skipped = rawFiles.length - imgFiles.length;
+      if (skipped > 0) {
+        showError(`Skipped ${skipped} non-image file${skipped === 1 ? '' : 's'}.`);
+      } else {
+        clearError();
+      }
+
+      controlsEl.classList.remove('hidden');
+      dropEmpty.classList.add('hidden');
+      dropCompact.classList.remove('hidden');
+      dropEl.classList.add('compact', 'p-3');
+      dropEl.classList.remove('p-8');
+
+      for (const file of imgFiles) {
+        const id = `f${nextId++}`;
+        const item = {
+          id, file, name: file.name, bitmap: null,
+          srcMime: file.type, srcSize: file.size,
+          srcW: 0, srcH: 0,
+          srcUrl: URL.createObjectURL(file),
+          dstBlob: null, dstUrl: null, dstW: 0, dstH: 0,
+          error: null, encoding: false,
+        };
+        items.push(item);
+        renderCard(item);
+        try {
+          const bm = await createImageBitmap(file, { imageOrientation: 'from-image' });
+          item.bitmap = bm;
+          item.srcW = bm.width;
+          item.srcH = bm.height;
+        } catch (err) {
+          item.error = `Decode failed: ${err.message || err}`;
+          renderCard(item);
+          updateSummary();
+          continue;
+        }
+        await encodeOne(item);
+        updateSummary();
+      }
+      syncFormatPills();
+      syncBgPills();
+    }
+
+    // ── Encoding ──────────────────────────────────────────────────
+    function shouldFillBackground(item) {
+      return settings.format === 'jpeg' && sourceHasAlpha(item.srcMime);
+    }
+
+    async function encodeOne(item) {
+      if (!item.bitmap) return;
+      item.encoding = true;
+      item.error = null;
+      renderCard(item);
+
+      const { w: dstW, h: dstH } = computeTargetSize(item.srcW, item.srcH, settings.resize);
+      const canvas = document.createElement('canvas');
+      canvas.width = dstW;
+      canvas.height = dstH;
+      const ctx = canvas.getContext('2d');
+      if (shouldFillBackground(item)) {
+        ctx.fillStyle = settings.background;
+        ctx.fillRect(0, 0, dstW, dstH);
+      }
+      ctx.drawImage(item.bitmap, 0, 0, dstW, dstH);
+
+      const info = FORMAT_INFO[settings.format];
+      const quality = info.lossless ? undefined : settings.quality;
+
+      const blob = await new Promise(resolve => {
+        try {
+          canvas.toBlob(resolve, info.mime, quality);
+        } catch (_) {
+          resolve(null);
+        }
+      });
+
+      if (!blob) {
+        item.error = `Encode to ${settings.format.toUpperCase()} failed in this browser.`;
+      } else {
+        if (item.dstUrl) URL.revokeObjectURL(item.dstUrl);
+        item.dstBlob = blob;
+        item.dstUrl = URL.createObjectURL(blob);
+        item.dstW = dstW;
+        item.dstH = dstH;
+      }
+      item.encoding = false;
+      renderCard(item);
+    }
+
+    let reencodeTimer = null;
+    function scheduleReencode() {
+      clearTimeout(reencodeTimer);
+      reencodeTimer = setTimeout(() => reencodeAll(), 200);
+    }
+
+    async function reencodeAll() {
+      if (items.length === 0) return;
+      statusEl.textContent = `Re-encoding ${items.length} image${items.length === 1 ? '' : 's'}…`;
+      for (const it of items) {
+        if (!it.bitmap) continue;
+        await encodeOne(it);
+        updateSummary();
+      }
+      statusEl.textContent = '';
+    }
+
+    // ── Rendering ─────────────────────────────────────────────────
+    function deltaClass(after, before) {
+      if (!before) return 'delta-neutral';
+      const pct = (after - before) / before;
+      if (pct <= -0.02) return 'delta-good';
+      if (pct >=  0.02) return 'delta-bad';
+      return 'delta-neutral';
+    }
+
+    function ensureCardEl(item) {
+      let card = document.getElementById(`card-${item.id}`);
+      if (card) return card;
+      card = document.createElement('div');
+      card.id = `card-${item.id}`;
+      card.className = 'file-card';
+      filesEl.appendChild(card);
+      return card;
+    }
+
+    function srcExt(mime) {
+      if (!mime) return '?';
+      return mime.replace(/^image\//, '').toUpperCase();
+    }
+
+    function renderCard(item) {
+      const card = ensureCardEl(item);
+      const beforeStats = `${item.srcW || '?'}×${item.srcH || '?'} · ${srcExt(item.srcMime)} · ${formatBytes(item.srcSize)}`;
+      const dstSize = item.dstBlob ? item.dstBlob.size : 0;
+      const afterStats = item.error
+        ? `<span class="text-red-400">${escapeHtml(item.error)}</span>`
+        : item.dstBlob
+          ? `${item.dstW}×${item.dstH} · ${settings.format.toUpperCase()} · ${formatBytes(dstSize)}`
+          : item.encoding
+            ? '<span class="text-gray-500">encoding…</span>'
+            : '<span class="text-gray-500">queued…</span>';
+      const pct = (item.dstBlob && item.srcSize) ? formatPct(dstSize, item.srcSize) : '';
+      const pctCls = deltaClass(dstSize, item.srcSize);
+
+      const showDiff = item.dstBlob && !item.error;
+      const visualBlock = showDiff
+        ? `
+          <div class="diff-wrap" data-id="${item.id}">
+            <img class="after"  src="${item.dstUrl}" alt="After">
+            <img class="before" src="${item.srcUrl}" alt="Before">
+            <div class="diff-handle"></div>
+            <span class="diff-tag before">before</span>
+            <span class="diff-tag after">after</span>
+            <input type="range" class="diff-slider" min="0" max="100" value="50" aria-label="Reveal slider">
+          </div>`
+        : `
+          <div class="grid grid-cols-2 gap-2">
+            <div class="thumb-box">
+              <img src="${item.srcUrl}" alt="Source preview">
+              <span class="thumb-label">before</span>
+            </div>
+            <div class="thumb-box">
+              ${item.dstUrl ? `<img src="${item.dstUrl}" alt="Output preview">` : ''}
+              <span class="thumb-label">after</span>
+            </div>
+          </div>`;
+
+      card.innerHTML = `
+        <div class="flex items-baseline justify-between gap-2 mb-2 min-w-0">
+          <span class="text-sm font-medium text-white truncate" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</span>
+          <button class="text-xs text-gray-500 hover:text-red-400 transition-colors" data-action="remove" data-id="${item.id}" aria-label="Remove">remove</button>
+        </div>
+        ${visualBlock}
+        <div class="stats mt-2.5 leading-snug">
+          <div class="text-gray-500">${beforeStats}</div>
+          <div class="text-gray-200">${afterStats}
+            ${pct ? `<span class="${pctCls} ml-1.5">(${pct})</span>` : ''}
+          </div>
+        </div>
+        <div class="flex gap-2 mt-3">
+          <button class="btn btn-primary" data-action="download" data-id="${item.id}" ${item.dstBlob ? '' : 'disabled'}>Download</button>
+          <button class="btn btn-secondary" data-action="reencode" data-id="${item.id}">Re-run</button>
+        </div>
+      `;
+    }
+
+    // Diff slider drag (delegated, since cards are re-rendered).
+    filesEl.addEventListener('input', e => {
+      if (e.target.classList?.contains('diff-slider')) {
+        const wrap = e.target.closest('.diff-wrap');
+        if (wrap) wrap.style.setProperty('--split', `${e.target.value}%`);
+      }
+    });
+
+    // Action button clicks (delegated).
+    filesEl.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const id = btn.dataset.id;
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+      if (btn.dataset.action === 'remove') {
+        if (item.bitmap?.close) try { item.bitmap.close(); } catch (_) {}
+        if (item.srcUrl) URL.revokeObjectURL(item.srcUrl);
+        if (item.dstUrl) URL.revokeObjectURL(item.dstUrl);
+        const idx = items.indexOf(item);
+        items.splice(idx, 1);
+        document.getElementById(`card-${item.id}`)?.remove();
+        if (items.length === 0) showEmpty();
+        updateSummary();
+      } else if (btn.dataset.action === 'download') {
+        downloadOne(item);
+      } else if (btn.dataset.action === 'reencode') {
+        encodeOne(item).then(updateSummary);
+      }
+    });
+
+    function showEmpty() {
+      controlsEl.classList.add('hidden');
+      dropEmpty.classList.remove('hidden');
+      dropCompact.classList.add('hidden');
+      dropEl.classList.remove('compact', 'p-3');
+      dropEl.classList.add('p-8');
+    }
+
+    function updateSummary() {
+      const n = items.length;
+      if (n === 0) { summaryEl.textContent = ''; return; }
+      const totalBefore = items.reduce((a, i) => a + (i.srcSize || 0), 0);
+      const totalAfter  = items.reduce((a, i) => a + (i.dstBlob ? i.dstBlob.size : 0), 0);
+      const ready = items.filter(i => i.dstBlob).length;
+      const failed = items.filter(i => i.error).length;
+      const cls = deltaClass(totalAfter, totalBefore);
+      const pct = totalBefore ? formatPct(totalAfter, totalBefore) : '';
+      const tail = failed ? ` · ${failed} failed` : '';
+      summaryEl.innerHTML = `${n} image${n === 1 ? '' : 's'} · ${formatBytes(totalBefore)} → ${formatBytes(totalAfter)} <span class="${cls}">(${pct})</span> · ${ready}/${n} ready${tail}`;
+      zipBtn.disabled = ready < 1;
+    }
+
+    function clearAll() {
+      for (const item of items) {
+        if (item.bitmap?.close) try { item.bitmap.close(); } catch (_) {}
+        if (item.srcUrl) URL.revokeObjectURL(item.srcUrl);
+        if (item.dstUrl) URL.revokeObjectURL(item.dstUrl);
+      }
+      items.length = 0;
+      filesEl.innerHTML = '';
+      clearError();
+      statusEl.textContent = '';
+      showEmpty();
+      updateSummary();
+    }
+
+    // ── Download ──────────────────────────────────────────────────
+    function uniqueName(base, taken) {
+      if (!taken.has(base)) { taken.add(base); return base; }
+      const dot = base.lastIndexOf('.');
+      const stem = dot >= 0 ? base.slice(0, dot) : base;
+      const ext  = dot >= 0 ? base.slice(dot) : '';
+      let n = 1;
+      while (taken.has(`${stem}-${n}${ext}`)) n++;
+      const out = `${stem}-${n}${ext}`;
+      taken.add(out);
+      return out;
+    }
+
+    function downloadOne(item) {
+      if (!item.dstBlob) return;
+      const ext = FORMAT_INFO[settings.format].ext;
+      const a = document.createElement('a');
+      a.href = item.dstUrl;
+      a.download = swapExtension(item.name, ext);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    async function downloadZip() {
+      const ready = items.filter(i => i.dstBlob);
+      if (ready.length === 0) return;
+      zipBtn.disabled = true;
+      statusEl.textContent = `Packaging ${ready.length} image${ready.length === 1 ? '' : 's'} into a zip…`;
+      const ext = FORMAT_INFO[settings.format].ext;
+      const taken = new Set();
+      const entries = ready.map(i => ({
+        name: uniqueName(swapExtension(i.name, ext), taken),
+        blob: i.dstBlob,
+      }));
+      try {
+        const zip = await buildStoreZip(entries);
+        const url = URL.createObjectURL(zip);
+        const a = document.createElement('a');
+        a.href = url;
+        const stamp = new Date().toISOString().slice(0, 10);
+        a.download = `converted-${stamp}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        statusEl.textContent = `Downloaded ${ready.length} image${ready.length === 1 ? '' : 's'} as ${a.download}`;
+      } catch (err) {
+        showError(`Zip build failed: ${err.message || err}`);
+        statusEl.textContent = '';
+      }
+      zipBtn.disabled = false;
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────
+    function showError(msg) {
+      errorBar.textContent = msg;
+      errorBar.classList.remove('hidden');
+    }
+    function clearError() {
+      errorBar.textContent = '';
+      errorBar.classList.add('hidden');
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Initial UI sync
+    syncFormatPills();
+    syncBgPills();
+    qualityVal.textContent = qualityEl.value;
+    if (!support.avif && settings.format === 'avif') settings.format = support.webp ? 'webp' : 'jpeg';
+  </script>
+
+  <section class="max-w-[1200px] mx-auto w-full px-6 py-8 border-t border-gray-800">
+    <div class="grid gap-6 md:grid-cols-2">
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">About Image Format Converter</h2>
+        <p class="text-gray-400 leading-relaxed">Drop one or many images, pick an output format, and watch the byte size shrink (or grow) in real time. The conversion happens entirely in your browser — every byte stays on your device. Drag the slider over each preview to compare the original and the re-encoded output pixel-by-pixel.</p>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">How to use</h2>
+        <ol class="text-gray-400 leading-relaxed space-y-2 list-decimal list-inside">
+          <li>Drop image(s) on the page, click the drop zone, or paste from the clipboard.</li>
+          <li>Pick an output format. Unsupported formats are disabled (e.g. older browsers can't encode AVIF).</li>
+          <li>Tune quality, optional max dimensions, and a JPEG background color if you're flattening transparency.</li>
+          <li>Download a single result, or use <strong class="text-gray-300">Download all (zip)</strong> for the batch.</li>
+        </ol>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">Common use cases</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Converting screenshots from PNG to WebP to ship on a static site.</li>
+          <li>Flattening a transparent PNG to a white-background JPEG for an attachment that doesn't render alpha.</li>
+          <li>Bulk-shrinking a folder of phone photos for a blog post.</li>
+          <li>Comparing JPEG vs. WebP vs. AVIF size at the same quality on the same source.</li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">Tips</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Start at quality 0.85 — a sweet spot for most photos. Drop to 0.70 for thumbnails, lift to 0.92+ for hero images.</li>
+          <li>Use the slider over each card to spot quality loss before committing the conversion.</li>
+          <li>Animated GIFs flatten to a single frame here. If you need motion, keep the original.</li>
+          <li>EXIF, IPTC, and color profiles are stripped by the canvas pipeline — a privacy plus, but worth knowing if you depend on them.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <include src="_partials/footer-script.html"></include>
+
+  <footer class="max-w-[1200px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
+    &copy; <span id="year"></span> Irfan Maulana &amp; Claude<br><span id="deploy-time"></span>
+  </footer>
+
+</body>
+</html>
