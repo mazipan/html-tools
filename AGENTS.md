@@ -66,6 +66,14 @@ Each tool's `faqs` is an array of `{ q, a }` entries; aim for 3–5 genuinely co
 - Stacked PRs (one PR's base = another PR's branch) are a silent footgun: when the dependency merges into `main`, GitHub does **not** auto-rebase the stacked PR. Merging the stacked PR while its base still points at the now-defunct feature branch lands the merge commit on that dead branch instead of `main` — the PR shows as "Merged" but the changes never ship.
 - If a branch genuinely needs commits from another in-flight PR, either (a) wait for the dependency to merge first and rebase onto `main`, or (b) absorb the rebase pain at merge time. Never use a non-`main` base as a shortcut.
 
+## Tracking issues
+
+Umbrella issues (e.g. #27 for new tool ideas, #13 for SEO improvements) are the source of truth for what's planned, in flight, and shipped. Keep them honest:
+
+- **When you open a child issue or PR for an item on an umbrella**, immediately edit the umbrella to flip that item's marker and link the child. Use `✅ shipped` / `📝 spec'd (issue or PR open)` / `⬜ not started`.
+- **When a PR merges**, flip the umbrella marker to ✅ and link the file path (e.g. `src/<slug>.html`) so the umbrella shows what actually exists, not just what was intended.
+- Don't leave dangling `📝` markers — if a child issue is closed without shipping, flip back to ⬜ with a one-line note.
+
 ## Commit messages
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/). Format: `<type>(<optional scope>): <description>`.
