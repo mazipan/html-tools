@@ -53,28 +53,6 @@ for (const html of htmlFiles) {
 }
 log(`🔧 post-process pass — replaced __BUILD_TIME__ and rewrote relative paths in ${htmlFiles.length} files`);
 
-// Inline all .js files into the HTML that reference them, then remove them.
-// The Hub serves .js with application/octet-stream + nosniff, which browsers refuse.
-const jsFiles = await Array.fromAsync(glob('*.js', { cwd: distDir }));
-let inlinedCount = 0;
-for (const js of jsFiles) {
-  const jsContent = readFileSync(resolve(distDir, js), 'utf8');
-  const tag = new RegExp(`<script[^>]+src=["']?\\.?\\/?${js}["']?[^>]*><\\/script>`, 'g');
-  let perFileHits = 0;
-  for (const html of htmlFiles) {
-    const htmlPath = resolve(distDir, html);
-    const content = readFileSync(htmlPath, 'utf8');
-    if (tag.test(content)) {
-      writeFileSync(htmlPath, content.replace(tag, `<script>${jsContent}</script>`));
-      perFileHits++;
-      inlinedCount++;
-    }
-  }
-  rmSync(resolve(distDir, js));
-  log(`   ↪️  ${js} → ${perFileHits} page${perFileHits === 1 ? '' : 's'} (${(jsContent.length / 1024).toFixed(1)} kB)`);
-}
-log(`📜 JS inlining — ${jsFiles.length} files, ${inlinedCount} total inlinings`);
-
 // Remove source maps.
 const mapFiles = await Array.fromAsync(glob('*.map', { cwd: distDir }));
 for (const f of mapFiles) rmSync(resolve(distDir, f));
