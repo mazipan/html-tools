@@ -84,7 +84,14 @@ if (existsFile(yamlPagePath)) {
 }
 
 const cleanPath = f => f === 'index.html' ? '/' : `/${f.replace(/\.html$/, '')}`;
-const indexable = htmlFiles.filter(f => !f.startsWith('google')).sort();
+// design-system is an internal contributor page — it lives in dist/ but is
+// excluded from sitemap, _redirects, FAQ injection, and cross-tool blocks.
+// Visit it directly at /design-system.html.
+const INTERNAL_PAGES = new Set(['design-system.html']);
+const indexable = htmlFiles
+  .filter(f => !f.startsWith('google'))
+  .filter(f => !INTERNAL_PAGES.has(f))
+  .sort();
 
 // Generate _redirects: 301 .html paths to their clean form so old links keep working.
 const redirects = indexable

@@ -99,6 +99,18 @@ Examples:
 - **HTML pages keep stable filenames** (`index.html`, `image-converter.html`, etc.) — they're entry bundles, served at predictable URLs. **Every other asset Parcel emits gets a content hash** in the filename (`styles.{hash}.css`, `theme.{hash}.js`, `json-utils.{hash}.js`, …). Hashed assets are cached forever (`Cache-Control: public, max-age=31536000, immutable` via `_headers`); HTML revalidates after 60s so a deploy propagates within ~60s.
 - Per-tool logic stays in an inline `<script>` at the bottom of each HTML file (see "Adding a new tool" step 9). Only **shared** helpers (`theme.js`, `json-utils.js`, `image-utils.js`) live as separate hashed bundles so they cache once across the suite.
 
+## Design system
+
+Shared UI components live in `src/styles.css` (the "Shared components" block at the end) and are catalogued in **`src/design-system.html`** — a contributor reference page reachable at `/design-system.html`. It's intentionally **not** linked from the index, listed in `tools.json`, included in the sitemap, or referenced in `_redirects` (filtered out via `INTERNAL_PAGES` in `scripts/build.mjs`).
+
+When building a new tool:
+
+1. **Reach for the catalogued classes first** — `.btn` / `.btn-primary` / `.btn-secondary` / `.btn-danger` / `.btn-active` / `.btn-sm`, `.tab-btn`, `.pill` / `.pill-sm` / `.pill.on`, `.chip`, `.input` / `.input-mono`, `.textarea`, `.num-input`, `.select`, `.range`, `.swatch`, `.drop-zone` (with `.compact` and `.dragover`), `.card` / `.card-lift`, `.file-card`, `.disclosure` (markup: `<details class="disclosure"><summary>…</summary><div class="disclosure-content"><div class="disclosure-body">…</div></div></details>`), `.cheat-table`, `.error-bar` / `.warn-bar`, `.stats` + `.delta-good` / `.delta-bad` / `.delta-neutral`, `.thumb-box` / `.thumb-label`, `.diff-wrap` / `.diff-handle` / `.diff-slider` / `.diff-tag`, plus the JSON tree primitives (`.json-key`, `.json-string`, `.json-number`, `.json-bool`, `.json-null`, `.json-punct`, `.tree-row`, `.toggle-btn`, `.tree-children`).
+2. **If the pattern doesn't exist yet**, prototype it inline in the new tool. Once a second tool needs the same thing, promote the canonical definition into `src/styles.css` and add a section to `design-system.html`. Don't pre-extract — wait for a real second user.
+3. **Don't redefine a catalogued class inline.** If the existing definition doesn't fit, fix it in `styles.css` so every tool benefits — or open an issue to discuss before forking the pattern.
+
+The current crop of tool pages still has inline `<style>` blocks duplicating some of these classes; migration to the shared definitions is a separate task per tool.
+
 ## Semantic landmarks (every page)
 
 Each page must follow this skeleton so screen readers, search engines, and Lighthouse audits all see the same structure:

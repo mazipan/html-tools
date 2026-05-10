@@ -370,3 +370,384 @@ html[data-theme="light"] .btn-secondary {
 html[data-theme="light"] .btn-secondary:hover { border-color: var(--accent); color: #111827; background-color: #f9fafb; }
 html[data-theme="light"] .btn-danger { background-color: transparent; border-color: #ef4444; color: #dc2626; }
 html[data-theme="light"] .btn-danger:hover { background-color: color-mix(in srgb, #ef4444 8%, transparent); }
+
+/* ── Shared components (catalogued in /design-system) ────────── */
+/* Documented and demoed at design-system.html. When you reach for one of */
+/* these patterns in a tool, use the class — don't redefine it inline.    */
+
+/* ── Pills (toggle / radio button feel) ──────────────────────── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  border: 1px solid #374151;
+  background: #1f2937;
+  color: #9ca3af;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.12s, border-color 0.12s, color 0.12s, opacity 0.12s;
+}
+.pill:hover:not(:disabled) { color: #d1d5db; border-color: #4b5563; }
+.pill.on { background: color-mix(in srgb, var(--accent) 30%, transparent); border-color: var(--accent-h); color: #f9fafb; }
+.pill.on:hover { border-color: var(--accent-h); }
+.pill:disabled { opacity: 0.4; cursor: not-allowed; }
+.pill-sm {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 0.85rem;
+}
+
+/* ── Chips (rounded, label-like, transient triggers) ─────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid #374151;
+  background: #1f2937;
+  color: #d1d5db;
+  font-size: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.12s, border-color 0.12s, color 0.12s;
+}
+.chip:hover { border-color: #4b5563; color: #f9fafb; }
+.chip.on { background: color-mix(in srgb, var(--accent) 30%, transparent); border-color: var(--accent-h); color: #fff; }
+
+/* ── Text inputs / textarea ──────────────────────────────────── */
+.input,
+.textarea {
+  display: block;
+  width: 100%;
+  background: #111827;
+  border: 1px solid #374151;
+  color: #e5e7eb;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.12s;
+}
+.input:focus,
+.textarea:focus { border-color: var(--accent-h); }
+.input.input-mono,
+.textarea.input-mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.8rem; }
+.textarea { min-height: 8rem; resize: vertical; line-height: 1.5; }
+.input:disabled,
+.textarea:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Numeric input (narrow, monospace) ───────────────────────── */
+.num-input {
+  background: #111827;
+  border: 1px solid #374151;
+  color: #e5e7eb;
+  border-radius: 6px;
+  padding: 0.35rem 0.6rem;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.78rem;
+  width: 7ch;
+  outline: none;
+  transition: border-color 0.12s;
+}
+.num-input:focus { border-color: var(--accent-h); }
+.num-input:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Native select (dark themed) ─────────────────────────────── */
+.select {
+  background-color: #111827;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%239ca3af' viewBox='0 0 16 16'%3e%3cpath d='M4 6l4 4 4-4z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+  background-size: 14px;
+  border: 1px solid #374151;
+  color: #e5e7eb;
+  border-radius: 6px;
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+.select:focus { border-color: var(--accent-h); }
+.select:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Range slider (consistent thumb across browsers) ─────────── */
+input[type="range"].range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: #1f2937;
+  border-radius: 2px;
+  outline: none;
+}
+input[type="range"].range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 0;
+}
+input[type="range"].range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 0;
+}
+input[type="range"].range:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Color swatch (for color picker labels) ──────────────────── */
+.swatch {
+  display: inline-block;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 4px;
+  border: 1px solid #374151;
+  vertical-align: middle;
+}
+
+/* ── Drop zone (file drop / click / paste) ───────────────────── */
+.drop-zone {
+  border: 2px dashed #374151;
+  border-radius: 0.75rem;
+  background: #0b1220;
+  transition: border-color 0.15s, background-color 0.15s;
+  cursor: pointer;
+}
+.drop-zone:hover { border-color: #4b5563; background: #111827; }
+.drop-zone.dragover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 5%, transparent); }
+.drop-zone.compact { padding: 0.75rem 1rem; }
+
+/* ── Cards (generic + hover lift) ────────────────────────────── */
+.card {
+  display: block;
+  background: #0b1220;
+  border: 1px solid #1f2937;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  transition: border-color 0.15s, transform 0.15s;
+  text-decoration: none;
+}
+.card:hover { border-color: #374151; }
+.card.card-lift:hover { transform: translateY(-2px); border-color: var(--accent-h); }
+
+/* Per-file card (image tools) — denser padding */
+.file-card {
+  border: 1px solid #1f2937;
+  border-radius: 0.625rem;
+  background: #0b1220;
+  padding: 0.85rem;
+  transition: border-color 0.12s;
+}
+.file-card:hover { border-color: #374151; }
+
+/* ── Disclosure (collapsible details) ────────────────────────── */
+/* Markup:
+   <details class="disclosure">
+     <summary>Title</summary>
+     <div class="disclosure-content"><div class="disclosure-body">…</div></div>
+   </details>
+   The wrapper is required so the body's height animates from 0 → auto via
+   the grid-template-rows trick (true content height; no max-height fudge). */
+.disclosure {
+  border: 1px solid #1f2937;
+  border-radius: 0.5rem;
+  transition: border-color 0.18s ease;
+}
+.disclosure:hover,
+.disclosure[open] { border-color: #374151; }
+.disclosure > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  user-select: none;
+}
+.disclosure > summary::-webkit-details-marker { display: none; }
+.disclosure > summary::after {
+  content: '▾';
+  color: #6b7280;
+  transition: transform 0.22s ease;
+  flex-shrink: 0;
+}
+.disclosure[open] > summary::after { transform: rotate(180deg); }
+
+.disclosure > .disclosure-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.24s ease;
+}
+.disclosure[open] > .disclosure-content { grid-template-rows: 1fr; }
+.disclosure > .disclosure-content > .disclosure-body {
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 1rem;
+  font-size: 0.875rem;
+  color: #9ca3af;
+  line-height: 1.5;
+  transition: padding-bottom 0.24s ease;
+}
+.disclosure[open] > .disclosure-content > .disclosure-body { padding-bottom: 1rem; }
+
+/* ── Cheat table (compact monospace reference) ───────────────── */
+.cheat-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.78rem;
+}
+.cheat-table th,
+.cheat-table td { text-align: left; padding: 0.35rem 0.6rem; border-bottom: 1px solid #1f2937; }
+.cheat-table th { color: #9ca3af; font-weight: 600; }
+.cheat-table td:first-child { color: #c792ea; white-space: nowrap; }
+.cheat-table td:nth-child(2) { color: #d1d5db; }
+
+/* ── Stats line + delta colors ───────────────────────────────── */
+.stats { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.78rem; }
+.delta-good { color: #4ade80; }
+.delta-bad  { color: #f87171; }
+.delta-neutral { color: #9ca3af; }
+
+/* ── Error bar (inline error banner) ─────────────────────────── */
+.error-bar {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, #ef4444 40%, transparent);
+  background: color-mix(in srgb, #ef4444 10%, transparent);
+  color: #fca5a5;
+  font-size: 0.78rem;
+}
+.warn-bar {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, #facc15 40%, transparent);
+  background: color-mix(in srgb, #facc15 8%, transparent);
+  color: #fde68a;
+  font-size: 0.78rem;
+}
+
+/* ── Image thumbnail (checkered transparent bg) ──────────────── */
+.thumb-box {
+  position: relative;
+  width: 100%;
+  background:
+    linear-gradient(45deg, #1f2937 25%, transparent 25%),
+    linear-gradient(-45deg, #1f2937 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #1f2937 75%),
+    linear-gradient(-45deg, transparent 75%, #1f2937 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  border-radius: 0.4rem;
+  overflow: hidden;
+}
+.thumb-box img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.thumb-label {
+  position: absolute;
+  top: 0.35rem;
+  left: 0.35rem;
+  padding: 0.1rem 0.45rem;
+  background: rgba(0,0,0,0.6);
+  color: #d1d5db;
+  font-size: 0.65rem;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+/* ── Diff slider (drag to reveal before/after) ───────────────── */
+.diff-wrap {
+  position: relative;
+  width: 100%;
+  background:
+    linear-gradient(45deg, #1f2937 25%, transparent 25%),
+    linear-gradient(-45deg, #1f2937 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #1f2937 75%),
+    linear-gradient(-45deg, transparent 75%, #1f2937 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  border-radius: 0.4rem;
+  overflow: hidden;
+  --split: 50%;
+}
+.diff-wrap > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+}
+.diff-wrap > img.before { clip-path: inset(0 calc(100% - var(--split)) 0 0); }
+.diff-handle {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: var(--split);
+  width: 2px;
+  background: rgba(255,255,255,0.85);
+  transform: translateX(-1px);
+  pointer-events: none;
+}
+.diff-handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+  border: 2px solid #1f2937;
+}
+.diff-slider {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: ew-resize;
+}
+.diff-tag {
+  position: absolute;
+  top: 0.4rem;
+  padding: 0.1rem 0.45rem;
+  background: rgba(0,0,0,0.6);
+  color: #d1d5db;
+  font-size: 0.65rem;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  border-radius: 4px;
+  pointer-events: none;
+}
+.diff-tag.before { left: 0.4rem; }
+.diff-tag.after  { right: 0.4rem; }
