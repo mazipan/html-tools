@@ -2,13 +2,10 @@
 
 @theme {
   --font-sans: 'IBM Plex Mono', ui-monospace, monospace;
-  --font-display: 'Syne', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Syne has unusually tall descenders (g, j, p, y). Tailwind's text-3xl etc.
-   set a tight 1.2 line-height that clips them. !important so the rule
-   wins against Tailwind utility specificity site-wide. */
-h1 { font-family: 'Syne', ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.02em; line-height: 1.4 !important; padding-bottom: 0.08em; }
+h1 { font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.02em; }
 
 /* JSON syntax colors */
 .json-key    { color: #c792ea; }
