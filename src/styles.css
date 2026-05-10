@@ -304,7 +304,10 @@ html[data-theme="light"] #tweaks-panel.is-minimized .tweaks-minimize:hover {
   text-decoration: none;
 }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
-.btn-sm { padding: 0.125rem 0.5rem; font-size: 0.7rem; border-radius: 0.375rem; }
+/* Sizes — default .btn is the regular size; sm is comfortably compact;
+   xs is genuinely tight (chip-row density, inline reveal toggles, etc.). */
+.btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 0.4rem; }
+.btn-xs { padding: 0.125rem 0.55rem; font-size: 0.7rem; border-radius: 0.375rem; }
 
 /* Active/selected state for toggle button groups */
 .btn-active,
