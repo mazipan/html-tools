@@ -5,7 +5,10 @@
   --font-display: 'Syne', ui-sans-serif, system-ui, sans-serif;
 }
 
-h1 { font-family: 'Syne', ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.02em; line-height: 1.3; }
+/* Syne has unusually tall descenders (g, j, p, y). Tailwind's text-3xl etc.
+   set a tight 1.2 line-height that clips them. !important so the rule
+   wins against Tailwind utility specificity site-wide. */
+h1 { font-family: 'Syne', ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.02em; line-height: 1.4 !important; padding-bottom: 0.08em; }
 
 /* JSON syntax colors */
 .json-key    { color: #c792ea; }
