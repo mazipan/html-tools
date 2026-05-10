@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <include src="_partials/meta-base.html"></include>
+  <title>Design System — HTML Tools</title>
+  <meta name="description" content="The components, tokens, and patterns shared across HTML Tools.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧱</text></svg>">
+  <include src="_partials/head-fonts.html"></include>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .ds-toc-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      gap: 0.6rem;
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 0.5rem;
+      padding: 0.6rem 0.85rem;
+      color: #e5e7eb;
+      font-weight: 500;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-family: inherit;
+      text-align: left;
+    }
+    .ds-toc-toggle .chevron { color: #9ca3af; transition: transform 0.18s ease; }
+    .ds-toc-toggle[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+    .ds-toc-list {
+      display: none;
+      margin-top: 0.5rem;
+      border: 1px solid #1f2937;
+      border-radius: 0.5rem;
+      background: rgba(17, 24, 39, 0.4);
+      padding: 0.4rem 0;
+    }
+    .ds-toc-list.is-open { display: block; }
+    .ds-toc-list a {
+      display: block;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.78rem;
+      color: #9ca3af;
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: color 0.12s, border-color 0.12s;
+    }
+    .ds-toc-list a:hover { color: #f9fafb; border-color: #374151; }
+    .ds-toc-list h3 {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+      padding: 0.6rem 0.6rem 0.3rem;
+      font-weight: 600;
+    }
+    @media (min-width: 768px) {
+      .ds-toc { position: sticky; top: 1rem; }
+      .ds-toc-toggle { display: none; }
+      .ds-toc-list {
+        display: block;
+        margin-top: 0;
+        max-height: calc(100vh - 2rem);
+        overflow-y: auto;
+      }
+    }
+    .ds-section {
+      scroll-margin-top: 1.5rem;
+      padding: 2rem 0;
+      border-top: 1px solid #1f2937;
+    }
+    .ds-section:first-child { border-top: none; padding-top: 0.5rem; }
+    .ds-section h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.4rem;
+    }
+    .ds-section > p.lead {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      max-width: 60ch;
+      margin-bottom: 1.25rem;
+    }
+    .ds-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.6rem;
+      margin: 1rem 0;
+    }
+    .ds-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+    .ds-state-label {
+      display: block;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+      margin-bottom: 0.4rem;
+    }
+    .ds-snippet {
+      position: relative;
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 0.5rem;
+      margin: 0.75rem 0;
+      overflow: hidden;
+      min-width: 0;
+    }
+    .ds-snippet pre {
+      margin: 0;
+      padding: 0.85rem 1rem;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 0.75rem;
+      line-height: 1.55;
+      color: #e5e7eb;
+      overflow-x: auto;
+      white-space: pre;
+      max-height: 18rem;
+    }
+    .ds-snippet button.copy {
+      position: absolute;
+      top: 0.4rem;
+      right: 0.4rem;
+      padding: 0.18rem 0.55rem;
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 4px;
+      color: #9ca3af;
+      font-size: 0.68rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s, background 0.12s;
+    }
+    .ds-snippet button.copy:hover { color: #f9fafb; border-color: #4b5563; }
+    .ds-snippet button.copy.ok { color: #4ade80; border-color: #14532d; background: rgba(74,222,128,0.12); }
+    .ds-color-tile {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #1f2937;
+      border-radius: 0.5rem;
+      background: #0b1220;
+    }
+    .ds-color-chip {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid #374151;
+      flex-shrink: 0;
+    }
+    .ds-color-tile .name { font-size: 0.8rem; color: #e5e7eb; font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+    .ds-color-tile .val  { font-size: 0.7rem; color: #6b7280; font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+    .ds-banner {
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid color-mix(in srgb, #facc15 40%, transparent);
+      background: color-mix(in srgb, #facc15 8%, transparent);
+      color: #fde68a;
+      font-size: 0.78rem;
+      margin-bottom: 1.5rem;
+    }
+  </style>
+  <include src="_partials/head-theme.html"></include>
+</head>
+<body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+
+  <header class="border-b border-gray-800 px-6 py-4">
+    <nav aria-label="Breadcrumb" class="max-w-[1200px] mx-auto flex items-center gap-3">
+      <a href="index.html" class="no-underline text-white font-bold text-lg tracking-tight hover:text-blue-400 transition-colors">HTML Tools</a>
+      <span class="text-gray-700">/</span>
+      <span class="text-gray-400 text-sm flex items-center gap-1.5" aria-current="page">🧱 Design System</span>
+    </nav>
+  </header>
+
+  <main class="max-w-[1200px] mx-auto w-full flex-1 py-8 px-6">
+
+    <header class="mb-7">
+      <h1 class="text-3xl font-bold text-white flex items-center gap-3">🧱 Design System</h1>
+      <p class="mt-1.5 text-sm text-gray-500">Components, tokens, and patterns shared across the suite. Reach for one of these classes before redefining anything inline.</p>
+    </header>
+
+    <div class="ds-banner">
+      <strong>Internal page.</strong> Contributor reference — not linked from the index, sitemap, or cross-tool footer. Tweak any class in <code>src/styles.css</code> and reload to see changes here.
+      <br>
+      <strong>Accessibility:</strong> form controls (checkbox, radio, range thumb, chevron) are sized for tap. Press <kbd class="px-1.5 py-0.5 rounded bg-gray-800 border border-gray-700 text-[0.7rem] font-mono">Tab</kbd> to walk through the page — every interactive element draws an accent <code>:focus-visible</code> ring.
+    </div>
+
+    <div class="grid md:grid-cols-[200px_minmax(0,1fr)] gap-6 items-start">
+
+      <nav class="ds-toc" aria-label="Sections">
+        <button id="ds-toc-toggle" class="ds-toc-toggle" type="button" aria-expanded="false" aria-controls="ds-toc-list">
+          <span>📑 Sections</span>
+          <span class="chevron" aria-hidden="true">▾</span>
+        </button>
+        <div id="ds-toc-list" class="ds-toc-list">
+          <h3>Foundations</h3>
+          <a href="#colors">Colors</a>
+          <a href="#typography">Typography</a>
+          <h3>Forms</h3>
+          <a href="#buttons">Buttons</a>
+          <a href="#pills">Pills</a>
+          <a href="#chips">Chips</a>
+          <a href="#text-input">Text input</a>
+          <a href="#textarea">Textarea</a>
+          <a href="#num-input">Number input</a>
+          <a href="#select">Select</a>
+          <a href="#checkbox-radio">Checkbox &amp; radio</a>
+          <a href="#range">Range slider</a>
+          <a href="#color-picker">Color picker</a>
+          <a href="#drop-zone">Drop zone</a>
+          <h3>Layout &amp; content</h3>
+          <a href="#cards">Cards</a>
+          <a href="#disclosure">Disclosure</a>
+          <a href="#cheat-table">Cheat table</a>
+          <a href="#code">Code blocks</a>
+          <a href="#json-tree">JSON tree</a>
+          <h3>Feedback</h3>
+          <a href="#error-bar">Error / warn bars</a>
+          <a href="#stats">Stats &amp; deltas</a>
+          <a href="#diff-slider">Diff slider</a>
+        </div>
+      </nav>
+
+      <div class="min-w-0">
+
+        <!-- Foundations -->
+        <section id="colors" class="ds-section">
+          <h2>Colors</h2>
+          <p class="lead">A small dark palette plus an accent driven by <code class="text-gray-300">--accent</code> from <code class="text-gray-300">theme.js</code>. The four semantic colors (good/bad/warn/neutral) are used by deltas, status bars, and form validation.</p>
+          <div class="ds-grid">
+            <div class="ds-color-tile"><div class="ds-color-chip" style="background:#030712"></div><div><div class="name">page</div><div class="val">bg-gray-950</div></div></div>
+            <div class="ds-color-tile"><div class="ds-color-chip" style="background:#0b1220"></div><div><div class="name">surface</div><div class="val">#0b1220</div></div></div>
+            <div class="ds-color-tile"><div class="ds-color-chip" style="background:#111827"></div><div><div class="name">panel</div><div class="val">bg-gray-900</div></div></div>
+            <div class="ds-color-tile"><div class="ds-color-chip" style="background:#1f2937"></div><div><div class="name">muted</div><div class="val">bg-gray-800</div></div></div>
+            <div class="ds-color-tile"><div class="ds-color-chip" style="background:#374151"></div><div><div class="name">border</div><div class="val">border-gray-700</div></div></div>
+            <div class="ds-color-tile"><div class="ds-color-chip" style="background:#9ca3af"></div><div><div class="name">label</div><div class="val">text-gray-400</div></div></div>
+            <div class="ds-color-tile"><div class="ds-color-chip" style="background:#e5e7eb"></div><div><div class="name">body</div><div class="val">text-gray-200</div></div></div>
+            <div class="ds-color-tile"><div class="ds-color-chip" style="background:var(--accent)"></div><div><div class="name">accent</div><div class="val">--accent</div></div></div>
+            <div class="ds-color-tile"><div class="ds-color-chip" style="background:#4ade80"></div><div><div class="name">good</div><div class="val">#4ade80</div></div></div>
+            <div class="ds-color-tile"><div class="ds-color-chip" style="background:#f87171"></div><div><div class="name">bad</div><div class="val">#f87171</div></div></div>
+            <div class="ds-color-tile"><div class="ds-color-chip" style="background:#facc15"></div><div><div class="name">warn</div><div class="val">#facc15</div></div></div>
+          </div>
+        </section>
+
+        <!-- Typography -->
+        <section id="typography" class="ds-section">
+          <h2>Typography</h2>
+          <p class="lead"><code class="text-gray-300">Space Grotesk</code> for headings, <code class="text-gray-300">IBM Plex Mono</code> for monospace + body. System stack as a fallback.</p>
+          <div class="space-y-3 my-4">
+            <h1 class="text-3xl font-bold text-white">Heading 1 — page topic</h1>
+            <h2 class="text-xl font-bold text-white">Heading 2 — section</h2>
+            <h3 class="text-base font-semibold text-gray-200">Heading 3 — subsection</h3>
+            <p class="text-sm text-gray-400">Body text. <code class="text-gray-300">Inline code</code> uses <code class="text-gray-300">Plex Mono</code>.</p>
+            <p class="text-xs text-gray-500">Muted helper text — captions, status, hints.</p>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;h1 class="text-3xl font-bold text-white"&gt;…&lt;/h1&gt;
+&lt;h2 class="text-xl font-bold text-white"&gt;…&lt;/h2&gt;
+&lt;h3 class="text-base font-semibold text-gray-200"&gt;…&lt;/h3&gt;
+&lt;p class="text-sm text-gray-400"&gt;…&lt;/p&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Buttons -->
+        <section id="buttons" class="ds-section">
+          <h2>Buttons</h2>
+          <p class="lead">Three variants — primary (page's main action), secondary (everything else / toggle groups), danger (destructive). Three sizes: regular (default), <code class="text-gray-300">btn-sm</code> for compact rows, <code class="text-gray-300">btn-xs</code> for genuinely tight density.</p>
+
+          <span class="ds-state-label">Variants</span>
+          <div class="ds-row">
+            <button class="btn btn-primary" type="button">Primary</button>
+            <button class="btn btn-secondary" type="button">Secondary</button>
+            <button class="btn btn-secondary btn-active" type="button">Selected (toggle)</button>
+            <button class="btn btn-danger" type="button">Danger</button>
+          </div>
+
+          <span class="ds-state-label">Disabled</span>
+          <div class="ds-row">
+            <button class="btn btn-primary" type="button" disabled>Primary</button>
+            <button class="btn btn-secondary" type="button" disabled>Secondary</button>
+            <button class="btn btn-danger" type="button" disabled>Danger</button>
+          </div>
+
+          <span class="ds-state-label">Small (<code class="text-gray-300">btn-sm</code>)</span>
+          <div class="ds-row">
+            <button class="btn btn-primary btn-sm" type="button">Primary</button>
+            <button class="btn btn-secondary btn-sm" type="button">Secondary</button>
+            <button class="btn btn-danger btn-sm" type="button">Danger</button>
+          </div>
+
+          <span class="ds-state-label">Extra small (<code class="text-gray-300">btn-xs</code>)</span>
+          <div class="ds-row">
+            <button class="btn btn-primary btn-xs" type="button">Primary</button>
+            <button class="btn btn-secondary btn-xs" type="button">Secondary</button>
+            <button class="btn btn-danger btn-xs" type="button">Danger</button>
+          </div>
+
+          <span class="ds-state-label">Tab strip</span>
+          <div class="ds-row border-b border-gray-800 pb-0 gap-0">
+            <button class="tab-btn tab-btn-active" type="button">Active tab</button>
+            <button class="tab-btn" type="button">Inactive tab</button>
+            <button class="tab-btn" type="button">Another</button>
+          </div>
+
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;button class="btn btn-primary"&gt;Primary&lt;/button&gt;
+&lt;button class="btn btn-secondary"&gt;Secondary&lt;/button&gt;
+&lt;button class="btn btn-secondary btn-active"&gt;Selected&lt;/button&gt;
+&lt;button class="btn btn-danger"&gt;Danger&lt;/button&gt;
+&lt;button class="btn btn-primary btn-sm"&gt;Compact&lt;/button&gt;
+&lt;button class="btn btn-primary btn-xs"&gt;Tight&lt;/button&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Pills -->
+        <section id="pills" class="ds-section">
+          <h2>Pills</h2>
+          <p class="lead">Square-ish toggles — feel like radio buttons in a group. Use the <code class="text-gray-300">on</code> class for the selected state. <code class="text-gray-300">pill-sm</code> for single-character labels (regex flags, etc.).</p>
+
+          <span class="ds-state-label">States</span>
+          <div class="ds-row">
+            <button class="pill" type="button">Default</button>
+            <button class="pill on" type="button">Selected</button>
+            <button class="pill" type="button" disabled>Disabled</button>
+          </div>
+
+          <span class="ds-state-label">Group (radio-like)</span>
+          <div class="ds-row" id="ds-pill-group">
+            <button class="pill" data-val="png" type="button">PNG</button>
+            <button class="pill on" data-val="jpeg" type="button">JPEG</button>
+            <button class="pill" data-val="webp" type="button">WebP</button>
+            <button class="pill" data-val="avif" type="button" disabled>AVIF</button>
+          </div>
+          <p class="text-xs text-gray-600 mt-1">Click to toggle — single-select group.</p>
+
+          <span class="ds-state-label">Small (<code class="text-gray-300">pill-sm</code>)</span>
+          <div class="ds-row">
+            <button class="pill pill-sm" type="button">g</button>
+            <button class="pill pill-sm on" type="button">i</button>
+            <button class="pill pill-sm" type="button">m</button>
+            <button class="pill pill-sm" type="button">s</button>
+            <button class="pill pill-sm" type="button">u</button>
+          </div>
+
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;button class="pill"&gt;Default&lt;/button&gt;
+&lt;button class="pill on"&gt;Selected&lt;/button&gt;
+&lt;button class="pill" disabled&gt;Disabled&lt;/button&gt;
+&lt;button class="pill pill-sm on"&gt;i&lt;/button&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Chips -->
+        <section id="chips" class="ds-section">
+          <h2>Chips</h2>
+          <p class="lead">Rounded, label-like triggers — for transient actions ("load this sample", "tap to insert"). Reach for a pill instead when the state needs to persist visually.</p>
+          <div class="ds-row">
+            <button class="chip" type="button">📧 Email</button>
+            <button class="chip" type="button">🔗 URL</button>
+            <button class="chip on" type="button">🌐 IPv4</button>
+            <button class="chip" type="button">📅 Date</button>
+            <button class="chip" type="button">🎨 Hex</button>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;button class="chip"&gt;📧 Email&lt;/button&gt;
+&lt;button class="chip on"&gt;🌐 IPv4&lt;/button&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Text input -->
+        <section id="text-input" class="ds-section">
+          <h2>Text input</h2>
+          <p class="lead">Single-line input. Use <code class="text-gray-300">.input-mono</code> when content is code-like (regex patterns, hex, etc.).</p>
+          <div class="space-y-3 my-3">
+            <input class="input" type="text" placeholder="Default">
+            <input class="input input-mono" type="text" placeholder="Mono variant — /pattern/g">
+            <input class="input" type="text" value="Disabled" disabled>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;input class="input" type="text" placeholder="…"&gt;
+&lt;input class="input input-mono" type="text" placeholder="…"&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Textarea -->
+        <section id="textarea" class="ds-section">
+          <h2>Textarea</h2>
+          <p class="lead">Multi-line input. Mono variant for JSON / code; default for prose.</p>
+          <div class="space-y-3 my-3">
+            <textarea class="textarea" placeholder="Default — paste prose here…"></textarea>
+            <textarea class="textarea input-mono" placeholder='Mono — { "key": "value" }'></textarea>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;textarea class="textarea"&gt;…&lt;/textarea&gt;
+&lt;textarea class="textarea input-mono"&gt;…&lt;/textarea&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Number input -->
+        <section id="num-input" class="ds-section">
+          <h2>Number input</h2>
+          <p class="lead">Narrow, monospace, fixed at ~7 characters. For things like W/H, port numbers, target sizes.</p>
+          <div class="ds-row">
+            max W <input class="num-input" type="number" value="2400">
+            <span>×</span>
+            max H <input class="num-input" type="number" value="1600">
+            <input class="num-input" type="number" value="0" disabled>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;input class="num-input" type="number" value="2400"&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Select -->
+        <section id="select" class="ds-section">
+          <h2>Select</h2>
+          <p class="lead">Dark-themed native <code class="text-gray-300">&lt;select&gt;</code> with a custom chevron. Native means accessible by default; only style applied is the chrome.</p>
+          <div class="ds-row">
+            <select class="select">
+              <option>Compact (preset)</option>
+              <option>Pretty</option>
+              <option>Minify</option>
+            </select>
+            <select class="select" disabled>
+              <option>Disabled</option>
+            </select>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;select class="select"&gt;
+  &lt;option&gt;Compact&lt;/option&gt;
+  &lt;option&gt;Pretty&lt;/option&gt;
+&lt;/select&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Checkbox & radio -->
+        <section id="checkbox-radio" class="ds-section">
+          <h2>Checkbox &amp; radio</h2>
+          <p class="lead">Native, sized at <code class="text-gray-300">1.2rem</code> for tap-friendliness, accent-color follows the theme. Group radios with a real <code class="text-gray-300">&lt;fieldset&gt;</code> + <code class="text-gray-300">&lt;legend&gt;</code> for screen readers.</p>
+          <div class="space-y-2 my-3 text-sm text-gray-300">
+            <label class="flex items-center gap-2"><input type="checkbox" checked> Checked</label>
+            <label class="flex items-center gap-2"><input type="checkbox"> Unchecked</label>
+            <label class="flex items-center gap-2"><input type="checkbox" disabled> Disabled</label>
+          </div>
+          <fieldset class="text-sm text-gray-300 space-y-2 my-3">
+            <legend class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Output format</legend>
+            <label class="flex items-center gap-2"><input type="radio" name="ds-radio" checked> Same as input</label>
+            <label class="flex items-center gap-2"><input type="radio" name="ds-radio"> Auto (best for size)</label>
+            <label class="flex items-center gap-2"><input type="radio" name="ds-radio"> Force WebP</label>
+          </fieldset>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;label class="flex items-center gap-2"&gt;
+  &lt;input type="checkbox"&gt; Strip metadata
+&lt;/label&gt;
+
+&lt;fieldset&gt;
+  &lt;legend&gt;Output format&lt;/legend&gt;
+  &lt;label&gt;&lt;input type="radio" name="fmt"&gt; Same as input&lt;/label&gt;
+&lt;/fieldset&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Range slider -->
+        <section id="range" class="ds-section">
+          <h2>Range slider</h2>
+          <p class="lead">Thin track, accent-colored thumb. Use <code class="text-gray-300">.range</code> on the input element directly.</p>
+          <div class="my-4 max-w-md space-y-3">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Quality</label>
+                <span class="text-xs text-gray-400 font-mono" id="ds-range-val">0.85</span>
+              </div>
+              <input id="ds-range" class="range" type="range" min="0.30" max="1.00" step="0.01" value="0.85">
+            </div>
+            <input class="range" type="range" min="0" max="100" value="50" disabled>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;input class="range" type="range" min="0" max="1" step="0.01" value="0.85"&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Color picker -->
+        <section id="color-picker" class="ds-section">
+          <h2>Color picker</h2>
+          <p class="lead">Native <code class="text-gray-300">&lt;input type="color"&gt;</code>. Pair with the <code class="text-gray-300">.swatch</code> primitive when surfacing the choice as a label.</p>
+          <div class="ds-row">
+            <input type="color" value="#3b82f6" class="w-10 h-9 rounded border border-gray-700 bg-transparent cursor-pointer">
+            <span class="pill"><span class="swatch" style="background:#3b82f6"></span>&nbsp;#3b82f6</span>
+            <span class="pill on"><span class="swatch" style="background:#10b981"></span>&nbsp;Selected</span>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;input type="color" value="#3b82f6"
+       class="w-10 h-9 rounded border border-gray-700 bg-transparent cursor-pointer"&gt;
+
+&lt;span class="pill"&gt;
+  &lt;span class="swatch" style="background:#3b82f6"&gt;&lt;/span&gt;&amp;nbsp;#3b82f6
+&lt;/span&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Drop zone -->
+        <section id="drop-zone" class="ds-section">
+          <h2>Drop zone</h2>
+          <p class="lead">Dashed-border target for file drop / click / paste. Has a <code class="text-gray-300">compact</code> modifier for the "+ drop more" state once content is present.</p>
+          <div class="drop-zone p-8 my-3 text-center" id="ds-drop" tabindex="0" role="button" aria-label="Demo drop zone">
+            <div class="text-3xl mb-2" aria-hidden="true">📥</div>
+            <p class="text-sm text-gray-300 font-medium">Drop file(s) here, click to choose, or paste with Ctrl/Cmd+V</p>
+            <p class="text-xs text-gray-500 mt-1.5">Drag a file over the page to see the dragover state.</p>
+          </div>
+          <div class="drop-zone compact text-center text-xs text-gray-500 my-3">+ drop more · click · paste</div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;div class="drop-zone p-8 text-center" tabindex="0" role="button"&gt;
+  Drop here, click, or paste
+&lt;/div&gt;
+
+&lt;!-- Once content is present, switch to compact --&gt;
+&lt;div class="drop-zone compact text-center text-xs text-gray-500"&gt;
+  + drop more
+&lt;/div&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Cards -->
+        <section id="cards" class="ds-section">
+          <h2>Cards</h2>
+          <p class="lead">Generic <code class="text-gray-300">.card</code> — dark surface with hover. Add <code class="text-gray-300">.card-lift</code> for a tile that nudges up on hover (used by the index grid).</p>
+          <div class="ds-grid">
+            <div class="card">
+              <div class="text-2xl mb-2">🗂️</div>
+              <h3 class="text-sm font-semibold text-gray-200">Default card</h3>
+              <p class="text-xs text-gray-500 mt-1">Border lightens on hover. No transform.</p>
+            </div>
+            <a href="#" class="card card-lift">
+              <div class="text-2xl mb-2">📐</div>
+              <h3 class="text-sm font-semibold text-gray-200">Card with lift</h3>
+              <p class="text-xs text-gray-500 mt-1">Hover translates up + accent border.</p>
+            </a>
+            <div class="file-card">
+              <div class="flex items-baseline justify-between gap-2 mb-2">
+                <span class="text-sm font-medium text-white truncate">photo-2024.jpg</span>
+                <button class="text-xs text-gray-500 hover:text-red-400 transition-colors" type="button">remove</button>
+              </div>
+              <div class="thumb-box" style="aspect-ratio:16/9">
+                <span class="thumb-label">preview</span>
+              </div>
+              <div class="stats text-gray-400 mt-2">3.8 MB → <span class="text-white">412 KB</span> <span class="delta-good ml-1">(−89%)</span></div>
+            </div>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;div class="card"&gt;…&lt;/div&gt;
+
+&lt;a href="…" class="card card-lift"&gt;…&lt;/a&gt;
+
+&lt;div class="file-card"&gt;…&lt;/div&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Disclosure -->
+        <section id="disclosure" class="ds-section">
+          <h2>Disclosure (collapsible)</h2>
+          <p class="lead">Animated <code class="text-gray-300">&lt;details&gt;</code> with chevron rotation and content slide. Wrap the body in a <code class="text-gray-300">.disclosure-content &gt; .disclosure-body</code> pair so the content height animates from 0 → its real auto height (no max-height cap).</p>
+          <div class="space-y-2 my-3">
+            <details class="disclosure">
+              <summary>What's a disclosure for?</summary>
+              <div class="disclosure-content"><div class="disclosure-body">
+                Use it for FAQ entries, cheat sheets, "explain this" panels — anywhere the user might want to reveal extra context but doesn't need it open by default.
+              </div></div>
+            </details>
+            <details class="disclosure" open>
+              <summary>Open by default</summary>
+              <div class="disclosure-content"><div class="disclosure-body">
+                Add the <code class="text-gray-300">open</code> attribute to render a section already expanded. Useful for the first FAQ on a page.
+              </div></div>
+            </details>
+            <details class="disclosure">
+              <summary>Tall content animates correctly</summary>
+              <div class="disclosure-content"><div class="disclosure-body">
+                <p class="mb-2">The animation uses <code class="text-gray-300">grid-template-rows: 0fr → 1fr</code>, which interpolates to the body's true auto-height. No max-height fudge, no cut-off content.</p>
+                <p class="mb-2">A consequence: the body can be as tall as it needs to be — long FAQ answers, multi-paragraph explainers, even small tables.</p>
+                <p>Just don't put fixed-height children inside; let the content size itself.</p>
+              </div></div>
+            </details>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;details class="disclosure"&gt;
+  &lt;summary&gt;Title&lt;/summary&gt;
+  &lt;div class="disclosure-content"&gt;
+    &lt;div class="disclosure-body"&gt;
+      Body content here.
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/details&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Cheat table -->
+        <section id="cheat-table" class="ds-section">
+          <h2>Cheat table</h2>
+          <p class="lead">Compact two-column reference table — first column monospace + accent purple, second column body text.</p>
+          <table class="cheat-table my-3">
+            <thead><tr><th>Token</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>\d</td><td>any digit (0–9)</td></tr>
+              <tr><td>\w</td><td>word character (A–Z, a–z, 0–9, _)</td></tr>
+              <tr><td>\s</td><td>whitespace</td></tr>
+              <tr><td>[abc]</td><td>any character in the set</td></tr>
+            </tbody>
+          </table>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;table class="cheat-table"&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;Token&lt;/th&gt;&lt;th&gt;Description&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;\d&lt;/td&gt;&lt;td&gt;any digit&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Code -->
+        <section id="code" class="ds-section">
+          <h2>Code blocks</h2>
+          <p class="lead">Inline <code class="text-gray-300">&lt;code&gt;</code> stays at <code class="text-gray-300">text-gray-300</code> for emphasis. Block <code class="text-gray-300">&lt;pre&gt;</code> uses the panel surface + monospace.</p>
+          <p class="text-sm text-gray-300 mb-3">Inline: <code class="text-gray-300">npm run dev</code> starts the watcher.</p>
+          <pre class="bg-gray-900 border border-gray-800 rounded-lg p-4 text-xs text-gray-200 font-mono leading-relaxed overflow-x-auto whitespace-pre">const re = /\b\w+@\w+\.\w+\b/g;
+const text = "ada@example.com or babbage@machines.io";
+console.log([...text.matchAll(re)]);</pre>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;code class="text-gray-300"&gt;inline&lt;/code&gt;
+
+&lt;pre class="bg-gray-900 border border-gray-800 rounded-lg p-4
+            text-xs text-gray-200 font-mono leading-relaxed
+            overflow-x-auto whitespace-pre"&gt;…&lt;/pre&gt;</pre>
+          </div>
+        </section>
+
+        <!-- JSON tree -->
+        <section id="json-tree" class="ds-section">
+          <h2>JSON tree</h2>
+          <p class="lead">Material-Lighter colors for keys / strings / numbers / booleans. The full collapsible tree (with toggles, line numbers, search) lives in <a href="json-formatter.html" class="text-blue-400 hover:underline">json-formatter</a> — these are the standalone classes.</p>
+          <div class="bg-gray-900 border border-gray-800 rounded-lg p-4 text-xs font-mono overflow-x-auto my-3">
+            <span class="json-punct">{</span><br>
+            &nbsp;&nbsp;<span class="json-key">"name"</span><span class="json-punct">: </span><span class="json-string">"ada"</span><span class="json-punct">,</span><br>
+            &nbsp;&nbsp;<span class="json-key">"age"</span><span class="json-punct">: </span><span class="json-number">36</span><span class="json-punct">,</span><br>
+            &nbsp;&nbsp;<span class="json-key">"active"</span><span class="json-punct">: </span><span class="json-bool">true</span><span class="json-punct">,</span><br>
+            &nbsp;&nbsp;<span class="json-key">"deleted"</span><span class="json-punct">: </span><span class="json-null">null</span><br>
+            <span class="json-punct">}</span>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;span class="json-key"&gt;"name"&lt;/span&gt;
+&lt;span class="json-string"&gt;"ada"&lt;/span&gt;
+&lt;span class="json-number"&gt;36&lt;/span&gt;
+&lt;span class="json-bool"&gt;true&lt;/span&gt;
+&lt;span class="json-null"&gt;null&lt;/span&gt;
+&lt;span class="json-punct"&gt;{}&lt;/span&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Error / warn bars -->
+        <section id="error-bar" class="ds-section">
+          <h2>Error &amp; warning bars</h2>
+          <p class="lead">Inline banners surfaced above content. Keep messages short and actionable.</p>
+          <div class="space-y-3 my-3">
+            <div class="error-bar">Decode failed: file is not a valid PNG.</div>
+            <div class="warn-bar">Skipped 2 files: not images.</div>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;div class="error-bar"&gt;Something went wrong.&lt;/div&gt;
+&lt;div class="warn-bar"&gt;Heads up — non-blocking.&lt;/div&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Stats / deltas -->
+        <section id="stats" class="ds-section">
+          <h2>Stats &amp; deltas</h2>
+          <p class="lead">Monospace stats line + three semantic colors for "got smaller / got bigger / no change."</p>
+          <p class="stats my-3 text-gray-400">
+            12 images · 28.4 MB → 4.1 MB <span class="delta-good ml-1">(−86%)</span>
+          </p>
+          <p class="stats my-3 text-gray-400">
+            1 image · 412 KB → 487 KB <span class="delta-bad ml-1">(+18%)</span>
+          </p>
+          <p class="stats my-3 text-gray-400">
+            1 image · 312 KB → 312 KB <span class="delta-neutral ml-1">(0%)</span>
+          </p>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;p class="stats text-gray-400"&gt;
+  12 images · 28.4 MB → 4.1 MB
+  &lt;span class="delta-good"&gt;(−86%)&lt;/span&gt;
+&lt;/p&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Diff slider -->
+        <section id="diff-slider" class="ds-section">
+          <h2>Diff slider</h2>
+          <p class="lead">Drag-to-reveal before/after compare. Built on a clip-path overlay; the slider input is opacity-0 over the whole area.</p>
+          <div class="diff-wrap my-3" id="ds-diff" style="aspect-ratio:16/9;">
+            <img class="after"  alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180'%3E%3Crect width='320' height='180' fill='%2310b981'/%3E%3Ctext x='160' y='100' text-anchor='middle' fill='white' font-family='monospace' font-size='28'%3Eafter%3C/text%3E%3C/svg%3E">
+            <img class="before" alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180'%3E%3Crect width='320' height='180' fill='%233b82f6'/%3E%3Ctext x='160' y='100' text-anchor='middle' fill='white' font-family='monospace' font-size='28'%3Ebefore%3C/text%3E%3C/svg%3E">
+            <div class="diff-handle"></div>
+            <span class="diff-tag before">before</span>
+            <span class="diff-tag after">after</span>
+            <input type="range" class="diff-slider" min="0" max="100" value="50" aria-label="Reveal slider">
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;div class="diff-wrap" style="aspect-ratio:16/9;"&gt;
+  &lt;img class="after"  src="…" alt=""&gt;
+  &lt;img class="before" src="…" alt=""&gt;
+  &lt;div class="diff-handle"&gt;&lt;/div&gt;
+  &lt;span class="diff-tag before"&gt;before&lt;/span&gt;
+  &lt;span class="diff-tag after"&gt;after&lt;/span&gt;
+  &lt;input type="range" class="diff-slider"
+         min="0" max="100" value="50"&gt;
+&lt;/div&gt;
+
+&lt;!-- JS: on slider input, set --split: ${value}% on .diff-wrap --&gt;</pre>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // Mobile TOC: collapsible toggle. On md+, the toggle is hidden by CSS
+    // and the list is always shown — no JS needed for that case.
+    const tocToggle = document.getElementById('ds-toc-toggle');
+    const tocList = document.getElementById('ds-toc-list');
+    if (tocToggle && tocList) {
+      tocToggle.addEventListener('click', () => {
+        const open = tocList.classList.toggle('is-open');
+        tocToggle.setAttribute('aria-expanded', String(open));
+      });
+      // Close when an anchor is tapped (mobile UX — user wants the section, not the menu).
+      tocList.addEventListener('click', e => {
+        if (e.target.tagName === 'A' && tocList.classList.contains('is-open')) {
+          tocList.classList.remove('is-open');
+          tocToggle.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+
+    // Snippet copy buttons
+    document.querySelectorAll('.ds-snippet').forEach(box => {
+      const btn = box.querySelector('button.copy');
+      const pre = box.querySelector('pre');
+      if (!btn || !pre) return;
+      btn.addEventListener('click', () => {
+        const text = pre.textContent;
+        navigator.clipboard.writeText(text).then(() => {
+          btn.textContent = 'Copied';
+          btn.classList.add('ok');
+          setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('ok'); }, 1200);
+        }, () => {
+          btn.textContent = 'Failed';
+          setTimeout(() => { btn.textContent = 'Copy'; }, 1200);
+        });
+      });
+    });
+
+    // Pill group demo (single-select)
+    const group = document.getElementById('ds-pill-group');
+    if (group) {
+      group.addEventListener('click', e => {
+        const btn = e.target.closest('.pill');
+        if (!btn || btn.disabled) return;
+        group.querySelectorAll('.pill').forEach(p => p.classList.remove('on'));
+        btn.classList.add('on');
+      });
+    }
+
+    // Range demo — show value
+    const range = document.getElementById('ds-range');
+    const rangeVal = document.getElementById('ds-range-val');
+    if (range && rangeVal) {
+      range.addEventListener('input', () => { rangeVal.textContent = parseFloat(range.value).toFixed(2); });
+    }
+
+    // Drop zone demo — visual dragover state
+    const drop = document.getElementById('ds-drop');
+    if (drop) {
+      ['dragenter', 'dragover'].forEach(evt =>
+        drop.addEventListener(evt, e => { e.preventDefault(); drop.classList.add('dragover'); })
+      );
+      ['dragleave', 'drop'].forEach(evt =>
+        drop.addEventListener(evt, e => { e.preventDefault(); drop.classList.remove('dragover'); })
+      );
+    }
+
+    // Diff slider demo — drag to reveal
+    document.querySelectorAll('.diff-wrap').forEach(wrap => {
+      const slider = wrap.querySelector('.diff-slider');
+      if (!slider) return;
+      slider.addEventListener('input', () => wrap.style.setProperty('--split', `${slider.value}%`));
+    });
+  </script>
+
+  <include src="_partials/footer-script.html"></include>
+
+  <footer class="max-w-[1200px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
+    &copy; <span id="year"></span> Irfan Maulana &amp; Claude<br><span id="deploy-time"></span>
+  </footer>
+
+</body>
+</html>

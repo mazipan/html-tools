@@ -84,17 +84,22 @@ if (existsFile(yamlPagePath)) {
 }
 
 const cleanPath = f => f === 'index.html' ? '/' : `/${f.replace(/\.html$/, '')}`;
-const indexable = htmlFiles.filter(f => !f.startsWith('google')).sort();
+// design-system is an internal contributor page. Routable (so the clean URL
+// works for direct visits) but excluded from sitemap, FAQ injection,
+// cross-tool blocks, and JSON-LD. robots.txt also disallows it.
+const INTERNAL_PAGES = new Set(['design-system.html']);
+const routable = htmlFiles.filter(f => !f.startsWith('google')).sort();
+const sitemapPages = routable.filter(f => !INTERNAL_PAGES.has(f));
 
 // Generate _redirects: 301 .html paths to their clean form so old links keep working.
-const redirects = indexable
+const redirects = routable
   .map(f => `/${f}  ${cleanPath(f)}  301!`)
   .join('\n');
 writeFileSync(resolve(distDir, '_redirects'), redirects + '\n');
-log(`🔀 generated _redirects — ${indexable.length} entries`);
+log(`🔀 generated _redirects — ${routable.length} entries`);
 
 const today = new Date().toISOString().split('T')[0];
-const sitemapUrls = indexable
+const sitemapUrls = sitemapPages
   .map(f => {
     const loc = `${SITE_URL}${cleanPath(f)}`;
     return `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${today}</lastmod>\n  </url>`;
@@ -106,7 +111,7 @@ ${sitemapUrls}
 </urlset>
 `;
 writeFileSync(resolve(distDir, 'sitemap.xml'), sitemap);
-log(`🧭 generated sitemap.xml — ${indexable.length} URLs (lastmod ${today})`);
+log(`🧭 generated sitemap.xml — ${sitemapPages.length} URLs (lastmod ${today})`);
 
 // Inject a "More tools" cross-link block before the footer on every tool
 // page (not on index — it already lists every tool). Keeps internal-link
