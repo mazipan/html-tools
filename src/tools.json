@@ -449,6 +449,36 @@
       "maxWidth": "1100px"
     },
     {
+      "slug": "cron-decoder",
+      "name": "Cron Decoder",
+      "icon": "⏱️",
+      "category": "Time / Dates",
+      "description": "Decode a cron expression into plain English with the next 10 run times, or build one field by field. Runs in your browser — no installs, no tracking.",
+      "faqs": [
+        {
+          "q": "Which cron syntax does this support?",
+          "a": "Standard Vixie / Unix cron: 5 fields (minute, hour, day-of-month, month, day-of-week) or 6 fields with a leading seconds field. * (every), */n (step), a-b (range), a,b,c (list), names like MON or JAN, and the @hourly / @daily / @weekly / @monthly / @yearly shortcuts are all parsed."
+        },
+        {
+          "q": "Are the next-run times in my local timezone?",
+          "a": "Yes. Times are computed in your browser using the local Date object, so the schedule reflects the timezone of the device you're viewing the page on. Servers usually evaluate cron in UTC — keep that in mind when sanity-checking a production schedule."
+        },
+        {
+          "q": "What about L, W, and # (extended syntax)?",
+          "a": "L (last), W (nearest weekday) and # (nth-weekday of month) are best-effort. The expression still parses, but the human description and the next-runs list flag it as approximate so you don't trust the preview blindly."
+        },
+        {
+          "q": "Why does day-of-month and day-of-week behave oddly together?",
+          "a": "When both fields are constrained (neither is *), Vixie cron triggers when either matches (OR, not AND). The next-runs list follows that rule, so 0 0 1 * MON fires on every Monday and the 1st of the month."
+        },
+        {
+          "q": "Does any of this hit a server?",
+          "a": "No. Parsing, the human description, and the next-runs computation all run locally in your browser. The page is a single static HTML file."
+        }
+      ],
+      "maxWidth": "1100px"
+    },
+    {
       "slug": "waves",
       "name": "Wave Generator",
       "icon": "〰️",
