@@ -417,6 +417,55 @@ input[type="radio"] {
 input[type="checkbox"]:disabled,
 input[type="radio"]:disabled { cursor: not-allowed; opacity: 0.5; }
 
+/* ── Switch (toggle) — pill-shaped on/off control ────────────── */
+/* Markup:
+   <label class="switch">
+     <input type="checkbox">
+     <span>Label</span>
+   </label>
+   The checkbox itself is the track; appearance:none + a ::after thumb
+   give us the standard iOS-style switch. Inherits the accent color via
+   var(--accent), so the tweaks-panel swatch recolors it.            */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+.switch > input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 1rem;
+  border-radius: 9999px;
+  background: #374151;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  margin: 0;
+}
+.switch > input[type="checkbox"]::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: #fff;
+  transform: translateY(-50%);
+  transition: transform 0.15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.switch > input[type="checkbox"]:checked { background: var(--accent); }
+.switch > input[type="checkbox"]:checked::after { transform: translate(1rem, -50%); }
+.switch > input[type="checkbox"]:disabled { opacity: 0.5; cursor: not-allowed; }
+.switch:has(> input:disabled) { cursor: not-allowed; opacity: 0.6; }
+
 /* ── Pills (toggle / radio button feel) ──────────────────────── */
 .pill {
   display: inline-flex;

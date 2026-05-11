@@ -214,6 +214,7 @@
           <a href="#num-input">Number input</a>
           <a href="#select">Select</a>
           <a href="#checkbox-radio">Checkbox &amp; radio</a>
+          <a href="#switch">Switch</a>
           <a href="#range">Range slider</a>
           <a href="#color-picker">Color picker</a>
           <a href="#drop-zone">Drop zone</a>
@@ -476,6 +477,37 @@
   &lt;legend&gt;Output format&lt;/legend&gt;
   &lt;label&gt;&lt;input type="radio" name="fmt"&gt; Same as input&lt;/label&gt;
 &lt;/fieldset&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Switch -->
+        <section id="switch" class="ds-section">
+          <h2>Switch (toggle)</h2>
+          <p class="lead">Pill-shaped on/off switch for a single binary state — typically gating a section of the UI (e.g. "enable gradient", "show preview"). Use a <code class="text-gray-300">.switch</code> label wrapping a native <code class="text-gray-300">&lt;input type="checkbox"&gt;</code>; keyboard, screen-reader, and form-submit semantics come for free. Prefer a regular checkbox for multi-select option lists.</p>
+          <div class="space-y-2 my-3">
+            <label class="switch">
+              <input type="checkbox">
+              <span>Gradient fill</span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" checked>
+              <span>Show preview</span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" disabled>
+              <span>Disabled (off)</span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" checked disabled>
+              <span>Disabled (on)</span>
+            </label>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;label class="switch"&gt;
+  &lt;input type="checkbox"&gt;
+  &lt;span&gt;Gradient fill&lt;/span&gt;
+&lt;/label&gt;</pre>
           </div>
         </section>
 
