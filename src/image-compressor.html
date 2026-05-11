@@ -79,11 +79,11 @@
         <div class="min-w-0">
           <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2" for="filename-pattern">Filename pattern</label>
           <select id="filename-pattern" class="select w-full">
+            <option value="{name}.{ext}">{name}.{ext}</option>
             <option value="{name}-compressed.{ext}">{name}-compressed.{ext}</option>
             <option value="{name}-{w}x{h}.{ext}">{name}-{w}x{h}.{ext}</option>
-            <option value="{name}.{ext}">{name}.{ext}</option>
           </select>
-          <p class="text-[0.7rem] text-gray-600 mt-1.5"><code>{name}.{ext}</code> reuses the source filename — safe inside a zip; would overwrite siblings on single download.</p>
+          <p class="text-[0.7rem] text-gray-600 mt-1.5">Default <code>{name}.{ext}</code> reuses the source filename (overwrites on download if the source is in your Downloads folder).</p>
         </div>
       </div>
 
@@ -199,7 +199,7 @@
       tolerance: 0.05,
       strategy: 'same',          // 'same' | 'auto' | 'webp'
       resize: { enabled: false, longEdge: 2400 },
-      pattern: '{name}-compressed.{ext}',
+      pattern: '{name}.{ext}',
     };
 
     /** @type {Array<{id:string,file:File,name:string,srcMime:string,srcSize:number,srcW:number,srcH:number,srcUrl:string,dstBlob:Blob|null,dstUrl:string|null,dstW:number,dstH:number,dstFormat:string,dstName:string,finalQuality:number|null,iterations:number|null,hitTarget:boolean,error:string|null,encoding:boolean}>} */
