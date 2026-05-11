@@ -275,40 +275,6 @@
           <p class="text-[0.7rem] text-gray-600 leading-snug mt-1.5">Drawn in the badge color at low opacity, behind the text.</p>
         </div>
 
-        <!-- Logo -->
-        <div class="og-section">
-          <label class="og-section-label">Logo / icon (optional)</label>
-          <div id="logo-drop" class="drop-zone compact text-center" tabindex="0" role="button" aria-label="Drop logo here, or click to choose a file">
-            <div id="logo-empty" class="text-xs text-gray-400">
-              Drop PNG, SVG, or JPEG — or click
-            </div>
-            <div id="logo-loaded" class="hidden">
-              <div class="logo-tile">
-                <img id="logo-thumb" alt="">
-                <span id="logo-name" class="truncate" style="max-width:140px;">logo.png</span>
-                <button type="button" onclick="clearLogo()" title="Remove">✕</button>
-              </div>
-            </div>
-          </div>
-          <input id="logo-file" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="hidden">
-          <div class="toolbar mt-2">
-            <label class="flex items-center gap-1.5 text-xs text-gray-400">
-              Position
-              <select id="logo-pos" class="select">
-                <option value="tl">Top left</option>
-                <option value="tr" selected>Top right</option>
-                <option value="bl">Bottom left</option>
-                <option value="br">Bottom right</option>
-              </select>
-            </label>
-            <label class="flex items-center gap-1.5 text-xs text-gray-400">
-              Size
-              <input id="logo-size" type="range" class="range" min="40" max="160" value="96" style="width:80px;">
-              <span id="logo-size-val" class="text-gray-500 tabular-nums" style="min-width:2.5em;">96</span>
-            </label>
-          </div>
-        </div>
-
         <!-- Domain badge -->
         <div class="og-section">
           <label for="domain-input" class="og-section-label">Domain badge</label>
@@ -331,6 +297,42 @@
             <option value="system-ui, -apple-system, sans-serif">System sans-serif</option>
           </select>
         </div>
+
+        <!-- Logo (optional, collapsed by default) -->
+        <details class="disclosure mb-4" id="logo-disclosure">
+          <summary>🖼️ Logo / icon (optional)</summary>
+          <div class="disclosure-content"><div class="disclosure-body">
+            <div id="logo-drop" class="drop-zone compact text-center" tabindex="0" role="button" aria-label="Drop logo here, or click to choose a file">
+              <div id="logo-empty" class="text-xs text-gray-400">
+                Drop PNG, SVG, or JPEG — or click
+              </div>
+              <div id="logo-loaded" class="hidden">
+                <div class="logo-tile">
+                  <img id="logo-thumb" alt="">
+                  <span id="logo-name" class="truncate" style="max-width:140px;">logo.png</span>
+                  <button type="button" onclick="clearLogo()" title="Remove">✕</button>
+                </div>
+              </div>
+            </div>
+            <input id="logo-file" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="hidden">
+            <div class="toolbar mt-2">
+              <label class="flex items-center gap-1.5 text-xs text-gray-400">
+                Position
+                <select id="logo-pos" class="select">
+                  <option value="tl">Top left</option>
+                  <option value="tr" selected>Top right</option>
+                  <option value="bl">Bottom left</option>
+                  <option value="br">Bottom right</option>
+                </select>
+              </label>
+              <label class="flex items-center gap-1.5 text-xs text-gray-400">
+                Size
+                <input id="logo-size" type="range" class="range" min="40" max="160" value="96" style="width:80px;">
+                <span id="logo-size-val" class="text-gray-500 tabular-nums" style="min-width:2.5em;">96</span>
+              </label>
+            </div>
+          </div></div>
+        </details>
 
       </div>
 
