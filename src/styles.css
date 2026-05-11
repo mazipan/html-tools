@@ -2,10 +2,10 @@
 
 @theme {
   --font-sans: 'IBM Plex Mono', ui-monospace, monospace;
-  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
 }
 
-h1 { font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.02em; }
+h1 { font-family: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.02em; }
 
 /* JSON syntax colors */
 .json-key    { color: #c792ea; }

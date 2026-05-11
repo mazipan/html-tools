@@ -49,7 +49,7 @@ Common markup lives in `src/_partials/` and is inlined at build time via `postht
 
 - `meta-base.html` — charset, viewport, `google-site-verification`, author, theme-color, robots. Place at the top of `<head>`.
 - `meta-social.html` — `og:type`, `og:site_name`, `og:image*`, `twitter:card`, `twitter:image`. Place after the per-page Open Graph and Twitter title/description tags.
-- `head-fonts.html` — Google Fonts preconnects + the IBM Plex Mono / Space Grotesk stylesheet. Place before `styles.css`.
+- `head-fonts.html` — Google Fonts preconnects + the IBM Plex Mono / Bricolage Grotesque stylesheet. Place before `styles.css`.
 - `head-theme.html` — inline theme-init script. Place last in `<head>` so the `data-theme` attribute is set before the body renders.
 - `footer-script.html` — copyright/deploy-time init script. Place after `</footer>` (and before any tool-specific `<script>` blocks).
 
