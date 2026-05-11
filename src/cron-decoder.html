@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <include src="_partials/meta-base.html"></include>
+  <title>Cron Decoder — HTML Tools</title>
+  <meta name="description" content="Decode a cron expression into plain English with the next 10 run times, or build one field by field. Runs in your browser — no installs, no tracking.">
+  <link rel="canonical" href="https://tools.mazipan.space/cron-decoder">
+  <meta property="og:title" content="Cron Decoder — HTML Tools">
+  <meta property="og:description" content="Decode a cron expression into plain English with the next 10 run times, or build one field by field. Runs in your browser — no installs, no tracking.">
+  <meta property="og:url" content="https://tools.mazipan.space/cron-decoder">
+  <meta name="twitter:title" content="Cron Decoder — HTML Tools">
+  <meta name="twitter:description" content="Decode a cron expression into plain English with the next 10 run times, or build one field by field. Runs in your browser — no installs, no tracking.">
+  <include src="_partials/meta-social.html"></include>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-cron-decoder.png">
+  <include src="_partials/head-fonts.html"></include>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Cron expression display — fat monospace strip with per-field highlight. */
+    .cron-strip {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      border: 1px solid #374151;
+      border-radius: 0.5rem;
+      background: #111827;
+      overflow: hidden;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    }
+    .cron-strip .cf {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 0;
+      border-right: 1px solid #1f2937;
+      background: transparent;
+    }
+    .cron-strip .cf:last-child { border-right: none; }
+    .cron-strip .cf-label {
+      font-family: inherit;
+      font-size: 0.6rem;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.4rem 0.5rem 0.15rem;
+      text-align: center;
+    }
+    .cron-strip .cf-input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #e5e7eb;
+      font-family: inherit;
+      font-size: 1rem;
+      padding: 0.45rem 0.5rem 0.65rem;
+      text-align: center;
+      width: 100%;
+      min-width: 0;
+    }
+    .cron-strip .cf.invalid .cf-input { color: #fca5a5; }
+    .cron-strip .cf.invalid { background: color-mix(in srgb, #ef4444 8%, transparent); }
+    .cron-strip .cf:focus-within { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+
+    /* Decode-mode single input — same look as cron-strip but as one line */
+    .cron-single {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border: 1px solid #374151;
+      border-radius: 0.5rem;
+      background: #111827;
+      overflow: hidden;
+    }
+    .cron-single:focus-within { border-color: var(--accent-h); }
+    .cron-single input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #e5e7eb;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      padding: 0.7rem 0.9rem;
+      min-width: 0;
+    }
+    .cron-single button {
+      background: transparent;
+      border: none;
+      border-left: 1px solid #1f2937;
+      color: #9ca3af;
+      padding: 0 0.85rem;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.8rem;
+      align-self: stretch;
+    }
+    .cron-single button:hover { color: #f9fafb; background: #1f2937; }
+
+    /* Description "highlighted block" */
+    .cron-desc {
+      padding: 1rem 1.15rem;
+      border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+      background: color-mix(in srgb, var(--accent) 8%, transparent);
+      border-radius: 0.5rem;
+      color: #e5e7eb;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    .cron-desc .cron-tz {
+      display: block;
+      margin-top: 0.4rem;
+      font-size: 0.7rem;
+      color: #9ca3af;
+    }
+
+    /* Run-times list */
+    .run-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .run-list li {
+      display: grid;
+      grid-template-columns: 2rem 1fr auto;
+      gap: 0.6rem;
+      align-items: baseline;
+      padding: 0.5rem 0.25rem;
+      border-bottom: 1px solid #1f2937;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 0.8rem;
+    }
+    .run-list li:last-child { border-bottom: none; }
+    .run-list .run-num { color: #6b7280; font-size: 0.7rem; text-align: right; }
+    .run-list .run-when { color: #e5e7eb; }
+    .run-list .run-rel { color: #9ca3af; font-size: 0.7rem; text-align: right; }
+
+    /* Field-explainer card (Build mode) */
+    .field-card {
+      border: 1px solid #1f2937;
+      border-radius: 0.5rem;
+      padding: 0.7rem 0.85rem;
+      background: #0b1220;
+    }
+    .field-card .fc-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      margin-bottom: 0.45rem;
+    }
+    .field-card .fc-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .field-card .fc-range { font-size: 0.65rem; color: #6b7280; font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+    .field-card input.fc-input {
+      width: 100%;
+      background: #111827;
+      border: 1px solid #374151;
+      color: #e5e7eb;
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.12s;
+    }
+    .field-card input.fc-input:focus { border-color: var(--accent-h); }
+    .field-card.invalid input.fc-input { border-color: #ef4444; color: #fca5a5; }
+    .field-card .fc-chips {
+      margin-top: 0.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+    }
+    .field-card .fc-chip {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 0.68rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      border: 1px solid #374151;
+      background: #111827;
+      color: #9ca3af;
+      cursor: pointer;
+      transition: background-color 0.12s, color 0.12s, border-color 0.12s;
+    }
+    .field-card .fc-chip:hover { color: #f9fafb; border-color: #4b5563; }
+    .field-card .fc-desc {
+      margin-top: 0.45rem;
+      font-size: 0.7rem;
+      color: #9ca3af;
+      min-height: 1em;
+    }
+    .field-card.invalid .fc-desc { color: #fca5a5; }
+  </style>
+  <include src="_partials/head-theme.html"></include>
+  <!-- BEGIN:json-ld generated by scripts/generate-sections.mjs — re-run after editing tools.json -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Cron Decoder","url":"https://tools.mazipan.space/cron-decoder","description":"Decode a cron expression into plain English with the next 10 run times, or build one field by field. Runs in your browser — no installs, no tracking.","applicationCategory":"DeveloperApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"isPartOf":{"@type":"WebSite","name":"HTML Tools","url":"https://tools.mazipan.space/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"HTML Tools","item":"https://tools.mazipan.space/"},{"@type":"ListItem","position":2,"name":"Cron Decoder","item":"https://tools.mazipan.space/cron-decoder"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Which cron syntax does this support?","acceptedAnswer":{"@type":"Answer","text":"Standard Vixie / Unix cron: 5 fields (minute, hour, day-of-month, month, day-of-week) or 6 fields with a leading seconds field. * (every), */n (step), a-b (range), a,b,c (list), names like MON or JAN, and the @hourly / @daily / @weekly / @monthly / @yearly shortcuts are all parsed."}},{"@type":"Question","name":"Are the next-run times in my local timezone?","acceptedAnswer":{"@type":"Answer","text":"Yes. Times are computed in your browser using the local Date object, so the schedule reflects the timezone of the device you're viewing the page on. Servers usually evaluate cron in UTC — keep that in mind when sanity-checking a production schedule."}},{"@type":"Question","name":"What about L, W, and # (extended syntax)?","acceptedAnswer":{"@type":"Answer","text":"L (last), W (nearest weekday) and # (nth-weekday of month) are best-effort. The expression still parses, but the human description and the next-runs list flag it as approximate so you don't trust the preview blindly."}},{"@type":"Question","name":"Why does day-of-month and day-of-week behave oddly together?","acceptedAnswer":{"@type":"Answer","text":"When both fields are constrained (neither is *), Vixie cron triggers when either matches (OR, not AND). The next-runs list follows that rule, so 0 0 1 * MON fires on every Monday and the 1st of the month."}},{"@type":"Question","name":"Does any of this hit a server?","acceptedAnswer":{"@type":"Answer","text":"No. Parsing, the human description, and the next-runs computation all run locally in your browser. The page is a single static HTML file."}}]}</script>
+  <!-- END:json-ld -->
+
+</head>
+<body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+
+  <header class="border-b border-gray-800 px-6 py-4">
+    <nav aria-label="Breadcrumb" class="max-w-[1100px] mx-auto flex items-center gap-3">
+      <a href="index.html" class="no-underline text-white font-bold text-lg tracking-tight hover:text-blue-400 transition-colors">HTML Tools</a>
+      <span class="text-gray-700">/</span>
+      <span class="text-gray-400 text-sm flex items-center gap-1.5" aria-current="page">⏱️ Cron Decoder</span>
+    </nav>
+  </header>
+
+  <main class="max-w-[1100px] mx-auto w-full flex-1 py-8 px-6">
+
+    <header class="mb-7">
+      <h1 class="text-3xl font-bold text-white flex items-center gap-3">⏱️ Cron Expression Decoder + Builder</h1>
+      <p class="mt-1.5 text-sm text-gray-500">Paste any cron expression to get a human-readable description and the next 10 run times, or build one field by field.</p>
+    </header>
+
+    <!-- Mode tabs -->
+    <div class="flex gap-1 mb-5 border-b border-gray-800">
+      <button id="tab-decode" class="tab-btn tab-btn-active" onclick="setMode('decode')">🔎 Decode</button>
+      <button id="tab-build" class="tab-btn" onclick="setMode('build')">🧱 Build</button>
+    </div>
+
+    <!-- Common presets -->
+    <div class="flex flex-wrap items-center gap-1.5 mb-4">
+      <span class="text-xs text-gray-500 mr-1">Presets:</span>
+      <button class="chip" data-preset="@hourly"  onclick="loadPreset('@hourly')">⏰ @hourly</button>
+      <button class="chip" data-preset="@daily"   onclick="loadPreset('@daily')">📅 @daily</button>
+      <button class="chip" data-preset="@weekly"  onclick="loadPreset('@weekly')">🗓️ @weekly</button>
+      <button class="chip" data-preset="@monthly" onclick="loadPreset('@monthly')">📆 @monthly</button>
+      <button class="chip" data-preset="@yearly"  onclick="loadPreset('@yearly')">🎉 @yearly</button>
+      <span class="w-px h-4 bg-gray-700 mx-1"></span>
+      <button class="chip" data-preset="0 9 * * 1-5" onclick="loadPreset('0 9 * * 1-5')">💼 Weekdays 9 AM</button>
+      <button class="chip" data-preset="*/5 * * * *" onclick="loadPreset('*/5 * * * *')">⏲️ Every 5 min</button>
+      <button class="chip" data-preset="0 0 * * 0"   onclick="loadPreset('0 0 * * 0')">🌙 Sun midnight</button>
+      <button class="chip" data-preset="0 */6 * * *" onclick="loadPreset('0 */6 * * *')">⏳ Every 6 h</button>
+    </div>
+
+    <!-- ── Decode mode ──────────────────────────────────────────── -->
+    <section id="panel-decode" class="mb-6">
+      <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Cron expression</label>
+      <div class="cron-single mb-2">
+        <input id="decode-input" type="text" placeholder="e.g. 0 9 * * 1-5  or  @daily  or  0 */15 * * * *"
+               spellcheck="false" autocomplete="off" autocapitalize="off">
+        <button onclick="copyExpr()" title="Copy expression">📋 Copy</button>
+        <button onclick="clearDecode()" title="Clear">🗑️</button>
+      </div>
+      <p class="text-[0.7rem] text-gray-600 leading-snug">
+        Supports 5-field (<code>min hour DOM mon DOW</code>) and 6-field (<code>sec min hour DOM mon DOW</code>) expressions, the <code>@</code> shortcuts, and step / range / list / name forms.
+      </p>
+    </section>
+
+    <!-- ── Build mode ───────────────────────────────────────────── -->
+    <section id="panel-build" class="mb-6 hidden">
+      <div class="flex items-center justify-between mb-2">
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fields</label>
+        <label class="switch text-xs">
+          <input type="checkbox" id="build-seconds" onchange="rebuildBuilder()">
+          <span>Include seconds (6-field)</span>
+        </label>
+      </div>
+      <div id="build-grid" class="grid gap-2.5 mb-3 grid-cols-5 max-md:grid-cols-2"></div>
+
+      <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Assembled expression</label>
+      <div class="cron-single">
+        <input id="build-output" type="text" readonly>
+        <button onclick="copyExpr()" title="Copy expression">📋 Copy</button>
+      </div>
+    </section>
+
+    <!-- Error / warn bars -->
+    <div id="cron-error" class="error-bar mb-4 hidden"></div>
+    <div id="cron-warn"  class="warn-bar mb-4 hidden"></div>
+
+    <!-- Results -->
+    <div id="results" class="hidden">
+      <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Human description</h2>
+      <div id="desc-box" class="cron-desc mb-6"></div>
+
+      <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Next 10 runs <span id="tz-label" class="text-gray-600 normal-case font-normal"></span></h2>
+      <ol id="run-list" class="run-list mb-6"></ol>
+    </div>
+
+    <!-- Cheat sheet -->
+    <details class="disclosure mt-2">
+      <summary>📖 Cron cheat sheet</summary>
+      <div class="disclosure-content"><div class="disclosure-body">
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Field layout</h3>
+            <table class="cheat-table">
+              <tbody>
+                <tr><td>*</td><td>any value</td></tr>
+                <tr><td>*/n</td><td>step — every n units</td></tr>
+                <tr><td>a-b</td><td>range — a to b inclusive</td></tr>
+                <tr><td>a,b,c</td><td>list of specific values</td></tr>
+                <tr><td>a-b/n</td><td>range with step</td></tr>
+                <tr><td>L</td><td>last day (DOM/DOW) — approximate</td></tr>
+                <tr><td>W</td><td>nearest weekday — approximate</td></tr>
+                <tr><td>5#2</td><td>2nd Friday — approximate</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">@ shortcuts</h3>
+            <table class="cheat-table">
+              <tbody>
+                <tr><td>@hourly</td><td>0 * * * *</td></tr>
+                <tr><td>@daily / @midnight</td><td>0 0 * * *</td></tr>
+                <tr><td>@weekly</td><td>0 0 * * 0</td></tr>
+                <tr><td>@monthly</td><td>0 0 1 * *</td></tr>
+                <tr><td>@yearly / @annually</td><td>0 0 1 1 *</td></tr>
+                <tr><td>@reboot</td><td>run at startup (not schedulable)</td></tr>
+              </tbody>
+            </table>
+            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mt-4 mb-2">Field order</h3>
+            <table class="cheat-table">
+              <tbody>
+                <tr><td>5-field</td><td>min hour DOM month DOW</td></tr>
+                <tr><td>6-field</td><td>sec min hour DOM month DOW</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div></div>
+    </details>
+
+    <section class="mt-12 grid gap-6 md:grid-cols-2">
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">About the Cron Decoder</h2>
+        <p class="text-gray-400 leading-relaxed">Paste any cron expression and get a plain-English description plus the next ten times it will fire, computed locally in your browser. Or use the builder to assemble one field by field, with live feedback as you type.</p>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">How to use</h2>
+        <ol class="text-gray-400 leading-relaxed space-y-2 list-decimal list-inside">
+          <li>Pick a preset chip — or switch to <strong class="text-gray-300">Build</strong> and edit each field.</li>
+          <li>Read the description to sanity-check what the expression really means.</li>
+          <li>Scan the next-runs list to confirm the schedule matches your intent.</li>
+          <li>Copy the assembled expression and paste it into your crontab / scheduler.</li>
+        </ol>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">Common use cases</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Sanity-checking a crontab line before deploying it.</li>
+          <li>Translating a teammate's cron into English in a code review.</li>
+          <li>Building a new schedule and previewing the next few runs.</li>
+          <li>Catching an off-by-one mistake (every other minute vs every 2 minutes).</li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">Tips</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Next-run times use your <em>local</em> timezone. Most servers run cron in UTC.</li>
+          <li>When day-of-month and day-of-week are both specified, Vixie cron triggers when <em>either</em> matches.</li>
+          <li>Day-of-week accepts <code>0</code> or <code>7</code> for Sunday — both are normalized to Sunday.</li>
+          <li>Extended syntax (<code>L</code>, <code>W</code>, <code>#</code>) parses but the preview is marked approximate — verify against your scheduler's docs.</li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // ── Constants ──────────────────────────────────────────────
+    const MONTH_NAMES = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const DOW_NAMES   = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+    const MONTH_FULL  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const DOW_FULL    = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+    // Field schemas — order matters; 5-field starts at index 1, 6-field at index 0.
+    const FIELDS = [
+      { key: 'sec',   label: 'Second',       min: 0, max: 59, range: '0-59' },
+      { key: 'min',   label: 'Minute',       min: 0, max: 59, range: '0-59' },
+      { key: 'hour',  label: 'Hour',         min: 0, max: 23, range: '0-23' },
+      { key: 'dom',   label: 'Day of month', min: 1, max: 31, range: '1-31' },
+      { key: 'month', label: 'Month',        min: 1, max: 12, range: '1-12', names: MONTH_NAMES },
+      { key: 'dow',   label: 'Day of week',  min: 0, max: 6,  range: '0-6 (Sun-Sat)', names: DOW_NAMES }
+    ];
+
+    const PRESET_EXPAND = {
+      '@yearly':   '0 0 1 1 *',
+      '@annually': '0 0 1 1 *',
+      '@monthly':  '0 0 1 * *',
+      '@weekly':   '0 0 * * 0',
+      '@daily':    '0 0 * * *',
+      '@midnight': '0 0 * * *',
+      '@hourly':   '0 * * * *'
+    };
+
+    // ── State ──────────────────────────────────────────────────
+    let mode = 'decode';
+    let lastExpr = '';
+
+    // ── Cron parser ────────────────────────────────────────────
+    // Returns: { fields: [{type, values, raw, approximate, error}], hasSeconds, approximate, reboot, error }
+    function parseCron(raw) {
+      if (!raw || !raw.trim()) return { error: 'empty', fields: [], hasSeconds: false };
+      const trimmed = raw.trim();
+
+      // @ shortcuts
+      if (trimmed.startsWith('@')) {
+        const tag = trimmed.toLowerCase();
+        if (tag === '@reboot') {
+          return { reboot: true, fields: [], hasSeconds: false };
+        }
+        const expanded = PRESET_EXPAND[tag];
+        if (!expanded) return { error: `Unknown @ shortcut "${trimmed}".`, fields: [], hasSeconds: false };
+        return parseCron(expanded);
+      }
+
+      const parts = trimmed.split(/\s+/);
+      if (parts.length !== 5 && parts.length !== 6) {
+        return { error: `Expected 5 or 6 fields, got ${parts.length}.`, fields: [], hasSeconds: false };
+      }
+      const hasSeconds = parts.length === 6;
+      const offset = hasSeconds ? 0 : 1;  // index into FIELDS
+
+      const fields = [];
+      let approximate = false;
+      let firstErr = null;
+      for (let i = 0; i < parts.length; i++) {
+        const schema = FIELDS[i + offset];
+        const parsed = parseField(parts[i], schema);
+        fields.push(parsed);
+        if (parsed.approximate) approximate = true;
+        if (parsed.error && !firstErr) firstErr = `${schema.label}: ${parsed.error}`;
+      }
+      return { fields, hasSeconds, approximate, error: firstErr };
+    }
+
+    // Parse a single field token into { type, values, raw, error?, approximate? }.
+    function parseField(token, schema) {
+      const tok = token.trim();
+      const result = { raw: tok, type: null, values: null, approximate: false };
+
+      // Extended syntax: L, W, #
+      // Examples: L (last DOM), 15W (nearest weekday to 15th), 5L (last Friday), 5#2 (2nd Friday)
+      if (/[LW#]/i.test(tok)) {
+        result.type = 'extended';
+        result.values = new Set();
+        if (schema.key === 'dom') {
+          if (/^L$/i.test(tok)) {
+            // Proper last-day-of-month handling; nextRuns checks the isLastDay flag.
+            result.isLastDay = true;
+            // Populate values with the possible last-day numbers so nextRuns doesn't reject all days.
+            for (const v of [28, 29, 30, 31]) result.values.add(v);
+            // Precise, not approximate.
+          } else {
+            // 15W and similar — approximate, allow all days.
+            result.approximate = true;
+            for (let v = schema.min; v <= schema.max; v++) result.values.add(v);
+          }
+        } else if (schema.key === 'dow') {
+          result.approximate = true;
+          // 5L → last Friday. Allow that weekday.
+          const m = tok.match(/^(\d|[A-Za-z]{3})L$/);
+          if (m) {
+            const v = resolveName(m[1], schema);
+            if (v !== null) result.values.add(v);
+            else { result.error = `bad "${tok}"`; return result; }
+          } else if (/^L$/i.test(tok)) {
+            result.values.add(6); // approximate "last weekday" = Saturday
+          } else {
+            // 5#2 — every Friday (approximate)
+            const m2 = tok.match(/^(\d|[A-Za-z]{3})#([1-5])$/);
+            if (m2) {
+              const v = resolveName(m2[1], schema);
+              if (v !== null) result.values.add(v);
+              else { result.error = `bad "${tok}"`; return result; }
+            } else {
+              result.error = `unsupported extended syntax "${tok}"`;
+              return result;
+            }
+          }
+        } else {
+          result.error = `extended syntax not allowed here`;
+          return result;
+        }
+        return result;
+      }
+
+      // Simple "*"
+      if (tok === '*') {
+        result.type = 'all';
+        result.values = new Set();
+        for (let v = schema.min; v <= schema.max; v++) result.values.add(v);
+        return result;
+      }
+
+      // Could be a comma list of segments; each segment can be value, range, step, or *step.
+      const segments = tok.split(',');
+      const values = new Set();
+      for (const seg of segments) {
+        const r = parseSegment(seg, schema);
+        if (r.error) { result.error = r.error; return result; }
+        for (const v of r.values) values.add(v);
+      }
+      result.type = 'set';
+      result.values = values;
+      return result;
+    }
+
+    function parseSegment(seg, schema) {
+      const out = { values: [] };
+      let body = seg, step = 1;
+
+      const slashIdx = seg.indexOf('/');
+      if (slashIdx !== -1) {
+        body = seg.slice(0, slashIdx);
+        const stepStr = seg.slice(slashIdx + 1);
+        const stepN = parseInt(stepStr, 10);
+        if (!Number.isFinite(stepN) || stepN < 1) return { error: `bad step "/${stepStr}"` };
+        step = stepN;
+      }
+
+      let start, end;
+      if (body === '*' || body === '') {
+        start = schema.min;
+        end = schema.max;
+      } else if (body.includes('-')) {
+        const [a, b] = body.split('-');
+        start = resolveName(a, schema);
+        end   = resolveName(b, schema);
+        if (start === null || end === null) return { error: `bad range "${body}"` };
+      } else {
+        const v = resolveName(body, schema);
+        if (v === null) return { error: `bad value "${body}"` };
+        // A single value with /step expands to a range from value→max
+        if (slashIdx !== -1) { start = v; end = schema.max; }
+        else                 { start = v; end = v; }
+      }
+
+      if (start > end) return { error: `range ${start}-${end} reversed` };
+      if (start < schema.min || end > schema.max) {
+        return { error: `${start}-${end} out of range ${schema.min}-${schema.max}` };
+      }
+      for (let v = start; v <= end; v += step) out.values.push(v);
+      return out;
+    }
+
+    function resolveName(s, schema) {
+      const trimmed = String(s).trim();
+      const n = parseInt(trimmed, 10);
+      if (Number.isFinite(n) && /^-?\d+$/.test(trimmed)) {
+        // Day-of-week accepts 7 as Sunday
+        if (schema.key === 'dow' && n === 7) return 0;
+        if (n < schema.min || n > schema.max) return null;
+        return n;
+      }
+      if (schema.names) {
+        const idx = schema.names.indexOf(trimmed.toUpperCase());
+        if (idx >= 0) return idx + schema.min;
+      }
+      return null;
+    }
+
+    // ── Human description ──────────────────────────────────────
+    function describe(parsed) {
+      if (parsed.reboot) return 'Runs once at system reboot — not schedulable in the browser preview.';
+      if (parsed.error) return null;
+
+      const idx = parsed.hasSeconds
+        ? { sec: 0, min: 1, hour: 2, dom: 3, month: 4, dow: 5 }
+        : { sec: -1, min: 0, hour: 1, dom: 2, month: 3, dow: 4 };
+
+      const f = key => parsed.fields[idx[key]];
+      const sec   = idx.sec >= 0 ? f('sec') : null;
+      const min   = f('min');
+      const hour  = f('hour');
+      const dom   = f('dom');
+      const month = f('month');
+      const dow   = f('dow');
+
+      const isAll  = (fld, schema) => fld && fld.type === 'all';
+      const isOne  = fld => fld && fld.values && fld.values.size === 1;
+      const onlyVal= fld => [...fld.values][0];
+
+      // Time-of-day phrase.
+      let timePhrase;
+      if (sec) {
+        if (isAll(sec) && isAll(min) && isAll(hour)) timePhrase = 'every second';
+        else if (isStep(sec) && isAll(min) && isAll(hour)) timePhrase = `every ${stepOf(sec)} seconds`;
+        else if (isOne(sec) && isAll(min) && isAll(hour)) timePhrase = onlyVal(sec) === 0 ? 'at the top of every minute' : `at second ${onlyVal(sec)} of every minute`;
+        else if (isOne(sec) && isOne(min) && isOne(hour)) timePhrase = `at ${pad(onlyVal(hour))}:${pad(onlyVal(min))}:${pad(onlyVal(sec))}`;
+        else if (isOne(sec) && isOne(min) && isAll(hour)) timePhrase = `at ${pad(onlyVal(min))}:${pad(onlyVal(sec))} of every hour`;
+        else timePhrase = `at second ${listPhrase(sec, FIELDS[0])} of ${describeMinuteHour(min, hour)}`;
+      } else {
+        timePhrase = describeMinuteHour(min, hour);
+      }
+
+      // Date constraints
+      const parts = [timePhrase];
+      const monthOn = !isAll(month);
+      const dowOn   = !isAll(dow);
+      const domOn   = !isAll(dom);
+
+      if (domOn && dowOn) {
+        // Vixie OR semantics
+        parts.push(`on ${listPhraseDOM(dom)}`);
+        parts.push(`or ${listPhraseDOW(dow)}`);
+      } else if (domOn) {
+        parts.push(`on ${listPhraseDOM(dom)}`);
+      } else if (dowOn) {
+        parts.push(`on ${listPhraseDOW(dow)}`);
+      }
+
+      if (monthOn) parts.push(`in ${listPhraseMonth(month)}`);
+
+      // Extended-syntax note
+      let str = parts.join(', ');
+      str = capitalize(str);
+      return str;
+    }
+
+    function describeMinuteHour(min, hour) {
+      const isAll = fld => fld.type === 'all';
+      const isOne = fld => fld.values.size === 1;
+      const only  = fld => [...fld.values][0];
+
+      // Step on minute → "every N minutes"
+      if (isStep(min) && isAll(hour)) {
+        const step = stepOf(min);
+        return step === 1 ? 'every minute' : `every ${step} minutes`;
+      }
+      // Step on hour at minute=0 → "every N hours, on the hour"
+      if (isOne(min) && only(min) === 0 && isStep(hour)) {
+        return `every ${stepOf(hour)} hours, on the hour`;
+      }
+      if (isStep(hour) && isAll(min)) {
+        const step = stepOf(hour);
+        return step === 1 ? 'every hour' : `every ${step} hours, on the hour`;
+      }
+      if (isAll(min) && isAll(hour)) return 'every minute';
+      if (isAll(min) && isOne(hour)) return `every minute past hour ${only(hour)}`;
+      if (isOne(min) && isAll(hour)) return only(min) === 0 ? 'at the top of every hour' : `at minute ${only(min)} of every hour`;
+      if (isOne(min) && isOne(hour)) return `at ${pad(only(hour))}:${pad(only(min))}`;
+
+      // Specific minutes within specific hours
+      if (isOne(hour)) return `at ${listPhrase(min, FIELDS[1])} past hour ${only(hour)}`;
+      if (isOne(min))  return `at minute ${only(min)} of ${listPhrase(hour, FIELDS[2])}`;
+
+      // Step-in-range fallback
+      if (isStep(min)) {
+        const step = stepOf(min);
+        return `every ${step === 1 ? '' : step + ' '}minute${step === 1 ? '' : 's'} of ${listPhrase(hour, FIELDS[2])}`;
+      }
+
+      return `at ${listPhrase(min, FIELDS[1])} of ${listPhrase(hour, FIELDS[2])}`;
+    }
+
+    // True if values look like a consistent arithmetic progression covering the whole range.
+    function isStep(fld) {
+      if (fld.type !== 'set' && fld.type !== 'all') return false;
+      const vals = [...fld.values].sort((a, b) => a - b);
+      if (vals.length < 2) return false;
+      // Detect arithmetic progression starting from min.
+      const step = vals[1] - vals[0];
+      if (step <= 1) return false;
+      for (let i = 1; i < vals.length; i++) {
+        if (vals[i] - vals[i - 1] !== step) return false;
+      }
+      return true;
+    }
+    function stepOf(fld) {
+      const vals = [...fld.values].sort((a, b) => a - b);
+      return vals[1] - vals[0];
+    }
+
+    function listPhrase(fld, schema) {
+      if (fld.type === 'all') return 'every ' + schema.label.toLowerCase();
+      const vals = [...fld.values].sort((a, b) => a - b);
+      if (vals.length === 1) return String(vals[0]);
+      if (vals.length === 2) return `${vals[0]} and ${vals[1]}`;
+      // Contiguous range?
+      const min = vals[0], max = vals[vals.length - 1];
+      if (vals.length === max - min + 1) return `${min} through ${max}`;
+      return vals.join(', ');
+    }
+
+    function listPhraseDOM(fld) {
+      if (fld.isLastDay) return 'the last day of the month';
+      if (fld.approximate && fld.type === 'extended') return 'a day with extended syntax (approximate)';
+      const vals = [...fld.values].sort((a, b) => a - b);
+      if (vals.length === 1) return `the ${ordinal(vals[0])}`;
+      if (vals.length === 2) return `the ${ordinal(vals[0])} and ${ordinal(vals[1])}`;
+      const min = vals[0], max = vals[vals.length - 1];
+      if (vals.length === max - min + 1) return `the ${ordinal(min)} through the ${ordinal(max)}`;
+      return 'day ' + vals.join(', ');
+    }
+
+    function listPhraseDOW(fld) {
+      if (fld.approximate) return 'the matching weekday (approximate)';
+      const vals = [...fld.values].sort((a, b) => a - b);
+      if (vals.length === 7) return 'any day of the week';
+      if (vals.length === 1) return `every ${DOW_FULL[vals[0]]}`;
+      // Mon-Fri?
+      if (vals.length === 5 && vals[0] === 1 && vals[4] === 5) return 'every weekday';
+      // Sat-Sun?
+      if (vals.length === 2 && vals[0] === 0 && vals[1] === 6) return 'every weekend day';
+      const min = vals[0], max = vals[vals.length - 1];
+      if (vals.length === max - min + 1) {
+        return `every ${DOW_FULL[min]} through ${DOW_FULL[max]}`;
+      }
+      return 'every ' + vals.map(v => DOW_FULL[v]).join(', ');
+    }
+
+    function listPhraseMonth(fld) {
+      const vals = [...fld.values].sort((a, b) => a - b);
+      if (vals.length === 12) return 'every month';
+      if (vals.length === 1) return MONTH_FULL[vals[0] - 1];
+      const min = vals[0], max = vals[vals.length - 1];
+      if (vals.length === max - min + 1) return `${MONTH_FULL[min - 1]} through ${MONTH_FULL[max - 1]}`;
+      return vals.map(v => MONTH_FULL[v - 1]).join(', ');
+    }
+
+    function ordinal(n) {
+      const s = ['th','st','nd','rd'], v = n % 100;
+      return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    }
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+    // ── Next run-times ─────────────────────────────────────────
+    function nextRuns(parsed, n = 10, fromDate = new Date()) {
+      if (parsed.error || parsed.reboot) return [];
+
+      const idx = parsed.hasSeconds
+        ? { sec: 0, min: 1, hour: 2, dom: 3, month: 4, dow: 5 }
+        : { sec: -1, min: 0, hour: 1, dom: 2, month: 3, dow: 4 };
+      const f = key => parsed.fields[idx[key]];
+
+      const secs  = idx.sec >= 0 ? f('sec').values : new Set([0]);
+      const mins  = f('min').values;
+      const hours = f('hour').values;
+      const doms  = f('dom').values;
+      const months= f('month').values;
+      const dows  = f('dow').values;
+      const domLastDay = !!f('dom').isLastDay;
+
+      // Vixie OR semantics for DOM/DOW when both restricted.
+      const domAll = f('dom').type === 'all';
+      const dowAll = f('dow').type === 'all';
+      const restrictBoth = !domAll && !dowAll;
+      const daysInMonth = (y, m) => new Date(y, m, 0).getDate();
+
+      const runs = [];
+      const step = idx.sec >= 0 ? 1 : 60; // seconds per tick
+      // Cap iterations to avoid hangs. With second-granularity: 60s * 60m * 24h * 366d * 5y ≈ 158M — too many.
+      // We instead cap at a wall-clock window of 5 years.
+      const startMs = fromDate.getTime() + step * 1000;
+      const endMs = startMs + 5 * 365 * 24 * 60 * 60 * 1000;
+
+      // Start aligned to the next tick boundary.
+      const start = new Date(startMs);
+      if (idx.sec >= 0) {
+        start.setMilliseconds(0);
+      } else {
+        start.setSeconds(0, 0);
+      }
+
+      let cursor = new Date(start);
+      let iterations = 0;
+      const MAX_ITER = 200_000;
+
+      while (cursor.getTime() < endMs && iterations < MAX_ITER && runs.length < n) {
+        iterations++;
+        const cy = cursor.getFullYear();
+        const cmo = cursor.getMonth() + 1;       // 1-12
+        const cd = cursor.getDate();              // 1-31
+        const ch = cursor.getHours();
+        const cmi = cursor.getMinutes();
+        const cs = cursor.getSeconds();
+        const cdow = cursor.getDay();             // 0-6
+
+        // Month mismatch — skip to first of next valid month.
+        if (!months.has(cmo)) {
+          const nextMonth = nextValueInSet(cmo, months, 1, 12);
+          if (nextMonth === null) break;
+          const yearAdvance = nextMonth <= cmo ? 1 : 0;
+          cursor = new Date(cy + yearAdvance, nextMonth - 1, 1, 0, 0, 0, 0);
+          continue;
+        }
+
+        // Day match (with OR semantics).
+        const domMatch = domLastDay ? (cd === daysInMonth(cy, cmo)) : doms.has(cd);
+        const dowMatch = dows.has(cdow);
+        const dayOk = restrictBoth ? (domMatch || dowMatch) : (domMatch && dowMatch);
+        if (!dayOk) {
+          // Advance to start of next day.
+          cursor = new Date(cy, cmo - 1, cd + 1, 0, 0, 0, 0);
+          continue;
+        }
+
+        if (!hours.has(ch)) {
+          const nextH = nextValueInSet(ch, hours, 0, 23);
+          if (nextH === null || nextH <= ch) {
+            cursor = new Date(cy, cmo - 1, cd + 1, 0, 0, 0, 0);
+            continue;
+          }
+          cursor = new Date(cy, cmo - 1, cd, nextH, 0, 0, 0);
+          continue;
+        }
+
+        if (!mins.has(cmi)) {
+          const nextM = nextValueInSet(cmi, mins, 0, 59);
+          if (nextM === null || nextM <= cmi) {
+            cursor = new Date(cy, cmo - 1, cd, ch + 1, 0, 0, 0);
+            continue;
+          }
+          cursor = new Date(cy, cmo - 1, cd, ch, nextM, 0, 0);
+          continue;
+        }
+
+        if (idx.sec >= 0 && !secs.has(cs)) {
+          const nextS = nextValueInSet(cs, secs, 0, 59);
+          if (nextS === null || nextS <= cs) {
+            cursor = new Date(cy, cmo - 1, cd, ch, cmi + 1, 0, 0);
+            continue;
+          }
+          cursor = new Date(cy, cmo - 1, cd, ch, cmi, nextS, 0);
+          continue;
+        }
+
+        // All fields match — record and advance one tick.
+        runs.push(new Date(cursor));
+        if (idx.sec >= 0) cursor = new Date(cursor.getTime() + 1000);
+        else              cursor = new Date(cursor.getTime() + 60 * 1000);
+      }
+
+      return runs;
+    }
+
+    // Smallest value in `set` that is >= `current`, or null if none.
+    function nextValueInSet(current, set, min, max) {
+      let best = null;
+      for (const v of set) {
+        if (v >= current && (best === null || v < best)) best = v;
+      }
+      if (best !== null) return best;
+      // Wrap to smallest overall (caller decides whether to advance the outer unit).
+      let smallest = null;
+      for (const v of set) {
+        if (smallest === null || v < smallest) smallest = v;
+      }
+      return smallest;
+    }
+
+    // ── Formatting ─────────────────────────────────────────────
+    function formatRun(d, hasSeconds) {
+      const opts = {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      };
+      if (hasSeconds) opts.second = '2-digit';
+      return d.toLocaleString(undefined, opts);
+    }
+    function relativeFrom(d, ref) {
+      const diff = d.getTime() - ref.getTime();
+      if (diff < 0) return '';
+      const sec = Math.round(diff / 1000);
+      if (sec < 60)  return `in ${sec}s`;
+      const min = Math.round(sec / 60);
+      if (min < 60)  return `in ${min}m`;
+      const hr = Math.round(min / 60);
+      if (hr  < 24)  return `in ${hr}h`;
+      const day = Math.round(hr / 24);
+      if (day < 30)  return `in ${day}d`;
+      const mo = Math.round(day / 30);
+      if (mo  < 12)  return `in ${mo}mo`;
+      return `in ${Math.round(mo / 12)}y`;
+    }
+
+    // ── DOM wiring ─────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+
+    function setMode(m) {
+      mode = m;
+      $('tab-decode').classList.toggle('tab-btn-active', m === 'decode');
+      $('tab-build').classList.toggle('tab-btn-active', m === 'build');
+      $('panel-decode').classList.toggle('hidden', m !== 'decode');
+      $('panel-build').classList.toggle('hidden', m !== 'build');
+      run();
+    }
+
+    function loadPreset(preset) {
+      if (mode === 'build') setMode('decode');
+      document.querySelectorAll('.chip[data-preset]').forEach(el => {
+        el.classList.toggle('on', el.dataset.preset === preset);
+      });
+      $('decode-input').value = preset;
+      run();
+    }
+
+    function clearDecode() {
+      $('decode-input').value = '';
+      document.querySelectorAll('.chip[data-preset]').forEach(el => el.classList.remove('on'));
+      run();
+    }
+
+    function copyExpr() {
+      if (!lastExpr) return;
+      navigator.clipboard.writeText(lastExpr).then(() => flashCopied());
+    }
+    function flashCopied() {
+      const banner = document.createElement('div');
+      banner.textContent = 'Copied!';
+      banner.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1f2937;color:#f9fafb;padding:0.5rem 1rem;border-radius:6px;font-size:0.8rem;z-index:9999;border:1px solid var(--accent-h);';
+      document.body.appendChild(banner);
+      setTimeout(() => banner.remove(), 1200);
+    }
+
+    // ── Builder UI ─────────────────────────────────────────────
+    // The builder is rebuilt from scratch when seconds toggle changes.
+    function rebuildBuilder() {
+      const grid = $('build-grid');
+      const hasSeconds = $('build-seconds').checked;
+      grid.classList.toggle('grid-cols-5', !hasSeconds);
+      grid.classList.toggle('grid-cols-6', hasSeconds);
+      grid.innerHTML = '';
+      const fieldsForMode = hasSeconds ? FIELDS : FIELDS.slice(1);
+      for (const schema of fieldsForMode) {
+        grid.appendChild(buildFieldCard(schema));
+      }
+      updateBuildOutput();
+    }
+
+    function buildFieldCard(schema) {
+      const card = document.createElement('div');
+      card.className = 'field-card';
+      card.dataset.field = schema.key;
+
+      const head = document.createElement('div');
+      head.className = 'fc-head';
+      head.innerHTML = `<span class="fc-title">${schema.label}</span><span class="fc-range">${schema.range}</span>`;
+      card.appendChild(head);
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'fc-input';
+      input.value = '*';
+      input.spellcheck = false;
+      input.autocomplete = 'off';
+      input.autocapitalize = 'off';
+      input.addEventListener('input', () => { updateBuildOutput(); });
+      card.appendChild(input);
+
+      const chips = document.createElement('div');
+      chips.className = 'fc-chips';
+      const presetChips = builderChipsForField(schema);
+      for (const c of presetChips) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'fc-chip';
+        btn.textContent = c.label;
+        btn.title = c.title || c.label;
+        btn.addEventListener('click', () => { input.value = c.value; updateBuildOutput(); input.focus(); });
+        chips.appendChild(btn);
+      }
+      card.appendChild(chips);
+
+      const desc = document.createElement('div');
+      desc.className = 'fc-desc';
+      card.appendChild(desc);
+
+      return card;
+    }
+
+    function builderChipsForField(schema) {
+      const k = schema.key;
+      if (k === 'sec' || k === 'min') return [
+        { label: '*', value: '*' },
+        { label: '0', value: '0' },
+        { label: '*/5', value: '*/5' },
+        { label: '*/15', value: '*/15' },
+        { label: '*/30', value: '*/30' }
+      ];
+      if (k === 'hour') return [
+        { label: '*', value: '*' },
+        { label: '0', value: '0' },
+        { label: '9', value: '9' },
+        { label: '*/6', value: '*/6' },
+        { label: '9-17', value: '9-17' }
+      ];
+      if (k === 'dom') return [
+        { label: '*', value: '*' },
+        { label: '1', value: '1' },
+        { label: '15', value: '15' },
+        { label: 'L', value: 'L', title: 'Last day of month (approximate)' }
+      ];
+      if (k === 'month') return [
+        { label: '*', value: '*' },
+        { label: '1', value: '1' },
+        { label: '*/3', value: '*/3' },
+        { label: '1,7', value: '1,7' }
+      ];
+      if (k === 'dow') return [
+        { label: '*', value: '*' },
+        { label: '1-5', value: '1-5', title: 'Mon-Fri' },
+        { label: '0,6', value: '0,6', title: 'Sat-Sun' },
+        { label: '0', value: '0', title: 'Sunday' },
+        { label: '1', value: '1', title: 'Monday' }
+      ];
+      return [{ label: '*', value: '*' }];
+    }
+
+    function updateBuildOutput() {
+      const cards = [...$('build-grid').querySelectorAll('.field-card')];
+      const parts = cards.map(c => c.querySelector('.fc-input').value.trim() || '*');
+      const expr = parts.join(' ');
+      $('build-output').value = expr;
+
+      // Per-field validation + mini description
+      const parsed = parseCron(expr);
+      cards.forEach((card, i) => {
+        const fldParsed = parsed.fields[i];
+        const desc = card.querySelector('.fc-desc');
+        if (!fldParsed) { desc.textContent = ''; card.classList.remove('invalid'); return; }
+        if (fldParsed.error) {
+          card.classList.add('invalid');
+          desc.textContent = `⚠️ ${fldParsed.error}`;
+        } else {
+          card.classList.remove('invalid');
+          const schema = FIELDS[$('build-seconds').checked ? i : i + 1];
+          desc.textContent = fieldMiniDesc(fldParsed, schema);
+        }
+      });
+
+      run(expr);
+    }
+
+    function fieldMiniDesc(parsedField, schema) {
+      if (parsedField.approximate) return 'extended syntax — approximate';
+      if (parsedField.type === 'all') return 'every ' + schema.label.toLowerCase();
+      const vals = [...parsedField.values].sort((a, b) => a - b);
+      if (vals.length === schema.max - schema.min + 1) return 'every ' + schema.label.toLowerCase();
+      if (isStep(parsedField)) return `every ${stepOf(parsedField)} ${schema.label.toLowerCase()}s`;
+      if (vals.length === 1) {
+        if (schema.key === 'dow')   return DOW_FULL[vals[0]];
+        if (schema.key === 'month') return MONTH_FULL[vals[0] - 1];
+        return `at ${vals[0]}`;
+      }
+      const min = vals[0], max = vals[vals.length - 1];
+      if (vals.length === max - min + 1) return `${min}-${max}`;
+      return vals.join(', ');
+    }
+
+    // ── Main run ───────────────────────────────────────────────
+    function run(exprOverride) {
+      const expr = exprOverride !== undefined
+        ? exprOverride
+        : (mode === 'decode' ? $('decode-input').value : $('build-output').value);
+      lastExpr = expr;
+
+      const errEl  = $('cron-error');
+      const warnEl = $('cron-warn');
+      const results= $('results');
+      errEl.classList.add('hidden');
+      warnEl.classList.add('hidden');
+
+      if (!expr.trim()) {
+        results.classList.add('hidden');
+        return;
+      }
+
+      const parsed = parseCron(expr);
+
+      if (parsed.error) {
+        errEl.textContent = '✕ ' + parsed.error;
+        errEl.classList.remove('hidden');
+        results.classList.add('hidden');
+        return;
+      }
+
+      if (parsed.reboot) {
+        $('desc-box').textContent = 'Runs once at system reboot — not schedulable in the browser preview.';
+        $('run-list').innerHTML = '';
+        $('tz-label').textContent = '';
+        results.classList.remove('hidden');
+        return;
+      }
+
+      if (parsed.approximate) {
+        warnEl.textContent = '⚠️ Extended syntax (L / W / #) — description and next-runs are approximate.';
+        warnEl.classList.remove('hidden');
+      }
+
+      const desc = describe(parsed);
+      $('desc-box').textContent = desc;
+
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'local time';
+      $('tz-label').textContent = `(${tz})`;
+
+      const now = new Date();
+      const runs = nextRuns(parsed, 10, now);
+      const list = $('run-list');
+      list.innerHTML = '';
+      if (runs.length === 0) {
+        const li = document.createElement('li');
+        li.innerHTML = '<span></span><span class="run-when text-gray-500">No upcoming runs found in the next 5 years.</span><span></span>';
+        list.appendChild(li);
+      } else {
+        runs.forEach((d, i) => {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <span class="run-num">${i + 1}.</span>
+            <span class="run-when">${formatRun(d, parsed.hasSeconds)}</span>
+            <span class="run-rel">${relativeFrom(d, now)}</span>
+          `;
+          list.appendChild(li);
+        });
+      }
+      results.classList.remove('hidden');
+    }
+
+    // ── Init ───────────────────────────────────────────────────
+    let debounceTimer;
+    $('decode-input').addEventListener('input', () => {
+      document.querySelectorAll('.chip[data-preset]').forEach(el => el.classList.remove('on'));
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(run, 150);
+    });
+
+    rebuildBuilder();
+    $('decode-input').value = '0 9 * * 1-5';
+    document.querySelector('.chip[data-preset="0 9 * * 1-5"]').classList.add('on');
+    $('decode-input').focus();
+    run();
+  </script>
+
+  <include src="_partials/footer-script.html"></include>
+
+  <!-- BEGIN:faq generated by scripts/generate-sections.mjs — re-run after editing tools.json -->
+  <section class="max-w-[1100px] mx-auto w-full px-6 py-8 border-t border-gray-800">
+    <h2 class="text-xl font-bold text-white mb-6">FAQ</h2>
+    <div class="space-y-2">
+      <details class="disclosure">
+        <summary>Which cron syntax does this support?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">Standard Vixie / Unix cron: 5 fields (minute, hour, day-of-month, month, day-of-week) or 6 fields with a leading seconds field. * (every), */n (step), a-b (range), a,b,c (list), names like MON or JAN, and the @hourly / @daily / @weekly / @monthly / @yearly shortcuts are all parsed.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>Are the next-run times in my local timezone?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">Yes. Times are computed in your browser using the local Date object, so the schedule reflects the timezone of the device you're viewing the page on. Servers usually evaluate cron in UTC — keep that in mind when sanity-checking a production schedule.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>What about L, W, and # (extended syntax)?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">L (last), W (nearest weekday) and # (nth-weekday of month) are best-effort. The expression still parses, but the human description and the next-runs list flag it as approximate so you don't trust the preview blindly.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>Why does day-of-month and day-of-week behave oddly together?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">When both fields are constrained (neither is *), Vixie cron triggers when either matches (OR, not AND). The next-runs list follows that rule, so 0 0 1 * MON fires on every Monday and the 1st of the month.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>Does any of this hit a server?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">No. Parsing, the human description, and the next-runs computation all run locally in your browser. The page is a single static HTML file.</div></div>
+      </details>
+    </div>
+  </section>
+  <!-- END:faq -->
+
+  <!-- BEGIN:more-tools generated by scripts/generate-sections.mjs — re-run after editing tools.json -->
+  <section class="max-w-[1100px] mx-auto w-full px-6 py-8 border-t border-gray-800">
+    <h2 class="text-xl font-bold text-white mb-6">More tools</h2>
+    <div class="space-y-4">
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">JSON</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/json-formatter" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🗂️ JSON Formatter</a>
+          <a href="/json-to-ts" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔷 JSON to TypeScript</a>
+          <a href="/json-diff" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔍 JSON Diff</a>
+          <a href="/json-sort" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔤 JSON Sort</a>
+          <a href="/csv-to-json" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📊 JSON ↔ CSV</a>
+          <a href="/json-to-yaml" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📝 JSON ↔ YAML</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Code</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/regex-tester" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🧪 Regex Tester</a>
+          <a href="/svg-to-jsx" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">⚛️ SVG to JSX</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Visual</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/gradients" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🎨 Gradients</a>
+          <a href="/blob" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🫧 Blob Generator</a>
+          <a href="/waves" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">〰️ Wave Generator</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Image</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/image-compressor" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🗜️ Image Compressor</a>
+          <a href="/image-resizer" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📐 Image Resizer</a>
+          <a href="/image-cropper" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">✂️ Image Cropper</a>
+          <a href="/image-converter" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🖼️ Image Format Converter</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Web / SEO</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/meta-tag-preview" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔍 Meta Tag Preview</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- END:more-tools -->
+
+  <footer class="max-w-[1100px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
+    &copy; <span id="year"></span> Irfan Maulana &amp; Claude<br><span id="deploy-time"></span><span id="commit-sha"></span><br><a href="https://github.com/mazipan/html-tools" rel="noreferrer noopener" target="_blank" class="hover:text-blue-400 transition-colors">⭐ View source on GitHub</a>
+  </footer>
+
+</body>
+</html>
