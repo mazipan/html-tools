@@ -897,12 +897,30 @@
     }
 
     function loadPreset(preset) {
-      if (mode === 'build') setMode('decode');
       document.querySelectorAll('.chip[data-preset]').forEach(el => {
         el.classList.toggle('on', el.dataset.preset === preset);
       });
-      $('decode-input').value = preset;
-      run();
+      // @ shortcuts get expanded so they can fill the per-field inputs in Build mode.
+      const expr = PRESET_EXPAND[preset.toLowerCase()] || preset;
+      if (mode === 'build') {
+        loadIntoBuilder(expr);
+      } else {
+        $('decode-input').value = preset;
+        run();
+      }
+    }
+
+    function loadIntoBuilder(expr) {
+      const parts = expr.trim().split(/\s+/);
+      const wantSeconds = parts.length === 6;
+      const secondsBox = $('build-seconds');
+      if (secondsBox.checked !== wantSeconds) {
+        secondsBox.checked = wantSeconds;
+        rebuildBuilder();
+      }
+      const inputs = $('build-grid').querySelectorAll('.fc-input');
+      inputs.forEach((el, i) => { el.value = parts[i] ?? '*'; });
+      updateBuildOutput();
     }
 
     function clearDecode() {
