@@ -37,20 +37,24 @@ const bundler = new Parcel({
 
 await bundler.run();
 
-// Post-process each HTML: replace __BUILD_TIME__ and fix absolute asset paths.
+// Post-process each HTML: replace __BUILD_TIME__ / __COMMIT_SHA__ and fix
+// absolute asset paths. COMMIT_REF is set by Netlify on every build; for
+// local `npm run build` it is undefined and the SHA link is omitted.
 const buildTime = JSON.stringify(new Date().toISOString());
+const commitSha = JSON.stringify(process.env.COMMIT_REF ?? '');
 const htmlFiles = await Array.fromAsync(glob('*.html', { cwd: distDir }));
 log(`📄 Parcel produced ${htmlFiles.length} dist HTML files: ${htmlFiles.join(', ')}`);
 for (const html of htmlFiles) {
   const htmlPath = resolve(distDir, html);
   const updated = readFileSync(htmlPath, 'utf8')
     .replace('"__BUILD_TIME__"', buildTime)
+    .replace('"__COMMIT_SHA__"', commitSha)
     .replace(/src="\/([^"]+)"/g, 'src="./$1"')
     .replace(/href="\/([^"]+)"/g, 'href="./$1"')
     .replace(/href=("?)index\.html\1(?=[ >])/g, 'href="/"');
   writeFileSync(htmlPath, updated);
 }
-log(`🔧 post-process pass — replaced __BUILD_TIME__ and rewrote relative paths in ${htmlFiles.length} files`);
+log(`🔧 post-process pass — replaced __BUILD_TIME__ / __COMMIT_SHA__ and rewrote relative paths in ${htmlFiles.length} files`);
 
 // Remove source maps.
 const mapFiles = await Array.fromAsync(glob('*.map', { cwd: distDir }));
@@ -83,11 +87,14 @@ if (existsFile(yamlPagePath)) {
 }
 
 const cleanPath = f => f === 'index.html' ? '/' : `/${f.replace(/\.html$/, '')}`;
-// design-system is an internal contributor page. Routable (so the clean URL
-// works for direct visits) but excluded from the sitemap. The FAQ / More
-// tools / JSON-LD blocks are also skipped for it — see INTERNAL_PAGES in
-// scripts/generate-sections.mjs. robots.txt also disallows it.
-const INTERNAL_PAGES = new Set(['design-system.html']);
+// Internal pages (e.g. the design-system contributor reference) are routable
+// — so the clean URL works for direct visits — but excluded from the sitemap.
+// The FAQ / More tools / JSON-LD blocks are also skipped for them; see the
+// matching filter in scripts/generate-sections.mjs. robots.txt also disallows
+// them. The source of truth is the `internal: true` flag in tools.json.
+const INTERNAL_PAGES = new Set(
+  tools.tools.filter(t => t.internal).map(t => `${t.slug}.html`),
+);
 const routable = htmlFiles.filter(f => !f.startsWith('google')).sort();
 const sitemapPages = routable.filter(f => !INTERNAL_PAGES.has(f));
 
@@ -99,10 +106,21 @@ writeFileSync(resolve(distDir, '_redirects'), redirects + '\n');
 log(`🔀 generated _redirects — ${routable.length} entries`);
 
 const today = new Date().toISOString().split('T')[0];
+// `changefreq` is set to `daily` for every page while the site is under active
+// development (see issue #63's update). The homepage gets `priority` 1.0 and
+// tool pages 0.8 so crawlers know which to prioritise.
 const sitemapUrls = sitemapPages
   .map(f => {
     const loc = `${SITE_URL}${cleanPath(f)}`;
-    return `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${today}</lastmod>\n  </url>`;
+    const priority = f === 'index.html' ? '1.0' : '0.8';
+    return [
+      `  <url>`,
+      `    <loc>${loc}</loc>`,
+      `    <lastmod>${today}</lastmod>`,
+      `    <changefreq>daily</changefreq>`,
+      `    <priority>${priority}</priority>`,
+      `  </url>`,
+    ].join('\n');
   })
   .join('\n');
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>

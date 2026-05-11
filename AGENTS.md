@@ -59,7 +59,7 @@ The site header (the `HTML Tools / Tool Name` strip) is intentionally **not** a 
 
 ## Tools manifest
 
-`src/tools.json` is the single source of truth for the site name, publisher, and per-tool metadata (slug, name, icon, category, description, faqs). It's read by `scripts/generate-sections.mjs` (`npm run generate:sections`), which writes three blocks directly into `src/*.html` so they're visible in `npm run dev` and bundle through Parcel like the rest of the markup:
+`src/tools.json` is the single source of truth for the site name, publisher, and per-tool metadata (slug, name, icon, category, description, faqs, and optional `internal: true` for contributor-only pages such as the design-system reference). It's read by `scripts/generate-sections.mjs` (`npm run generate:sections`), which writes three blocks directly into `src/*.html` so they're visible in `npm run dev` and bundle through Parcel like the rest of the markup:
 
 - JSON-LD `WebApplication` + `BreadcrumbList` + `FAQPage` blocks on each tool page (and `WebSite` on the index) — inside `<head>`, wrapped in `<!-- BEGIN:json-ld --> … <!-- END:json-ld -->`.
 - A visible FAQ section (collapsible `<details>` blocks) before the footer on every tool page — wrapped in `<!-- BEGIN:faq --> … <!-- END:faq -->`.
@@ -109,7 +109,7 @@ Examples:
 
 ## Design system
 
-Shared UI components live in `src/styles.css` (the "Shared components" block at the end) and are catalogued in **`src/design-system.html`** — a contributor reference page reachable at `/design-system.html`. It's intentionally **not** linked from the index, listed in `tools.json`, included in the sitemap, or referenced in `_redirects` (filtered out via `INTERNAL_PAGES` in `scripts/build.mjs`).
+Shared UI components live in `src/styles.css` (the "Shared components" block at the end) and are catalogued in **`src/design-system.html`** — a contributor reference page reachable at `/design-system.html`. It's marked `"internal": true` in `tools.json` so it's intentionally **not** linked from the index, included in the sitemap, or referenced in the "More tools" cross-link block. Both `scripts/build.mjs` and `scripts/generate-sections.mjs` derive their `INTERNAL_PAGES` set from that flag.
 
 When building a new tool:
 
