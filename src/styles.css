@@ -139,6 +139,9 @@ html[data-theme="light"] .text-gray-400   { color: #4b5563; }
 html[data-theme="light"] .text-gray-500   { color: #6b7280; }
 html[data-theme="light"] .text-gray-600   { color: #9ca3af; }
 html[data-theme="light"] .text-gray-700   { color: #d1d5db; }
+.checker {
+  background: repeating-conic-gradient(#111827 0% 25%, #0f172a 0% 50%) 0 0 / 20px 20px;
+}
 html[data-theme="light"] .checker {
   background: repeating-conic-gradient(#e5e7eb 0% 25%, #f3f4f6 0% 50%) 0 0 / 20px 20px;
 }
@@ -414,6 +417,55 @@ input[type="radio"] {
 input[type="checkbox"]:disabled,
 input[type="radio"]:disabled { cursor: not-allowed; opacity: 0.5; }
 
+/* ── Switch (toggle) — pill-shaped on/off control ────────────── */
+/* Markup:
+   <label class="switch">
+     <input type="checkbox">
+     <span>Label</span>
+   </label>
+   The checkbox itself is the track; appearance:none + a ::after thumb
+   give us the standard iOS-style switch. Inherits the accent color via
+   var(--accent), so the tweaks-panel swatch recolors it.            */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+.switch > input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  background: #374151;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  margin: 0;
+}
+.switch > input[type="checkbox"]::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: #fff;
+  transform: translateY(-50%);
+  transition: transform 0.15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.switch > input[type="checkbox"]:checked { background: var(--accent); }
+.switch > input[type="checkbox"]:checked::after { transform: translate(1.25rem, -50%); }
+.switch > input[type="checkbox"]:disabled { opacity: 0.5; cursor: not-allowed; }
+.switch:has(> input:disabled) { cursor: not-allowed; opacity: 0.6; }
+
 /* ── Pills (toggle / radio button feel) ──────────────────────── */
 .pill {
   display: inline-flex;
@@ -602,6 +654,20 @@ input[type="range"].range:disabled { opacity: 0.4; cursor: not-allowed; }
   transition: border-color 0.12s;
 }
 .file-card:hover { border-color: #374151; }
+
+/* ── Toolbar (options strip — flex row of label+control pairs) ── */
+/* For the inline "options bar" that sits above a tool's main input. */
+/* Use plain labels with .select / .num-input / checkbox inside.    */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #1f2937;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, #111827 50%, transparent);
+}
 
 /* ── Disclosure (collapsible details) ────────────────────────── */
 /* Markup:

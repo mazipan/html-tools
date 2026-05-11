@@ -48,22 +48,22 @@
       <button id="btn-j2y" onclick="setDirection('j2y')" class="btn btn-active">JSON → YAML</button>
       <button id="btn-y2j" onclick="setDirection('y2j')" class="btn btn-secondary">YAML → JSON</button>
       <div class="w-px h-5 bg-gray-700 mx-1"></div>
-      <button onclick="loadSample()" class="btn btn-secondary">Load sample</button>
-      <button onclick="clearAll()" class="btn btn-danger">Clear</button>
+      <button onclick="loadSample()" class="btn btn-secondary">📥 Load sample</button>
+      <button onclick="clearAll()" class="btn btn-danger">🗑️ Clear</button>
     </div>
 
     <!-- Options (JSON → YAML) -->
-    <div id="opts-j2y" class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-4 px-3 py-2.5 rounded-lg border border-gray-800 bg-gray-900/50">
+    <div id="opts-j2y" class="toolbar mb-4">
       <label class="flex items-center gap-2 text-xs text-gray-400">
         Indent
-        <select id="j2y-indent" onchange="convert()" class="bg-gray-900 border border-gray-700 text-xs text-gray-200 rounded-md px-2 py-1 outline-none hover:border-gray-600 focus:border-blue-400">
+        <select id="j2y-indent" onchange="convert()" class="select text-xs">
           <option value="2">2</option>
           <option value="4">4</option>
         </select>
       </label>
       <label class="flex items-center gap-2 text-xs text-gray-400">
         Style
-        <select id="j2y-style" onchange="convert()" class="bg-gray-900 border border-gray-700 text-xs text-gray-200 rounded-md px-2 py-1 outline-none hover:border-gray-600 focus:border-blue-400">
+        <select id="j2y-style" onchange="convert()" class="select text-xs">
           <option value="auto">auto</option>
           <option value="block">block</option>
           <option value="flow">flow</option>
@@ -71,11 +71,11 @@
       </label>
       <label class="flex items-center gap-2 text-xs text-gray-400">
         Line width
-        <input id="j2y-width" type="number" min="40" max="200" value="80" onchange="convert()" class="bg-gray-900 border border-gray-700 text-xs text-gray-200 rounded-md px-2 py-1 w-16 outline-none hover:border-gray-600 focus:border-blue-400">
+        <input id="j2y-width" type="number" min="40" max="200" value="80" onchange="convert()" class="num-input">
       </label>
       <label class="flex items-center gap-2 text-xs text-gray-400">
         Quote style
-        <select id="j2y-quote" onchange="convert()" class="bg-gray-900 border border-gray-700 text-xs text-gray-200 rounded-md px-2 py-1 outline-none hover:border-gray-600 focus:border-blue-400">
+        <select id="j2y-quote" onchange="convert()" class="select text-xs">
           <option value="auto">auto</option>
           <option value="single">single</option>
           <option value="double">double</option>
@@ -88,7 +88,7 @@
     </div>
 
     <!-- Options (YAML → JSON) -->
-    <div id="opts-y2j" style="display:none" class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-4 px-3 py-2.5 rounded-lg border border-gray-800 bg-gray-900/50">
+    <div id="opts-y2j" style="display:none" class="toolbar mb-4">
       <label class="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer">
         <input type="checkbox" id="y2j-pretty" checked onchange="convert()" class="accent-blue-400">
         Pretty output
@@ -99,7 +99,7 @@
       </label>
       <label class="flex items-center gap-2 text-xs text-gray-400">
         Multi-document
-        <select id="y2j-multi" onchange="convert()" class="bg-gray-900 border border-gray-700 text-xs text-gray-200 rounded-md px-2 py-1 outline-none hover:border-gray-600 focus:border-blue-400">
+        <select id="y2j-multi" onchange="convert()" class="select text-xs">
           <option value="first">first doc only</option>
           <option value="array">array of docs</option>
         </select>
@@ -126,11 +126,11 @@
         <div class="flex items-center justify-between mb-2">
           <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" id="output-label">YAML output</label>
           <div class="flex gap-1 items-center">
-            <button onclick="copyOutput()" class="btn btn-secondary btn-sm">Copy</button>
-            <button onclick="downloadOutput()" class="btn btn-secondary btn-sm">Download</button>
+            <button onclick="copyOutput()" class="btn btn-secondary btn-sm">📋 Copy</button>
+            <button onclick="downloadOutput()" class="btn btn-secondary btn-sm">⬇️ Download</button>
             <span id="view-divider" class="w-px h-3 bg-gray-700 mx-0.5" style="display:none"></span>
-            <button id="btn-tree" onclick="setView('tree')" class="btn btn-secondary btn-sm" style="display:none">Tree</button>
-            <button id="btn-raw" onclick="setView('raw')" class="btn btn-secondary btn-sm" style="display:none">Raw</button>
+            <button id="btn-tree" onclick="setView('tree')" class="btn btn-secondary btn-sm" style="display:none">🌳 Tree</button>
+            <button id="btn-raw" onclick="setView('raw')" class="btn btn-secondary btn-sm" style="display:none">📄 Raw</button>
           </div>
         </div>
 

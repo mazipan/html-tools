@@ -15,14 +15,9 @@
   <include src="_partials/head-fonts.html"></include>
   <link rel="stylesheet" href="styles.css">
   <style>
-    input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:#374151;outline:none;cursor:pointer;width:100%}
-    input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent,#6366f1);cursor:pointer;transition:background .15s}
-    input[type=range]::-webkit-slider-thumb:hover{background:var(--accent-h,#818cf8)}
-    input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--accent,#6366f1);cursor:pointer;border:none}
     input[type=color]{-webkit-appearance:none;appearance:none;border:none;padding:0;cursor:pointer;border-radius:4px;width:32px;height:32px;background:none}
     input[type=color]::-webkit-color-swatch-wrapper{padding:0}
     input[type=color]::-webkit-color-swatch{border:none;border-radius:4px}
-    .checker{background:repeating-conic-gradient(#111827 0% 25%,#0f172a 0% 50%) 0 0/20px 20px}
   </style>
   <include src="_partials/head-theme.html"></include>
 </head>
@@ -46,7 +41,7 @@
     <!-- Aspect ratio -->
     <div class="flex items-center gap-3 mb-5">
       <span class="text-xs text-gray-500 shrink-0">Aspect ratio</span>
-      <select id="aspect-ratio" class="bg-gray-900 border border-gray-700 text-xs text-gray-300 rounded-lg px-2 py-1.5 outline-none hover:border-gray-600 focus:border-blue-400 cursor-pointer">
+      <select id="aspect-ratio" class="select text-xs">
         <option value="1440x320">1440 × 320 — Wide banner</option>
         <option value="1920x1080">1920 × 1080 — Full HD</option>
         <option value="1440x560">1440 × 560 — Tall banner</option>
@@ -78,8 +73,8 @@
             <div class="flex items-center justify-between mb-2">
               <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">SVG Output</span>
               <div class="flex gap-2">
-                <button id="sw-copy" class="btn btn-secondary btn-sm">Copy SVG</button>
-                <button id="sw-dl"   class="btn btn-secondary btn-sm">Download</button>
+                <button id="sw-copy" class="btn btn-secondary btn-sm">📋 Copy SVG</button>
+                <button id="sw-dl"   class="btn btn-secondary btn-sm">⬇️ Download</button>
               </div>
             </div>
             <pre id="sw-code" class="bg-gray-900 border border-gray-800 rounded-lg p-4 text-xs text-green-400 font-mono overflow-x-auto whitespace-pre leading-relaxed max-h-36 overflow-y-auto"></pre>
@@ -98,7 +93,7 @@
                   <label class="text-xs text-gray-400">Position</label>
                   <span id="sw-pos-val" class="text-xs text-gray-500 tabular-nums">50%</span>
                 </div>
-                <input type="range" id="sw-pos" min="15" max="85" value="50">
+                <input type="range" class="range" id="sw-pos" min="15" max="85" value="50">
               </div>
 
               <button id="sw-reseed" class="btn btn-secondary w-full">🔀 Shuffle</button>
@@ -115,9 +110,9 @@
                 <input type="color" id="sw-color" value="#6366f1">
               </div>
 
-              <label class="flex items-center gap-2 cursor-pointer select-none">
-                <input type="checkbox" id="sw-use-grad" class="accent-blue-400 cursor-pointer">
-                <span class="text-xs text-gray-400">Gradient fill</span>
+              <label class="switch">
+                <input type="checkbox" id="sw-use-grad">
+                <span>Gradient fill</span>
               </label>
 
               <div id="sw-grad-row" class="flex items-center gap-3" style="display:none">
@@ -154,8 +149,8 @@
             <div class="flex items-center justify-between mb-2">
               <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">SVG Output</span>
               <div class="flex gap-2">
-                <button id="st-copy" class="btn btn-secondary btn-sm">Copy SVG</button>
-                <button id="st-dl"   class="btn btn-secondary btn-sm">Download</button>
+                <button id="st-copy" class="btn btn-secondary btn-sm">📋 Copy SVG</button>
+                <button id="st-dl"   class="btn btn-secondary btn-sm">⬇️ Download</button>
               </div>
             </div>
             <pre id="st-code" class="bg-gray-900 border border-gray-800 rounded-lg p-4 text-xs text-green-400 font-mono overflow-x-auto whitespace-pre leading-relaxed max-h-36 overflow-y-auto"></pre>
@@ -174,7 +169,7 @@
                   <label class="text-xs text-gray-400">Layers</label>
                   <span id="st-layers-val" class="text-xs text-gray-500 tabular-nums">4</span>
                 </div>
-                <input type="range" id="st-layers" min="2" max="6" value="4">
+                <input type="range" class="range" id="st-layers" min="2" max="6" value="4">
               </div>
 
               <div>
@@ -182,7 +177,7 @@
                   <label class="text-xs text-gray-400">Shift</label>
                   <span id="st-pos-val" class="text-xs text-gray-500 tabular-nums">50%</span>
                 </div>
-                <input type="range" id="st-pos" min="0" max="100" value="50">
+                <input type="range" class="range" id="st-pos" min="0" max="100" value="50">
               </div>
 
               <button id="st-reseed" class="btn btn-secondary w-full">🔀 Shuffle</button>

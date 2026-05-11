@@ -214,11 +214,13 @@
           <a href="#num-input">Number input</a>
           <a href="#select">Select</a>
           <a href="#checkbox-radio">Checkbox &amp; radio</a>
+          <a href="#switch">Switch</a>
           <a href="#range">Range slider</a>
           <a href="#color-picker">Color picker</a>
           <a href="#drop-zone">Drop zone</a>
           <h3>Layout &amp; content</h3>
           <a href="#cards">Cards</a>
+          <a href="#toolbar">Toolbar</a>
           <a href="#disclosure">Disclosure</a>
           <a href="#cheat-table">Cheat table</a>
           <a href="#code">Code blocks</a>
@@ -478,6 +480,37 @@
           </div>
         </section>
 
+        <!-- Switch -->
+        <section id="switch" class="ds-section">
+          <h2>Switch (toggle)</h2>
+          <p class="lead">Pill-shaped on/off switch for a single binary state — typically gating a section of the UI (e.g. "enable gradient", "show preview"). Use a <code class="text-gray-300">.switch</code> label wrapping a native <code class="text-gray-300">&lt;input type="checkbox"&gt;</code>; keyboard, screen-reader, and form-submit semantics come for free. Prefer a regular checkbox for multi-select option lists.</p>
+          <div class="space-y-2 my-3">
+            <label class="switch">
+              <input type="checkbox">
+              <span>Gradient fill</span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" checked>
+              <span>Show preview</span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" disabled>
+              <span>Disabled (off)</span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" checked disabled>
+              <span>Disabled (on)</span>
+            </label>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;label class="switch"&gt;
+  &lt;input type="checkbox"&gt;
+  &lt;span&gt;Gradient fill&lt;/span&gt;
+&lt;/label&gt;</pre>
+          </div>
+        </section>
+
         <!-- Range slider -->
         <section id="range" class="ds-section">
           <h2>Range slider</h2>
@@ -574,6 +607,43 @@
 &lt;a href="…" class="card card-lift"&gt;…&lt;/a&gt;
 
 &lt;div class="file-card"&gt;…&lt;/div&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Toolbar -->
+        <section id="toolbar" class="ds-section">
+          <h2>Toolbar</h2>
+          <p class="lead">Horizontal options strip — a subtle inset surface that groups label + control pairs above the main input. Use plain <code class="text-gray-300">&lt;label&gt;</code>s with <code class="text-gray-300">.select</code>, <code class="text-gray-300">.num-input</code>, or checkboxes inside.</p>
+          <div class="toolbar my-3">
+            <label class="flex items-center gap-2 text-xs text-gray-400">
+              Delimiter
+              <select class="select text-xs">
+                <option>, (comma)</option>
+                <option>; (semicolon)</option>
+                <option>\t (tab)</option>
+              </select>
+            </label>
+            <label class="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer">
+              <input type="checkbox" checked>
+              Include header row
+            </label>
+            <label class="flex items-center gap-2 text-xs text-gray-400">
+              Width
+              <input type="number" min="40" max="200" value="80" class="num-input">
+            </label>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;div class="toolbar"&gt;
+  &lt;label class="flex items-center gap-2 text-xs text-gray-400"&gt;
+    Delimiter
+    &lt;select class="select text-xs"&gt;…&lt;/select&gt;
+  &lt;/label&gt;
+  &lt;label class="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer"&gt;
+    &lt;input type="checkbox" checked&gt;
+    Include header row
+  &lt;/label&gt;
+&lt;/div&gt;</pre>
           </div>
         </section>
 

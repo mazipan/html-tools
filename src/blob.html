@@ -15,14 +15,9 @@
   <include src="_partials/head-fonts.html"></include>
   <link rel="stylesheet" href="styles.css">
   <style>
-    input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:#374151;outline:none;cursor:pointer;width:100%}
-    input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;background:#6366f1;cursor:pointer;transition:background .15s}
-    input[type=range]::-webkit-slider-thumb:hover{background:#818cf8}
-    input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#6366f1;cursor:pointer;border:none}
     input[type=color]{-webkit-appearance:none;appearance:none;border:none;padding:0;cursor:pointer;border-radius:4px;width:32px;height:32px;background:none}
     input[type=color]::-webkit-color-swatch-wrapper{padding:0}
     input[type=color]::-webkit-color-swatch{border:none;border-radius:4px}
-    .checker{background:repeating-conic-gradient(#111827 0% 25%,#0f172a 0% 50%) 0 0/20px 20px}
   </style>
   <include src="_partials/head-theme.html"></include>
 </head>
@@ -67,7 +62,7 @@
                   <button id="css-fmt-tw"  onclick="setCssMode('tw')"   class="px-2 py-0.5 bg-transparent text-gray-500 font-medium transition-colors hover:text-gray-300">TW</button>
                 </div>
               </div>
-              <button id="css-copy" class="btn btn-secondary btn-sm">Copy</button>
+              <button id="css-copy" class="btn btn-secondary btn-sm">📋 Copy</button>
             </div>
             <pre id="css-code" class="bg-gray-900 border border-gray-800 rounded-lg p-4 text-xs text-green-400 font-mono overflow-x-auto whitespace-pre-wrap leading-relaxed"></pre>
           </div>
@@ -79,13 +74,9 @@
           <!-- Color -->
           <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
             <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Color</div>
-            <label class="flex items-center gap-2 cursor-pointer select-none mb-3">
-              <div class="relative">
-                <input type="checkbox" id="css-use-grad" class="sr-only peer">
-                <div class="w-8 h-4 rounded-full bg-gray-700 peer-checked:bg-indigo-600 transition-colors"></div>
-                <div class="absolute left-0.5 top-0.5 w-3 h-3 rounded-full bg-white transition-transform peer-checked:translate-x-4"></div>
-              </div>
-              <span class="text-sm text-gray-400">Gradient</span>
+            <label class="switch mb-3">
+              <input type="checkbox" id="css-use-grad">
+              <span>Gradient</span>
             </label>
             <div class="flex items-center flex-wrap gap-3">
               <div class="flex items-center gap-1.5">
@@ -103,7 +94,7 @@
                 <span class="text-xs text-gray-500">Angle</span>
                 <span class="text-xs text-gray-400 font-mono" id="css-angle-lbl">135°</span>
               </div>
-              <input type="range" id="css-angle" min="0" max="360" value="135">
+              <input type="range" class="range" id="css-angle" min="0" max="360" value="135">
             </div>
           </div>
 
@@ -113,7 +104,7 @@
               <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Size</div>
               <span class="text-xs text-gray-400 font-mono" id="css-size-lbl">280px</span>
             </div>
-            <input type="range" id="css-size" min="80" max="380" value="280">
+            <input type="range" class="range" id="css-size" min="80" max="380" value="280">
           </div>
 
           <!-- Horizontal Radii -->
@@ -122,22 +113,22 @@
             <div class="space-y-2.5">
               <div class="grid items-center gap-2" style="grid-template-columns:64px 1fr 28px">
                 <span class="text-xs text-gray-500">Top Left</span>
-                <input type="range" id="css-h0" min="0" max="100" value="30">
+                <input type="range" class="range" id="css-h0" min="0" max="100" value="30">
                 <span class="text-xs text-gray-400 font-mono text-right" id="css-h0-v">30%</span>
               </div>
               <div class="grid items-center gap-2" style="grid-template-columns:64px 1fr 28px">
                 <span class="text-xs text-gray-500">Top Right</span>
-                <input type="range" id="css-h1" min="0" max="100" value="70">
+                <input type="range" class="range" id="css-h1" min="0" max="100" value="70">
                 <span class="text-xs text-gray-400 font-mono text-right" id="css-h1-v">70%</span>
               </div>
               <div class="grid items-center gap-2" style="grid-template-columns:64px 1fr 28px">
                 <span class="text-xs text-gray-500">Btm Right</span>
-                <input type="range" id="css-h2" min="0" max="100" value="70">
+                <input type="range" class="range" id="css-h2" min="0" max="100" value="70">
                 <span class="text-xs text-gray-400 font-mono text-right" id="css-h2-v">70%</span>
               </div>
               <div class="grid items-center gap-2" style="grid-template-columns:64px 1fr 28px">
                 <span class="text-xs text-gray-500">Btm Left</span>
-                <input type="range" id="css-h3" min="0" max="100" value="30">
+                <input type="range" class="range" id="css-h3" min="0" max="100" value="30">
                 <span class="text-xs text-gray-400 font-mono text-right" id="css-h3-v">30%</span>
               </div>
             </div>
@@ -149,22 +140,22 @@
             <div class="space-y-2.5">
               <div class="grid items-center gap-2" style="grid-template-columns:64px 1fr 28px">
                 <span class="text-xs text-gray-500">Top Left</span>
-                <input type="range" id="css-v0" min="0" max="100" value="30">
+                <input type="range" class="range" id="css-v0" min="0" max="100" value="30">
                 <span class="text-xs text-gray-400 font-mono text-right" id="css-v0-v">30%</span>
               </div>
               <div class="grid items-center gap-2" style="grid-template-columns:64px 1fr 28px">
                 <span class="text-xs text-gray-500">Top Right</span>
-                <input type="range" id="css-v1" min="0" max="100" value="30">
+                <input type="range" class="range" id="css-v1" min="0" max="100" value="30">
                 <span class="text-xs text-gray-400 font-mono text-right" id="css-v1-v">30%</span>
               </div>
               <div class="grid items-center gap-2" style="grid-template-columns:64px 1fr 28px">
                 <span class="text-xs text-gray-500">Btm Right</span>
-                <input type="range" id="css-v2" min="0" max="100" value="70">
+                <input type="range" class="range" id="css-v2" min="0" max="100" value="70">
                 <span class="text-xs text-gray-400 font-mono text-right" id="css-v2-v">70%</span>
               </div>
               <div class="grid items-center gap-2" style="grid-template-columns:64px 1fr 28px">
                 <span class="text-xs text-gray-500">Btm Left</span>
-                <input type="range" id="css-v3" min="0" max="100" value="70">
+                <input type="range" class="range" id="css-v3" min="0" max="100" value="70">
                 <span class="text-xs text-gray-400 font-mono text-right" id="css-v3-v">70%</span>
               </div>
             </div>
@@ -172,8 +163,8 @@
 
           <!-- Actions -->
           <div class="flex gap-2">
-            <button id="css-random" class="btn btn-secondary flex-1">Random</button>
-            <button id="css-animate" class="btn btn-secondary flex-1">Animate</button>
+            <button id="css-random" class="btn btn-secondary flex-1">🎲 Random</button>
+            <button id="css-animate" class="btn btn-secondary flex-1">▶️ Animate</button>
           </div>
         </div>
       </div>
@@ -200,8 +191,8 @@
             <div class="flex items-center justify-between mb-2">
               <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">SVG</span>
               <div class="flex gap-2">
-                <button id="svg-copy" class="btn btn-secondary btn-sm">Copy SVG</button>
-                <button id="svg-dl" class="btn btn-secondary btn-sm">Download</button>
+                <button id="svg-copy" class="btn btn-secondary btn-sm">📋 Copy SVG</button>
+                <button id="svg-dl" class="btn btn-secondary btn-sm">⬇️ Download</button>
               </div>
             </div>
             <pre id="svg-code" class="bg-gray-900 border border-gray-800 rounded-lg p-4 text-xs text-green-400 font-mono overflow-x-auto whitespace-pre-wrap leading-relaxed" style="max-height:200px"></pre>
@@ -214,13 +205,9 @@
           <!-- Color -->
           <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
             <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Color</div>
-            <label class="flex items-center gap-2 cursor-pointer select-none mb-3">
-              <div class="relative">
-                <input type="checkbox" id="svg-use-grad" class="sr-only peer" checked>
-                <div class="w-8 h-4 rounded-full bg-gray-700 peer-checked:bg-indigo-600 transition-colors"></div>
-                <div class="absolute left-0.5 top-0.5 w-3 h-3 rounded-full bg-white transition-transform peer-checked:translate-x-4"></div>
-              </div>
-              <span class="text-sm text-gray-400">Gradient</span>
+            <label class="switch mb-3">
+              <input type="checkbox" id="svg-use-grad" checked>
+              <span>Gradient</span>
             </label>
             <div class="flex items-center flex-wrap gap-3">
               <div class="flex items-center gap-1.5">
@@ -243,19 +230,19 @@
                 <span class="text-xs text-gray-500">Complexity</span>
                 <span class="text-xs text-gray-400 font-mono" id="svg-cplx-lbl">6 points</span>
               </div>
-              <input type="range" id="svg-complexity" min="3" max="12" value="6">
+              <input type="range" class="range" id="svg-complexity" min="3" max="12" value="6">
             </div>
             <div>
               <div class="flex items-center justify-between mb-1">
                 <span class="text-xs text-gray-500">Randomness</span>
                 <span class="text-xs text-gray-400 font-mono" id="svg-rand-lbl">40%</span>
               </div>
-              <input type="range" id="svg-randomness" min="0" max="100" value="40">
+              <input type="range" class="range" id="svg-randomness" min="0" max="100" value="40">
             </div>
           </div>
 
           <!-- Regenerate -->
-          <button id="svg-regen" class="btn btn-primary w-full">↺  Regenerate</button>
+          <button id="svg-regen" class="btn btn-primary w-full">🎲 Regenerate</button>
         </div>
       </div>
     </div>

@@ -23,6 +23,10 @@ A collection of single-file browser-native utilities. All logic runs client-side
 | [Blob Generator](src/blob.html) | Generate organic blob shapes via CSS border-radius or SVG path |
 | [Wave Generator](src/waves.html) | Generate SVG wave dividers — single wave or stacked layers |
 
+## Design system
+
+Shared UI components (buttons, pills, chips, inputs, cards, disclosures, etc.) are catalogued at **[/design-system](https://tools.mazipan.space/design-system)** — a contributor reference page demoing every shared class. Reach for these classes first when building a new tool; the canonical CSS lives in [`src/styles.css`](src/styles.css). See [AGENTS.md](AGENTS.md) for the migration policy.
+
 ## Development
 
 ```bash

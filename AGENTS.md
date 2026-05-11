@@ -105,11 +105,25 @@ Shared UI components live in `src/styles.css` (the "Shared components" block at 
 
 When building a new tool:
 
-1. **Reach for the catalogued classes first** — `.btn` / `.btn-primary` / `.btn-secondary` / `.btn-danger` / `.btn-active` / `.btn-sm`, `.tab-btn`, `.pill` / `.pill-sm` / `.pill.on`, `.chip`, `.input` / `.input-mono`, `.textarea`, `.num-input`, `.select`, `.range`, `.swatch`, `.drop-zone` (with `.compact` and `.dragover`), `.card` / `.card-lift`, `.file-card`, `.disclosure` (markup: `<details class="disclosure"><summary>…</summary><div class="disclosure-content"><div class="disclosure-body">…</div></div></details>`), `.cheat-table`, `.error-bar` / `.warn-bar`, `.stats` + `.delta-good` / `.delta-bad` / `.delta-neutral`, `.thumb-box` / `.thumb-label`, `.diff-wrap` / `.diff-handle` / `.diff-slider` / `.diff-tag`, plus the JSON tree primitives (`.json-key`, `.json-string`, `.json-number`, `.json-bool`, `.json-null`, `.json-punct`, `.tree-row`, `.toggle-btn`, `.tree-children`).
-2. **If the pattern doesn't exist yet**, prototype it inline in the new tool. Once a second tool needs the same thing, promote the canonical definition into `src/styles.css` and add a section to `design-system.html`. Don't pre-extract — wait for a real second user.
-3. **Don't redefine a catalogued class inline.** If the existing definition doesn't fit, fix it in `styles.css` so every tool benefits — or open an issue to discuss before forking the pattern.
+1. **Reach for the catalogued classes first** — `.btn` / `.btn-primary` / `.btn-secondary` / `.btn-danger` / `.btn-active` / `.btn-sm`, `.tab-btn`, `.pill` / `.pill-sm` / `.pill.on`, `.chip`, `.input` / `.input-mono`, `.textarea`, `.num-input`, `.select`, `.switch` (pill toggle — `<label class="switch"><input type="checkbox"><span>Label</span></label>`; use for a single binary state, not multi-select option lists — those stay regular checkboxes), `.range`, `.swatch`, `.drop-zone` (with `.compact` and `.dragover`), `.card` / `.card-lift`, `.file-card`, `.toolbar` (options strip — flex row of `<label>`s wrapping `.select` / `.num-input` / checkbox controls), `.disclosure` (markup: `<details class="disclosure"><summary>…</summary><div class="disclosure-content"><div class="disclosure-body">…</div></div></details>`), `.cheat-table`, `.error-bar` / `.warn-bar`, `.stats` + `.delta-good` / `.delta-bad` / `.delta-neutral`, `.thumb-box` / `.thumb-label`, `.diff-wrap` / `.diff-handle` / `.diff-slider` / `.diff-tag`, plus the JSON tree primitives (`.json-key`, `.json-string`, `.json-number`, `.json-bool`, `.json-null`, `.json-punct`, `.tree-row`, `.toggle-btn`, `.tree-children`).
+2. **If the pattern doesn't exist yet**, decide whether it's *generic* or *tool-specific*:
+   - **Generic primitives** (a toggle switch, a tabs strip, a tooltip, a modal — anything you'd reasonably expect a second tool to want) go into `src/styles.css` and `design-system.html` **the first time you build them**, even if only one tool uses them today. Document on day one rather than later.
+   - **Tool-specific shapes** (the regex pattern row, the JSON tree, the wave generator's preview) stay inline. Promote them only once a second tool needs them.
 
-The current crop of tool pages still has inline `<style>` blocks duplicating some of these classes; migration to the shared definitions is a separate task per tool.
+   When in doubt, ask: "would a stranger building a new tool reach for this without hesitation?" If yes, it's generic — catalogue it now.
+3. **Don't redefine a catalogued class inline.** If the existing definition doesn't fit, fix it in `styles.css` so every tool benefits — or open an issue to discuss before forking the pattern. In particular: never hardcode `#3b82f6` / `#1e3a8a` for "active" states — use `var(--accent)` / `var(--accent-h)` (or just inherit them via the shared class) so the accent swatch in the tweaks panel actually recolors the page.
+
+The textareas in the JSON-family tools still use ad-hoc Tailwind (`w-full h-[500px] … p-4 leading-relaxed`) instead of `.textarea` because the shared class has tighter padding/line-height suited for one-line inputs, not the code-editor surface those tools need. If a third tool adopts the same pattern, promote a `.textarea-code` (or similar) variant rather than continuing to inline.
+
+## Emoji conventions
+
+Emojis are a load-bearing part of this site's visual language — keep them.
+
+- **Action buttons** prefix their label with a relevant emoji: 📋 Copy, ⬇️ Download, 🗑️ Clear, ↩️ Reset, ✨ Prettify, 🗜️ Minify, 🆚 Compare, 🔍 Search, 🌳 Tree, 📄 Raw, 📥 Load sample, 🔄 Re-encode, 🎲 Random, ▶️ Animate, 🔀 Shuffle. When adding a new action, pick a glyph that reads at-a-glance — the icon is a navigational anchor, not just decoration.
+- **Breadcrumbs and `<h1>`s** lead with the tool's icon (matches `tools.json` → `icon`).
+- **Disclosure summaries** with a clear "verb" use an emoji prefix (🔍 Explain, 📋 Copy as code, 📖 Cheat sheet). FAQ entries are body copy and stay plain.
+- **Sample chips** use category emojis (📧 Email, 🌐 IPv4, 🎨 Hex color, etc.).
+- **Don't strip emojis when refactoring.** Tabs, tiny segmented controls (e.g. `CSS` / `TW`), single-letter pills (regex flags `g i m s u …`), direction buttons whose label is already an arrow (`JSON → CSV`, `A → Z`), and the dynamically-generated `CSS` / `TW` / `PNG` chips in the gradients grid are intentionally text-only — leave them alone.
 
 ## Semantic landmarks (every page)
 
