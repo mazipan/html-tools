@@ -423,7 +423,7 @@
       "name": "Meta Tag Preview",
       "icon": "🔍",
       "category": "Web / SEO",
-      "description": "Paste a URL or HTML snippet and see how it renders as a Twitter, Facebook, LinkedIn, and Google search card.",
+      "description": "Paste a URL or HTML snippet and see how it renders as a Google search, Twitter, Facebook, LinkedIn, WhatsApp, and Telegram preview card.",
       "faqs": [
         {
           "q": "Does pasting a URL send my data to a third party?",

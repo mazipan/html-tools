@@ -3,13 +3,13 @@
 <head>
   <include src="_partials/meta-base.html"></include>
   <title>Meta Tag Preview — HTML Tools</title>
-  <meta name="description" content="Paste a URL or HTML snippet and see how it renders as a Twitter, Facebook, LinkedIn, and Google search card.">
+  <meta name="description" content="Paste a URL or HTML snippet and see how it renders as a Google search, Twitter, Facebook, LinkedIn, WhatsApp, and Telegram preview card.">
   <link rel="canonical" href="https://tools.mazipan.space/meta-tag-preview">
   <meta property="og:title" content="Meta Tag Preview — HTML Tools">
-  <meta property="og:description" content="Paste a URL or HTML snippet and see how it renders as a Twitter, Facebook, LinkedIn, and Google search card.">
+  <meta property="og:description" content="Paste a URL or HTML snippet and see how it renders as a Google search, Twitter, Facebook, LinkedIn, WhatsApp, and Telegram preview card.">
   <meta property="og:url" content="https://tools.mazipan.space/meta-tag-preview">
   <meta name="twitter:title" content="Meta Tag Preview — HTML Tools">
-  <meta name="twitter:description" content="Paste a URL or HTML snippet and see how it renders as a Twitter, Facebook, LinkedIn, and Google search card.">
+  <meta name="twitter:description" content="Paste a URL or HTML snippet and see how it renders as a Google search, Twitter, Facebook, LinkedIn, WhatsApp, and Telegram preview card.">
   <include src="_partials/meta-social.html"></include>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
   <include src="_partials/head-fonts.html"></include>
@@ -57,6 +57,23 @@
     .linkedin-card .li-title { font-size: 14px; font-weight: 600; color: rgba(0,0,0,.9); line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
     .linkedin-card .li-domain { font-size: 12px; color: rgba(0,0,0,.6); margin-top: 4px; }
 
+    /* WhatsApp */
+    .whatsapp-card { background: #fff; }
+    .whatsapp-card .wa-row { display: flex; gap: 0; }
+    .whatsapp-card .wa-thumb { width: 100px; min-height: 100px; object-fit: cover; display: block; background: #e8e8e8; flex-shrink: 0; }
+    .whatsapp-card .wa-body { padding: 8px 10px; flex: 1; min-width: 0; border: 1px solid #e9e9e9; border-left: none; }
+    .whatsapp-card .wa-site { font-size: 11px; font-weight: 700; color: #25d366; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .whatsapp-card .wa-title { font-size: 13px; font-weight: 700; color: #111; line-height: 1.3; margin-bottom: 3px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .whatsapp-card .wa-desc { font-size: 12px; color: #667781; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+
+    /* Telegram */
+    .telegram-card { background: #fff; }
+    .telegram-card .tg-img { width: 100%; aspect-ratio: 1200/630; object-fit: cover; display: block; background: #e8e8e8; }
+    .telegram-card .tg-body { padding: 8px 10px 8px 14px; border-left: 3px solid #2AABEE; margin: 8px 8px 8px 6px; }
+    .telegram-card .tg-site { font-size: 13px; font-weight: 700; color: #2AABEE; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .telegram-card .tg-title { font-size: 13px; font-weight: 600; color: #222; line-height: 1.3; margin-bottom: 2px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .telegram-card .tg-desc { font-size: 13px; color: #555; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+
     /* Placeholder shown when image is absent or errors */
     .img-ph {
       display: flex;
@@ -96,7 +113,7 @@
 
     <header class="mb-7">
       <h1 class="text-3xl font-bold text-white flex items-center gap-3">🔍 Meta Tag Preview</h1>
-      <p class="mt-1.5 text-sm text-gray-500">Paste a URL or raw HTML and see how it renders as a Twitter, Facebook, LinkedIn, and Google search card.</p>
+      <p class="mt-1.5 text-sm text-gray-500">Paste a URL or raw HTML and see how it renders as a Google, Twitter, Facebook, LinkedIn, WhatsApp, and Telegram preview card.</p>
     </header>
 
     <!-- Mode tabs -->
@@ -175,6 +192,28 @@
           </div>
           <div class="card p-4">
             <div class="preview-card linkedin-card" id="li-root"></div>
+          </div>
+        </div>
+
+        <!-- WhatsApp -->
+        <div>
+          <div class="platform-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+            WhatsApp
+          </div>
+          <div class="card p-4">
+            <div class="preview-card whatsapp-card" id="wa-root"></div>
+          </div>
+        </div>
+
+        <!-- Telegram -->
+        <div>
+          <div class="platform-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#2AABEE" aria-hidden="true"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+            Telegram
+          </div>
+          <div class="card p-4">
+            <div class="preview-card telegram-card" id="tg-root"></div>
           </div>
         </div>
 
@@ -380,6 +419,8 @@
       renderTwitter(meta);
       renderFacebook(meta);
       renderLinkedIn(meta);
+      renderWhatsApp(meta);
+      renderTelegram(meta);
     }
 
     function renderGoogle(meta) {
@@ -459,6 +500,43 @@
       const body = document.createElement('div');
       body.className = 'li-body';
       body.innerHTML = `<div class="li-title">${esc(title)}</div>${domain ? `<div class="li-domain">${esc(domain)}</div>` : ''}`;
+      root.appendChild(body);
+    }
+
+    function renderWhatsApp(meta) {
+      const root = document.getElementById('wa-root');
+      root.innerHTML = '';
+
+      const imgSrc = safeImg(meta.ogImage || meta.image || '');
+      const site   = meta.domain || '';
+      const title  = trunc(meta.ogTitle || meta.title || '(No title)', 100);
+      const desc   = trunc(meta.ogDescription || meta.description || '', 200);
+
+      const row = document.createElement('div');
+      row.className = 'wa-row';
+      row.appendChild(makeImgOrPh(imgSrc, 'wa-thumb', 1, 1));
+
+      const body = document.createElement('div');
+      body.className = 'wa-body';
+      body.innerHTML = `${site ? `<div class="wa-site">${esc(site)}</div>` : ''}<div class="wa-title">${esc(title)}</div>${desc ? `<div class="wa-desc">${esc(desc)}</div>` : ''}`;
+      row.appendChild(body);
+      root.appendChild(row);
+    }
+
+    function renderTelegram(meta) {
+      const root = document.getElementById('tg-root');
+      root.innerHTML = '';
+
+      const imgSrc = safeImg(meta.ogImage || meta.image || '');
+      const site   = meta.domain || '';
+      const title  = trunc(meta.ogTitle || meta.title || '(No title)', 100);
+      const desc   = trunc(meta.ogDescription || meta.description || '', 200);
+
+      root.appendChild(makeImgOrPh(imgSrc, 'tg-img', 1200, 630));
+
+      const body = document.createElement('div');
+      body.className = 'tg-body';
+      body.innerHTML = `${site ? `<div class="tg-site">${esc(site)}</div>` : ''}<div class="tg-title">${esc(title)}</div>${desc ? `<div class="tg-desc">${esc(desc)}</div>` : ''}`;
       root.appendChild(body);
     }
 
