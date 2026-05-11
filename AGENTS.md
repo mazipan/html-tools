@@ -69,6 +69,7 @@ Each tool's `faqs` is an array of `{ q, a }` entries; aim for 3–5 genuinely co
 
 ## Pull request rules
 
+- **Every PR must include a `Closes #<issue_number>` line** in the PR description (or the commit message that lands on `main`) so GitHub auto-closes the linked issue on merge. If there is no related issue, omit the line — don't invent a number.
 - **Every PR must target `main`. Never set a PR's base to another in-flight PR's branch.** Merged must mean deployed.
 - Stacked PRs (one PR's base = another PR's branch) are a silent footgun: when the dependency merges into `main`, GitHub does **not** auto-rebase the stacked PR. Merging the stacked PR while its base still points at the now-defunct feature branch lands the merge commit on that dead branch instead of `main` — the PR shows as "Merged" but the changes never ship.
 - If a branch genuinely needs commits from another in-flight PR, either (a) wait for the dependency to merge first and rebase onto `main`, or (b) absorb the rebase pain at merge time. Never use a non-`main` base as a shortcut.
