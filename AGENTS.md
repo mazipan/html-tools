@@ -18,8 +18,10 @@ Current tools (all under `src/`):
 - `blob.html` — blob generator: CSS border-radius blobs (8-value syntax, animate) + SVG blobs (catmull-rom path, copy/download)
 - `waves.html` — wave generator: single SVG wave (amplitude, frequency, position, gradient fill) + stacked waves (layers, spacing, color interpolation); copy/download SVG
 - `image-converter.html` — image format converter: drop PNG/JPEG/WebP/AVIF/GIF/BMP, re-encode as PNG/JPEG/WebP/AVIF with quality slider, before/after byte size, drag-to-compare visual diff, optional max-dimension resize, batch zip download
+- `image-resizer.html` — batch image resizer: drop up to 100 images, resize via max dimensions, exact W×H (contain/cover/stretch + background), or percentage; social-card presets (OG/Twitter/Facebook/LinkedIn/Pinterest); same-as-input / PNG / JPEG / WebP output; filename templating; single + zip download. Encoding happens in `image-encode-worker.js` (Web Worker + OffscreenCanvas).
 - `json-utils.js` — shared JSON parsing/validation helpers used by the JSON tools (separate hashed bundle, long-cached)
-- `image-utils.js` — shared image helpers (`supportsMime`, `formatBytes`, `formatPct`, `computeTargetSize`, `sourceHasAlpha`, `swapExtension`, `FORMAT_INFO`, `buildStoreZip`); separate hashed bundle, long-cached
+- `image-utils.js` — shared image helpers (`supportsMime`, `formatBytes`, `formatPct`, `computeTargetSize`, `sourceHasAlpha`, `swapExtension`, `FORMAT_INFO`, `buildStoreZip`); separate hashed bundle, long-cached. `computeTargetSize(srcW, srcH, opts)` understands three modes via `opts.mode`: `'max'` (default — fit inside maxW × maxH; converter uses this), `'exact'` (return `opts.targetW × opts.targetH`), and `'percent'` (scale by `opts.scale`).
+- `image-encode-worker.js` — Web Worker that decodes a file with `createImageBitmap`, optionally resizes / applies a contain-cover-stretch fit, and encodes the result via `OffscreenCanvas.convertToBlob`. Used by the resizer; future image tools (compressor, cropper) are expected to share it.
 
 ## Stack
 
