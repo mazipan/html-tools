@@ -94,8 +94,42 @@
     <!-- Controls -->
     <section id="controls" class="hidden border border-gray-800 rounded-xl bg-gray-900/40 p-5 mb-5">
 
+      <!-- Output decisions (top — what comes out) -->
+      <div class="grid gap-5 md:grid-cols-2">
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Output format</label>
+          <div class="flex flex-wrap gap-1.5">
+            <button class="pill" data-format="same" type="button">Same as input</button>
+            <button class="pill" data-format="png"  type="button">PNG</button>
+            <button class="pill" data-format="jpeg" type="button">JPEG</button>
+            <button class="pill" data-format="webp" type="button">WebP</button>
+          </div>
+          <p id="format-note" class="text-[0.7rem] text-gray-600 mt-1.5"></p>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" for="quality">Quality</label>
+            <span id="quality-val" class="text-xs text-gray-400 font-mono">0.92</span>
+          </div>
+          <input id="quality" type="range" min="0.30" max="1.00" step="0.01" value="0.92" class="range" aria-label="Output quality">
+          <p id="quality-note" class="text-[0.7rem] text-gray-600 mt-1.5">Lossy formats only — disabled when output is PNG.</p>
+        </div>
+
+        <div class="min-w-0 md:col-span-2">
+          <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2" for="filename-pattern">Filename pattern</label>
+          <select id="filename-pattern" class="select w-full">
+            <option value="{name}-{w}x{h}.{ext}">{name}-{w}x{h}.{ext}</option>
+            <option value="{name}-resized.{ext}">{name}-resized.{ext}</option>
+            <option value="{name}-{scale}.{ext}">{name}-{scale}.{ext}</option>
+            <option value="{name}.{ext}">{name}.{ext}</option>
+          </select>
+          <p class="text-[0.7rem] text-gray-600 mt-1.5"><code>{name}.{ext}</code> reuses the source filename — safe inside a zip; would overwrite siblings on single download.</p>
+        </div>
+      </div>
+
       <!-- Mode toggle -->
-      <div class="mb-5">
+      <div class="mt-5 pt-4 border-t border-gray-800">
         <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Resize mode</label>
         <div role="radiogroup" aria-label="Resize mode" class="flex flex-wrap gap-1.5">
           <button class="pill" data-mode="max"     type="button" role="radio">Max dimensions</button>
@@ -168,54 +202,22 @@
         </div>
       </div>
 
-      <!-- Presets -->
-      <div class="mt-5">
-        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Presets</label>
-        <div class="flex flex-wrap gap-1.5">
-          <button class="pill" data-preset="og"        type="button">OG 1200×630</button>
-          <button class="pill" data-preset="twitter"   type="button">Twitter 1600×900</button>
-          <button class="pill" data-preset="facebook"  type="button">Facebook 1200×630</button>
-          <button class="pill" data-preset="linkedin"  type="button">LinkedIn 1200×627</button>
-          <button class="pill" data-preset="pinterest" type="button">Pinterest 1000×1500</button>
-          <button class="pill" data-preset="half"      type="button">Half</button>
-          <button class="pill" data-preset="quarter"   type="button">Quarter</button>
-          <button class="pill" data-preset="thumb256"  type="button">Thumb 256</button>
-        </div>
-      </div>
-
-      <!-- Output -->
-      <div class="grid gap-5 md:grid-cols-2 mt-5 pt-4 border-t border-gray-800">
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Output format</label>
+      <!-- Presets (collapsed by default) -->
+      <details class="disclosure mt-4">
+        <summary>📋 Presets</summary>
+        <div class="disclosure-content"><div class="disclosure-body">
           <div class="flex flex-wrap gap-1.5">
-            <button class="pill" data-format="same" type="button">Same as input</button>
-            <button class="pill" data-format="png"  type="button">PNG</button>
-            <button class="pill" data-format="jpeg" type="button">JPEG</button>
-            <button class="pill" data-format="webp" type="button">WebP</button>
+            <button class="pill" data-preset="og"        type="button">OG 1200×630</button>
+            <button class="pill" data-preset="twitter"   type="button">Twitter 1600×900</button>
+            <button class="pill" data-preset="facebook"  type="button">Facebook 1200×630</button>
+            <button class="pill" data-preset="linkedin"  type="button">LinkedIn 1200×627</button>
+            <button class="pill" data-preset="pinterest" type="button">Pinterest 1000×1500</button>
+            <button class="pill" data-preset="half"      type="button">Half</button>
+            <button class="pill" data-preset="quarter"   type="button">Quarter</button>
+            <button class="pill" data-preset="thumb256"  type="button">Thumb 256</button>
           </div>
-          <p id="format-note" class="text-[0.7rem] text-gray-600 mt-1.5"></p>
-        </div>
-
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" for="quality">Quality</label>
-            <span id="quality-val" class="text-xs text-gray-400 font-mono">0.92</span>
-          </div>
-          <input id="quality" type="range" min="0.30" max="1.00" step="0.01" value="0.92" class="range" aria-label="Output quality">
-          <p id="quality-note" class="text-[0.7rem] text-gray-600 mt-1.5">Lossy formats only — disabled when output is PNG.</p>
-        </div>
-
-        <div class="min-w-0">
-          <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2" for="filename-pattern">Filename pattern</label>
-          <select id="filename-pattern" class="select w-full">
-            <option value="{name}-{w}x{h}.{ext}">{name}-{w}x{h}.{ext}</option>
-            <option value="{name}-resized.{ext}">{name}-resized.{ext}</option>
-            <option value="{name}-{scale}.{ext}">{name}-{scale}.{ext}</option>
-            <option value="{name}.{ext}">{name}.{ext}</option>
-          </select>
-          <p class="text-[0.7rem] text-gray-600 mt-1.5"><code>{name}.{ext}</code> reuses the source filename — safe inside a zip; would overwrite siblings on single download.</p>
-        </div>
-      </div>
+        </div></div>
+      </details>
 
       <div class="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-gray-800">
         <button id="resize-btn"   class="btn btn-secondary" type="button">🔄 Resize all</button>
@@ -784,6 +786,9 @@
 
     function updateSummary() {
       const n = items.length;
+      // "all" only reads naturally with 2+ items.
+      resizeBtn.textContent = n === 1 ? '🔄 Resize'         : '🔄 Resize all';
+      zipBtn.textContent    = n === 1 ? '📦 Download as zip' : '📦 Download all (zip)';
       if (n === 0) { summaryBar.classList.add('hidden'); summaryBar.textContent = ''; return; }
       summaryBar.classList.remove('hidden');
       const totalBefore = items.reduce((a, i) => a + (i.srcSize || 0), 0);
