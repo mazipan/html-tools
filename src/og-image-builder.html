@@ -190,10 +190,10 @@
           <label for="title-input" class="og-section-label">Title</label>
           <textarea id="title-input" class="textarea" rows="2"
             placeholder="Your headline">HTML Tools</textarea>
-          <div class="toolbar mt-2">
+          <div class="toolbar mt-2" style="flex-wrap: nowrap; gap: 0.75rem;">
             <label class="flex items-center gap-1.5 text-xs text-gray-400">
               Size
-              <input id="title-size" type="range" class="range" min="40" max="140" value="92" style="width:90px;">
+              <input id="title-size" type="range" class="range" min="40" max="140" value="92" style="width:70px;">
               <span id="title-size-val" class="text-gray-500 tabular-nums" style="min-width:2.5em;">92</span>
             </label>
             <label class="flex items-center gap-1.5 text-xs text-gray-400">
@@ -204,10 +204,6 @@
                 <option value="700" selected>Bold</option>
                 <option value="800">Extrabold</option>
               </select>
-            </label>
-            <label class="switch text-xs">
-              <input type="checkbox" id="title-wrap" checked>
-              <span>Word-wrap</span>
             </label>
           </div>
         </div>
@@ -443,7 +439,6 @@
       subtitle: 'Browser-native utilities for developers',
       titleSize: 92,
       titleWeight: 700,
-      titleWrap: true,
       subtitleSize: 34,
       titleGap: 16,                // px between title baseline-bottom and subtitle
       bgMode: 'gradient',       // 'gradient' | 'solid'
@@ -613,9 +608,7 @@
       const minPx = 32;
       while (titlePx >= minPx) {
         c.font = `${state.titleWeight} ${titlePx}px ${state.font}`;
-        titleLines = state.titleWrap
-          ? wrapText(c, state.title, maxW)
-          : state.title.split('\n');
+        titleLines = wrapText(c, state.title, maxW);
         const lineH = titlePx * 1.15;
         const titleH = titleLines.length
           ? (titleLines.length - 1) * lineH + titlePx
@@ -835,7 +828,7 @@
       minimal: {
         title: 'Ship faster.',
         subtitle: 'A short, punchy description.',
-        titleSize: 100, titleWeight: 700, titleWrap: true,
+        titleSize: 100, titleWeight: 700,
         subtitleSize: 32, titleGap: 16,
         bgMode: 'gradient', bgGradient: 0, // Midnight
         titleColor: '#ffffff', badgeColor: '#60a5fa',
@@ -846,7 +839,7 @@
       bold: {
         title: 'Big Claim,\nFew Words.',
         subtitle: '',
-        titleSize: 132, titleWeight: 800, titleWrap: false,
+        titleSize: 132, titleWeight: 800,
         subtitleSize: 36, titleGap: 16,
         bgMode: 'solid', bgSolid: '#ec4899',
         titleColor: '#ffffff', badgeColor: '#fde047',
@@ -857,7 +850,7 @@
       classic: {
         title: 'The Classic Card',
         subtitle: 'Subtle, readable, and timeless.',
-        titleSize: 80, titleWeight: 600, titleWrap: true,
+        titleSize: 80, titleWeight: 600,
         subtitleSize: 30, titleGap: 12,
         bgMode: 'solid', bgSolid: '#f8fafc',
         titleColor: '#0f172a', badgeColor: '#1e3a8a',
@@ -896,7 +889,6 @@
       $('title-size').value = state.titleSize;
       $('title-size-val').textContent = state.titleSize;
       $('title-weight').value = state.titleWeight;
-      $('title-wrap').checked = state.titleWrap;
       $('subtitle-size').value = state.subtitleSize;
       $('subtitle-size-val').textContent = state.subtitleSize;
       $('title-gap').value = state.titleGap;
@@ -929,8 +921,6 @@
         document.getElementById('title-size-val').textContent = state.titleSize;
       });
       bind('title-weight', 'titleWeight', v => +v);
-      const tw = document.getElementById('title-wrap');
-      tw.addEventListener('change', () => { state.titleWrap = tw.checked; scheduleRender(); });
       bind('subtitle-size', 'subtitleSize', v => +v, () => {
         document.getElementById('subtitle-size-val').textContent = state.subtitleSize;
       });
