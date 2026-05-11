@@ -30,9 +30,12 @@ const SITE_URL = SITE.url;
 const SITE_HOME = `${SITE_URL}/`;
 
 // Pages that are routable for direct visits but excluded from the marketing
-// surface — no FAQ, no cross-tool block, no JSON-LD. Keep in sync with
-// INTERNAL_PAGES in scripts/build.mjs.
-const INTERNAL_PAGES = new Set(['design-system.html']);
+// surface — no FAQ, no cross-tool block, no JSON-LD. The source of truth is
+// the `internal: true` flag on a tool entry in tools.json; the matching
+// filter in scripts/build.mjs (sitemap, _redirects) reads the same flag.
+const INTERNAL_PAGES = new Set(
+  tools.tools.filter(t => t.internal).map(t => `${t.slug}.html`),
+);
 
 const escHtml = s =>
   String(s)
@@ -67,21 +70,35 @@ function faqInnerLines(tool) {
 }
 
 function moreToolsInnerLines(current) {
-  const others = tools.tools.filter(t => t.slug !== current.slug);
-  const cards = others.flatMap(t => [
-    `    <a href="/${t.slug}" class="group flex items-start gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-400 transition-colors no-underline">`,
-    `      <span class="text-xl shrink-0 leading-none mt-0.5" aria-hidden="true">${t.icon}</span>`,
-    `      <span class="min-w-0 flex-1">`,
-    `        <span class="block text-sm font-medium text-white group-hover:text-blue-400 transition-colors">${escHtml(t.name)}</span>`,
-    `        <span class="block text-xs text-gray-500 mt-0.5 line-clamp-2">${escHtml(t.description)}</span>`,
-    `      </span>`,
-    `    </a>`,
-  ]);
+  const others = tools.tools.filter(t => t.slug !== current.slug && !t.internal);
+  // Preserve first-appearance order from tools.json for both categories
+  // and the tools within each category.
+  const byCategory = new Map();
+  for (const t of others) {
+    const cat = t.category || 'Other';
+    if (!byCategory.has(cat)) byCategory.set(cat, []);
+    byCategory.get(cat).push(t);
+  }
+  const groups = [...byCategory.entries()].flatMap(([cat, list]) => {
+    if (!list.length) return [];
+    const links = list.map(
+      t =>
+        `        <a href="/${t.slug}" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">${t.icon} ${escHtml(t.name)}</a>`,
+    );
+    return [
+      `    <div>`,
+      `      <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">${escHtml(cat)}</h3>`,
+      `      <div class="flex flex-wrap gap-x-5 gap-y-2">`,
+      ...links,
+      `      </div>`,
+      `    </div>`,
+    ];
+  });
   return [
     `<section class="max-w-[${current.maxWidth || '1100px'}] mx-auto w-full px-6 py-8 border-t border-gray-800">`,
     `  <h2 class="text-xl font-bold text-white mb-6">More tools</h2>`,
-    `  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">`,
-    ...cards,
+    `  <div class="space-y-4">`,
+    ...groups,
     `  </div>`,
     `</section>`,
   ];
