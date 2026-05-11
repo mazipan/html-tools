@@ -96,7 +96,7 @@
 
       <!-- Output decisions (top — what comes out) -->
       <div class="grid gap-5 md:grid-cols-2">
-        <div>
+        <div id="format-wrap">
           <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Output format</label>
           <div class="flex flex-wrap gap-1.5">
             <button class="pill" data-format="same" type="button">Same as input</button>
@@ -107,13 +107,13 @@
           <p id="format-note" class="text-[0.7rem] text-gray-600 mt-1.5"></p>
         </div>
 
-        <div>
+        <div id="quality-wrap">
           <div class="flex items-center justify-between mb-2">
             <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" for="quality">Quality</label>
             <span id="quality-val" class="text-xs text-gray-400 font-mono">0.92</span>
           </div>
           <input id="quality" type="range" min="0.30" max="1.00" step="0.01" value="0.92" class="range" aria-label="Output quality">
-          <p id="quality-note" class="text-[0.7rem] text-gray-600 mt-1.5">Lossy formats only — disabled when output is PNG.</p>
+          <p class="text-[0.7rem] text-gray-600 mt-1.5">Lossy formats only — the slider is hidden when the output is PNG.</p>
         </div>
 
         <div class="min-w-0 md:col-span-2">
@@ -139,7 +139,7 @@
       </div>
 
       <!-- Max mode panel -->
-      <div class="mode-panel" data-panel="max">
+      <div class="mode-panel mt-4" data-panel="max">
         <div class="grid gap-4 md:grid-cols-2">
           <div>
             <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Limits (leave blank to skip an axis)</label>
@@ -157,7 +157,7 @@
       </div>
 
       <!-- Exact mode panel -->
-      <div class="mode-panel" data-panel="exact">
+      <div class="mode-panel mt-4" data-panel="exact">
         <div class="grid gap-4 md:grid-cols-2">
           <div>
             <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Target size</label>
@@ -187,7 +187,7 @@
       </div>
 
       <!-- Percent mode panel -->
-      <div class="mode-panel" data-panel="percent">
+      <div class="mode-panel mt-4" data-panel="percent">
         <div class="grid gap-4 md:grid-cols-2">
           <div>
             <div class="flex items-center justify-between mb-2">
@@ -248,7 +248,8 @@
     const summaryBar   = document.getElementById('summary-bar');
     const qualityEl    = document.getElementById('quality');
     const qualityVal   = document.getElementById('quality-val');
-    const qualityNote  = document.getElementById('quality-note');
+    const qualityWrap  = document.getElementById('quality-wrap');
+    const formatWrap   = document.getElementById('format-wrap');
     const formatNote   = document.getElementById('format-note');
     const filenameSel  = document.getElementById('filename-pattern');
     const resizeBtn    = document.getElementById('resize-btn');
@@ -438,11 +439,11 @@
       });
       const resolved = resolveFormatLabel();
       const lossless = resolved === 'png';
-      qualityEl.disabled = lossless;
-      qualityEl.style.opacity = lossless ? '0.4' : '';
-      qualityNote.textContent = lossless
-        ? 'PNG is lossless — quality slider has no effect.'
-        : 'Lossy formats only — disabled when output is PNG.';
+      // Hide the quality column entirely when the resolved output is lossless,
+      // and let the format column span both grid tracks so the layout stays
+      // balanced on md+.
+      qualityWrap.classList.toggle('hidden', lossless);
+      formatWrap.classList.toggle('md:col-span-2', lossless);
       formatNote.textContent = settings.format === 'same'
         ? 'Each file is re-encoded in its source format (PNG, JPEG, or WebP). GIF/BMP/AVIF sources fall back to PNG.'
         : '';
