@@ -111,20 +111,23 @@
     .crop-box.ratio-locked .crop-handle.w { display: none; }
     .crop-dims {
       position: absolute;
-      top: -1.6rem;
+      top: -1.9rem;
       left: 0;
-      background: rgba(17, 24, 39, 0.92);
+      background: rgba(17, 24, 39, 0.95);
       color: #e5e7eb;
-      font-size: 0.7rem;
+      font-size: 0.72rem;
+      line-height: 1.1;
       font-family: 'IBM Plex Mono', ui-monospace, monospace;
-      padding: 0.15rem 0.45rem;
-      border-radius: 0.25rem;
+      padding: 0.32rem 0.6rem;
+      border-radius: 0.3rem;
       pointer-events: none;
       white-space: nowrap;
+      box-sizing: border-box;
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
     /* When the box hugs the top edge, the dims chip can't sit above — flip
        it to sit just inside the top of the box instead. */
-    .crop-box.dims-inside .crop-dims { top: 4px; left: 4px; }
+    .crop-box.dims-inside .crop-dims { top: 6px; left: 6px; }
 
     .warn-chip {
       display: inline-block;
@@ -571,7 +574,7 @@
       // Flip the dims chip inside the box when there's no headroom above.
       if (viewH > 0) {
         const yPx = (cropY / srcH) * viewH;
-        cropBoxEl.classList.toggle('dims-inside', yPx < 28);
+        cropBoxEl.classList.toggle('dims-inside', yPx < 34);
       }
       renderBox();
       updateMeta();
