@@ -21,6 +21,7 @@ const FORMAT_INFO = {
   png:  { mime: 'image/png',  lossless: true  },
   jpeg: { mime: 'image/jpeg', lossless: false },
   webp: { mime: 'image/webp', lossless: false },
+  avif: { mime: 'image/avif', lossless: false },
 };
 
 // Kept in sync with src/image-utils.js. Duplicated here so the worker has no

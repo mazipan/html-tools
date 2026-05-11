@@ -108,7 +108,7 @@
   </main>
 
   <script src="image-utils.js"></script>
-  <script>
+  <script type="module">
     const dropEl       = document.getElementById('drop');
     const dropEmpty    = document.getElementById('drop-empty');
     const dropCompact  = document.getElementById('drop-compact');
@@ -144,9 +144,42 @@
       resize: { enabled: false, maxW: 2400, maxH: 2400, keepAspect: true },
     };
 
-    /** @type {Array<{id:string,file:File,name:string,bitmap:ImageBitmap|null,srcMime:string,srcSize:number,srcW:number,srcH:number,srcUrl:string,dstBlob:Blob|null,dstUrl:string|null,dstW:number,dstH:number,error:string|null,encoding:boolean}>} */
+    /** @type {Array<{id:string,file:File,name:string,srcMime:string,srcSize:number,srcW:number,srcH:number,srcUrl:string,dstBlob:Blob|null,dstUrl:string|null,dstW:number,dstH:number,error:string|null,encoding:boolean}>} */
     const items = [];
     let nextId = 1;
+
+    // ── Worker ────────────────────────────────────────────────────
+    // Shared with the resizer (and future image tools). We decode each file
+    // once on the main thread for dimension probing, then hand the File off
+    // to the worker for the actual encode pipeline.
+    // Local `FORMAT_INFO_TABLE` mirrors the const in image-utils.js — that one
+    // is `const` (script-scope only), modules can't reach it by bare name.
+    const FORMAT_INFO_TABLE = {
+      png:  { mime: 'image/png',  ext: 'png',  lossless: true  },
+      jpeg: { mime: 'image/jpeg', ext: 'jpg',  lossless: false },
+      webp: { mime: 'image/webp', ext: 'webp', lossless: false },
+      avif: { mime: 'image/avif', ext: 'avif', lossless: false },
+    };
+    const worker = new Worker(new URL('./image-encode-worker.js', import.meta.url), { type: 'module' });
+    const pending = new Map();
+    let nextJobId = 1;
+    worker.onmessage = (e) => {
+      const job = pending.get(e.data.id);
+      if (!job) return;
+      pending.delete(e.data.id);
+      if (e.data.error) job.reject(new Error(e.data.error));
+      else job.resolve(e.data);
+    };
+    worker.onerror = (e) => {
+      showError(`Worker error: ${e.message || 'unknown'}`);
+    };
+    function workerEncode(file, opts) {
+      const id = `j${nextJobId++}`;
+      return new Promise((resolve, reject) => {
+        pending.set(id, { resolve, reject });
+        worker.postMessage({ id, file, opts });
+      });
+    }
 
     // ── Format pills ──────────────────────────────────────────────
     function syncFormatPills() {
@@ -279,7 +312,7 @@
       for (const file of imgFiles) {
         const id = `f${nextId++}`;
         const item = {
-          id, file, name: file.name, bitmap: null,
+          id, file, name: file.name,
           srcMime: file.type, srcSize: file.size,
           srcW: 0, srcH: 0,
           srcUrl: URL.createObjectURL(file),
@@ -290,9 +323,9 @@
         renderCard(item);
         try {
           const bm = await createImageBitmap(file, { imageOrientation: 'from-image' });
-          item.bitmap = bm;
           item.srcW = bm.width;
           item.srcH = bm.height;
+          bm.close?.();
         } catch (err) {
           item.error = `Decode failed: ${err.message || err}`;
           renderCard(item);
@@ -312,41 +345,30 @@
     }
 
     async function encodeOne(item) {
-      if (!item.bitmap) return;
+      if (!item.srcW) return;
       item.encoding = true;
       item.error = null;
       renderCard(item);
 
-      const { w: dstW, h: dstH } = computeTargetSize(item.srcW, item.srcH, settings.resize);
-      const canvas = document.createElement('canvas');
-      canvas.width = dstW;
-      canvas.height = dstH;
-      const ctx = canvas.getContext('2d');
-      if (shouldFillBackground(item)) {
-        ctx.fillStyle = settings.background;
-        ctx.fillRect(0, 0, dstW, dstH);
-      }
-      ctx.drawImage(item.bitmap, 0, 0, dstW, dstH);
+      const info = FORMAT_INFO_TABLE[settings.format];
+      const opts = {
+        // computeTargetSize defaults `mode` to 'max', matching the converter's
+        // existing { enabled, maxW, maxH, keepAspect } resize spec.
+        ...settings.resize,
+        format: settings.format,
+        quality: info.lossless ? undefined : settings.quality,
+        background: shouldFillBackground(item) ? settings.background : undefined,
+      };
 
-      const info = FORMAT_INFO[settings.format];
-      const quality = info.lossless ? undefined : settings.quality;
-
-      const blob = await new Promise(resolve => {
-        try {
-          canvas.toBlob(resolve, info.mime, quality);
-        } catch (_) {
-          resolve(null);
-        }
-      });
-
-      if (!blob) {
-        item.error = `Encode to ${settings.format.toUpperCase()} failed in this browser.`;
-      } else {
+      try {
+        const result = await workerEncode(item.file, opts);
         if (item.dstUrl) URL.revokeObjectURL(item.dstUrl);
-        item.dstBlob = blob;
-        item.dstUrl = URL.createObjectURL(blob);
-        item.dstW = dstW;
-        item.dstH = dstH;
+        item.dstBlob = result.blob;
+        item.dstUrl = URL.createObjectURL(result.blob);
+        item.dstW = result.w;
+        item.dstH = result.h;
+      } catch (err) {
+        item.error = `Encode to ${settings.format.toUpperCase()} failed: ${err.message || err}`;
       }
       item.encoding = false;
       renderCard(item);
@@ -362,7 +384,7 @@
       if (items.length === 0) return;
       statusEl.textContent = `Re-encoding ${items.length} image${items.length === 1 ? '' : 's'}…`;
       for (const it of items) {
-        if (!it.bitmap) continue;
+        if (!it.srcW) continue;
         await encodeOne(it);
         updateSummary();
       }
@@ -465,7 +487,6 @@
       const item = items.find(i => i.id === id);
       if (!item) return;
       if (btn.dataset.action === 'remove') {
-        if (item.bitmap?.close) try { item.bitmap.close(); } catch (_) {}
         if (item.srcUrl) URL.revokeObjectURL(item.srcUrl);
         if (item.dstUrl) URL.revokeObjectURL(item.dstUrl);
         const idx = items.indexOf(item);
@@ -504,7 +525,6 @@
 
     function clearAll() {
       for (const item of items) {
-        if (item.bitmap?.close) try { item.bitmap.close(); } catch (_) {}
         if (item.srcUrl) URL.revokeObjectURL(item.srcUrl);
         if (item.dstUrl) URL.revokeObjectURL(item.dstUrl);
       }
@@ -531,7 +551,7 @@
 
     function downloadOne(item) {
       if (!item.dstBlob) return;
-      const ext = FORMAT_INFO[settings.format].ext;
+      const ext = FORMAT_INFO_TABLE[settings.format].ext;
       const a = document.createElement('a');
       a.href = item.dstUrl;
       a.download = swapExtension(item.name, ext);
@@ -545,7 +565,7 @@
       if (ready.length === 0) return;
       zipBtn.disabled = true;
       statusEl.textContent = `Packaging ${ready.length} image${ready.length === 1 ? '' : 's'} into a zip…`;
-      const ext = FORMAT_INFO[settings.format].ext;
+      const ext = FORMAT_INFO_TABLE[settings.format].ext;
       const taken = new Set();
       const entries = ready.map(i => ({
         name: uniqueName(swapExtension(i.name, ext), taken),
