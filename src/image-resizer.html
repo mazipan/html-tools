@@ -58,6 +58,35 @@
     }
     .mode-panel { display: none; }
     .mode-panel.on { display: block; }
+    /* Single-file mode — wide card with a hero preview or a diff-slider compare. */
+    .single-card {
+      border: 1px solid #1f2937;
+      border-radius: 0.7rem;
+      background: rgba(17, 24, 39, 0.55);
+      padding: 1rem;
+    }
+    .single-card .preview-area {
+      display: block;
+      max-width: 100%;
+      max-height: 480px;
+      margin: 0 auto 0.9rem;
+      border-radius: 0.5rem;
+      border: 1px solid #1f2937;
+      background: #0b1220;
+      /* aspect-ratio set inline per item */
+    }
+    .single-card .diff-wrap.preview-area {
+      /* Keep diff-wrap's own checker background for transparency previews. */
+      background:
+        linear-gradient(45deg, #1f2937 25%, transparent 25%),
+        linear-gradient(-45deg, #1f2937 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #1f2937 75%),
+        linear-gradient(-45deg, transparent 75%, #1f2937 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+    }
+    .single-stats { line-height: 1.4; margin-bottom: 0.8rem; }
+    .single-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
   </style>
   <include src="_partials/head-theme.html"></include>
 </head>
@@ -119,12 +148,12 @@
         <div class="min-w-0 md:col-span-2">
           <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2" for="filename-pattern">Filename pattern</label>
           <select id="filename-pattern" class="select w-full">
+            <option value="{name}.{ext}">{name}.{ext}</option>
             <option value="{name}-{w}x{h}.{ext}">{name}-{w}x{h}.{ext}</option>
             <option value="{name}-resized.{ext}">{name}-resized.{ext}</option>
             <option value="{name}-{scale}.{ext}">{name}-{scale}.{ext}</option>
-            <option value="{name}.{ext}">{name}.{ext}</option>
           </select>
-          <p class="text-[0.7rem] text-gray-600 mt-1.5"><code>{name}.{ext}</code> reuses the source filename — safe inside a zip; would overwrite siblings on single download.</p>
+          <p class="text-[0.7rem] text-gray-600 mt-1.5">Default <code>{name}.{ext}</code> reuses the source filename (overwrites on download if the source is in your Downloads folder).</p>
         </div>
       </div>
 
@@ -132,92 +161,63 @@
       <div class="mt-5 pt-4 border-t border-gray-800">
         <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Resize mode</label>
         <div role="radiogroup" aria-label="Resize mode" class="flex flex-wrap gap-1.5">
-          <button class="pill" data-mode="max"     type="button" role="radio">Max dimensions</button>
-          <button class="pill" data-mode="exact"   type="button" role="radio">Exact dimensions</button>
           <button class="pill" data-mode="percent" type="button" role="radio">Percentage</button>
-        </div>
-      </div>
-
-      <!-- Max mode panel -->
-      <div class="mode-panel mt-4" data-panel="max">
-        <div class="grid gap-4 md:grid-cols-2">
-          <div>
-            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Limits (leave blank to skip an axis)</label>
-            <div class="flex items-center gap-2 text-sm text-gray-400 flex-wrap">
-              max W <input id="max-w" type="number" min="1" max="20000" value="1600" class="num-input" aria-label="Max width in pixels">
-              <span>×</span>
-              max H <input id="max-h" type="number" min="1" max="20000" value="1600" class="num-input" aria-label="Max height in pixels">
-            </div>
-          </div>
-          <div class="flex flex-col gap-2 pt-1">
-            <label class="switch"><input id="max-keep-aspect" type="checkbox" checked><span>Keep aspect ratio</span></label>
-            <label class="switch"><input id="max-no-upscale"  type="checkbox" checked><span>Don't upscale</span></label>
-          </div>
-        </div>
-      </div>
-
-      <!-- Exact mode panel -->
-      <div class="mode-panel mt-4" data-panel="exact">
-        <div class="grid gap-4 md:grid-cols-2">
-          <div>
-            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Target size</label>
-            <div class="flex items-center gap-2 text-sm text-gray-400 flex-wrap">
-              W <input id="exact-w" type="number" min="1" max="20000" value="1200" class="num-input" aria-label="Target width in pixels">
-              <span>×</span>
-              H <input id="exact-h" type="number" min="1" max="20000" value="630"  class="num-input" aria-label="Target height in pixels">
-            </div>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Fit</label>
-            <div role="radiogroup" aria-label="Fit" class="flex flex-wrap gap-1.5">
-              <button class="pill" data-fit="contain" type="button" role="radio">contain</button>
-              <button class="pill" data-fit="cover"   type="button" role="radio">cover</button>
-              <button class="pill" data-fit="stretch" type="button" role="radio">stretch</button>
-            </div>
-            <div id="bg-row" class="mt-2.5 flex flex-wrap items-center gap-2 text-xs text-gray-500">
-              <span>Background (contain):</span>
-              <button class="pill" data-bg="#ffffff"    type="button"><span class="swatch" style="background:#fff"></span>&nbsp;White</button>
-              <button class="pill" data-bg="#000000"    type="button"><span class="swatch" style="background:#000"></span>&nbsp;Black</button>
-              <button class="pill" data-bg="transparent" type="button">Transparent</button>
-              <input id="bg-custom" type="color" value="#ffffff" class="w-9 h-8 rounded border border-gray-700 bg-transparent cursor-pointer" title="Pick a custom background color">
-            </div>
-            <p class="text-[0.7rem] text-gray-600 mt-1.5">Transparent only applies to PNG / WebP output.</p>
-          </div>
+          <button class="pill" data-mode="exact"   type="button" role="radio">Exact dimensions</button>
+          <button class="pill" data-mode="max"     type="button" role="radio">Max dimensions</button>
         </div>
       </div>
 
       <!-- Percent mode panel -->
       <div class="mode-panel mt-4" data-panel="percent">
-        <div class="grid gap-4 md:grid-cols-2">
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" for="scale">Scale</label>
-              <span id="scale-val" class="text-xs text-gray-400 font-mono">50%</span>
-            </div>
-            <input id="scale" type="range" min="10" max="200" step="1" value="50" class="range" aria-label="Scale percentage">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" for="scale">Scale</label>
+            <span id="scale-val" class="text-xs text-gray-400 font-mono">50%</span>
           </div>
-          <div class="pt-1">
-            <label class="switch"><input id="pct-no-upscale" type="checkbox" checked><span>Don't upscale (cap at 100%)</span></label>
-          </div>
+          <input id="scale" type="range" min="10" max="100" step="5" value="50" class="range" aria-label="Scale percentage">
+          <p class="text-[0.7rem] text-gray-600 mt-1.5">Percentage mode is shrink-only — use Exact mode for explicit larger dimensions.</p>
         </div>
       </div>
 
-      <!-- Presets (collapsed by default) -->
-      <details class="disclosure mt-4">
-        <summary>📋 Presets</summary>
-        <div class="disclosure-content"><div class="disclosure-body">
-          <div class="flex flex-wrap gap-1.5">
-            <button class="pill" data-preset="og"        type="button">OG 1200×630</button>
-            <button class="pill" data-preset="twitter"   type="button">Twitter 1600×900</button>
-            <button class="pill" data-preset="facebook"  type="button">Facebook 1200×630</button>
-            <button class="pill" data-preset="linkedin"  type="button">LinkedIn 1200×627</button>
-            <button class="pill" data-preset="pinterest" type="button">Pinterest 1000×1500</button>
-            <button class="pill" data-preset="half"      type="button">Half</button>
-            <button class="pill" data-preset="quarter"   type="button">Quarter</button>
-            <button class="pill" data-preset="thumb256"  type="button">Thumb 256</button>
-          </div>
-        </div></div>
-      </details>
+      <!-- Exact mode panel -->
+      <div class="mode-panel mt-4" data-panel="exact">
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Target size</label>
+        <div class="flex items-center gap-2 text-sm text-gray-400 flex-wrap">
+          W <input id="exact-w" type="number" min="1" max="20000" value="1200" class="num-input" aria-label="Target width in pixels">
+          <span>×</span>
+          H <input id="exact-h" type="number" min="1" max="20000" value="630"  class="num-input" aria-label="Target height in pixels">
+        </div>
+        <label class="switch mt-2.5"><input id="exact-lock-aspect" type="checkbox" checked><span>Lock aspect ratio</span></label>
+        <p class="text-[0.7rem] text-gray-600 mt-1">When on, editing one dimension auto-fills the other so the ratio captured at toggle-on stays constant. Source is always cropped from the center to fill the target.</p>
+      </div>
+
+      <!-- Max mode panel -->
+      <div class="mode-panel mt-4" data-panel="max">
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Limits (leave blank to skip an axis)</label>
+        <div class="flex items-center gap-2 text-sm text-gray-400 flex-wrap">
+          max W <input id="max-w" type="number" min="1" max="20000" value="1600" class="num-input" aria-label="Max width in pixels">
+          <span>×</span>
+          max H <input id="max-h" type="number" min="1" max="20000" value="1600" class="num-input" aria-label="Max height in pixels">
+        </div>
+        <label class="switch mt-2.5"><input id="max-keep-aspect" type="checkbox" checked><span>Lock aspect ratio</span></label>
+        <p class="text-[0.7rem] text-gray-600 mt-1">When off, the image stretches to fill max W × max H exactly — rarely what you want. Output never exceeds the source resolution.</p>
+      </div>
+
+      <!-- Presets — only visible when the user has opted out of aspect-locking
+           (a preset would otherwise silently violate the locked ratio). -->
+      <section id="presets-section" class="mt-4 hidden">
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Presets</label>
+        <div class="flex flex-wrap gap-1.5">
+          <button class="pill" data-preset="og"        type="button">OG 1200×630</button>
+          <button class="pill" data-preset="twitter"   type="button">Twitter 1600×900</button>
+          <button class="pill" data-preset="facebook"  type="button">Facebook 1200×630</button>
+          <button class="pill" data-preset="linkedin"  type="button">LinkedIn 1200×627</button>
+          <button class="pill" data-preset="pinterest" type="button">Pinterest 1000×1500</button>
+          <button class="pill" data-preset="half"      type="button">Half</button>
+          <button class="pill" data-preset="quarter"   type="button">Quarter</button>
+          <button class="pill" data-preset="thumb256"  type="button">Thumb 256</button>
+        </div>
+      </section>
 
       <div class="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-gray-800">
         <button id="resize-btn"   class="btn btn-secondary" type="button">🔄 Resize all</button>
@@ -256,17 +256,15 @@
     const zipBtn       = document.getElementById('zip-btn');
     const clearBtn     = document.getElementById('clear-btn');
 
-    const maxW           = document.getElementById('max-w');
-    const maxH           = document.getElementById('max-h');
-    const maxKeepAspect  = document.getElementById('max-keep-aspect');
-    const maxNoUpscale   = document.getElementById('max-no-upscale');
-    const exactW         = document.getElementById('exact-w');
-    const exactH         = document.getElementById('exact-h');
-    const scaleEl        = document.getElementById('scale');
-    const scaleVal       = document.getElementById('scale-val');
-    const pctNoUpscale   = document.getElementById('pct-no-upscale');
-    const bgCustom       = document.getElementById('bg-custom');
-    const bgRow          = document.getElementById('bg-row');
+    const maxW              = document.getElementById('max-w');
+    const maxH              = document.getElementById('max-h');
+    const maxKeepAspect     = document.getElementById('max-keep-aspect');
+    const exactW            = document.getElementById('exact-w');
+    const exactH            = document.getElementById('exact-h');
+    const exactLockAspect   = document.getElementById('exact-lock-aspect');
+    const scaleEl           = document.getElementById('scale');
+    const scaleVal          = document.getElementById('scale-val');
+    const presetsSection    = document.getElementById('presets-section');
 
     const support = {
       png:  supportsMime('image/png'),
@@ -277,14 +275,21 @@
     const HARD_CAP = 100;
     const SOFT_WARN = 50;
 
+    // Upscaling is never useful (it just produces a fuzzier copy), so the
+    // worker / computeTargetSize defaults are relied on — no `noUpscale`
+    // toggle is exposed. Percent slider is capped at 100% for the same
+    // reason; for explicit larger dims the user goes to Exact mode.
+    // Aspect lock defaults ON everywhere — max keeps the source aspect, exact
+    // keeps whatever W:H the user last set. Presets are only shown when the
+    // user explicitly opts out of locking.
     const settings = {
-      mode: 'max',
-      max:    { maxW: 1600, maxH: 1600, keepAspect: true, noUpscale: true },
-      exact:  { targetW: 1200, targetH: 630, fit: 'cover', background: '#ffffff' },
-      percent:{ scale: 50, noUpscale: true },
+      mode: 'percent',
+      max:    { maxW: 1600, maxH: 1600, keepAspect: true },
+      exact:  { targetW: 1200, targetH: 630, lockAspect: true, lockRatio: 1200 / 630 },
+      percent:{ scale: 50 },
       format: 'same',
       quality: 0.92,
-      pattern: '{name}-{w}x{h}.{ext}',
+      pattern: '{name}.{ext}',
     };
 
     /** @type {Array<{id:string,file:File,name:string,srcMime:string,srcSize:number,srcW:number,srcH:number,srcUrl:string,dstBlob:Blob|null,dstUrl:string|null,dstW:number,dstH:number,dstName:string,kept:boolean,error:string|null,encoding:boolean}>} */
@@ -322,7 +327,19 @@
       document.querySelectorAll('.mode-panel').forEach(panel => {
         panel.classList.toggle('on', panel.dataset.panel === settings.mode);
       });
+      syncPresetsVisibility();
     }
+
+    // Presets are an "escape hatch" for setting explicit dimensions — visible
+    // only when the user has opted out of aspect-locking in the current mode.
+    // Percent mode is implicitly always locked (uniform scale), so presets
+    // stay hidden there.
+    function syncPresetsVisibility() {
+      const unlockedMax   = settings.mode === 'max'   && !settings.max.keepAspect;
+      const unlockedExact = settings.mode === 'exact' && !settings.exact.lockAspect;
+      presetsSection.classList.toggle('hidden', !(unlockedMax || unlockedExact));
+    }
+
     document.querySelectorAll('.pill[data-mode]').forEach(p => {
       p.addEventListener('click', () => {
         settings.mode = p.dataset.mode;
@@ -334,59 +351,55 @@
     // ── Max mode controls ─────────────────────────────────────────
     maxW.addEventListener('change', () => { settings.max.maxW = clampInt(maxW.value, 1, 20000); scheduleResize(); });
     maxH.addEventListener('change', () => { settings.max.maxH = clampInt(maxH.value, 1, 20000); scheduleResize(); });
-    maxKeepAspect.addEventListener('change', () => { settings.max.keepAspect = maxKeepAspect.checked; scheduleResize(); });
-    maxNoUpscale.addEventListener('change',  () => { settings.max.noUpscale  = maxNoUpscale.checked;  scheduleResize(); });
+    maxKeepAspect.addEventListener('change', () => {
+      settings.max.keepAspect = maxKeepAspect.checked;
+      syncPresetsVisibility();
+      scheduleResize();
+    });
 
     // ── Exact mode controls ───────────────────────────────────────
-    exactW.addEventListener('change', () => { settings.exact.targetW = clampInt(exactW.value, 1, 20000); scheduleResize(); });
-    exactH.addEventListener('change', () => { settings.exact.targetH = clampInt(exactH.value, 1, 20000); scheduleResize(); });
-    function syncFitPills() {
-      document.querySelectorAll('.pill[data-fit]').forEach(p => {
-        p.classList.toggle('on', p.dataset.fit === settings.exact.fit);
-        p.setAttribute('aria-checked', p.dataset.fit === settings.exact.fit ? 'true' : 'false');
-      });
-      bgRow.style.display = settings.exact.fit === 'contain' ? '' : 'none';
-    }
-    document.querySelectorAll('.pill[data-fit]').forEach(p => {
-      p.addEventListener('click', () => {
-        settings.exact.fit = p.dataset.fit;
-        syncFitPills();
-        scheduleResize();
-      });
+    exactW.addEventListener('change', () => {
+      const newW = clampInt(exactW.value, 1, 20000);
+      if (settings.exact.lockAspect && settings.exact.lockRatio > 0) {
+        const newH = Math.max(1, Math.round(newW / settings.exact.lockRatio));
+        settings.exact.targetH = newH;
+        exactH.value = newH;
+      }
+      settings.exact.targetW = newW;
+      scheduleResize();
     });
-
-    function syncBgPills() {
-      document.querySelectorAll('.pill[data-bg]').forEach(p => {
-        p.classList.toggle('on', settings.exact.background.toLowerCase() === p.dataset.bg.toLowerCase());
-      });
-      if (settings.exact.background !== 'transparent') bgCustom.value = settings.exact.background;
-    }
-    document.querySelectorAll('.pill[data-bg]').forEach(p => {
-      p.addEventListener('click', () => {
-        settings.exact.background = p.dataset.bg;
-        syncBgPills();
-        scheduleResize();
-      });
+    exactH.addEventListener('change', () => {
+      const newH = clampInt(exactH.value, 1, 20000);
+      if (settings.exact.lockAspect && settings.exact.lockRatio > 0) {
+        const newW = Math.max(1, Math.round(newH * settings.exact.lockRatio));
+        settings.exact.targetW = newW;
+        exactW.value = newW;
+      }
+      settings.exact.targetH = newH;
+      scheduleResize();
     });
-    bgCustom.addEventListener('input',  () => { settings.exact.background = bgCustom.value; syncBgPills(); });
-    bgCustom.addEventListener('change', () => scheduleResize());
+    exactLockAspect.addEventListener('change', () => {
+      settings.exact.lockAspect = exactLockAspect.checked;
+      // Capture the current W:H as the ratio to preserve from here on.
+      if (settings.exact.lockAspect && settings.exact.targetW > 0 && settings.exact.targetH > 0) {
+        settings.exact.lockRatio = settings.exact.targetW / settings.exact.targetH;
+      }
+      syncPresetsVisibility();
+    });
+    // Fit is hardcoded to `cover` — the encoder always crops from the
+    // center to fill the target. The contain / stretch / background-color
+    // controls were removed because they're not what people reach for in
+    // typical "resize to these dimensions" workflows. If letterbox-with-bg
+    // is genuinely needed, the converter still exposes background, and Max
+    // mode + Lock aspect ratio + a larger box approximates the contain case.
 
     // ── Percent mode controls ─────────────────────────────────────
     scaleEl.addEventListener('input', () => {
-      let v = parseInt(scaleEl.value, 10) || 0;
-      if (settings.percent.noUpscale && v > 100) { v = 100; scaleEl.value = '100'; }
+      const v = parseInt(scaleEl.value, 10) || 0;
       settings.percent.scale = v;
       scaleVal.textContent = `${v}%`;
     });
     scaleEl.addEventListener('change', () => scheduleResize());
-    pctNoUpscale.addEventListener('change', () => {
-      settings.percent.noUpscale = pctNoUpscale.checked;
-      if (pctNoUpscale.checked && settings.percent.scale > 100) {
-        settings.percent.scale = 100; scaleEl.value = '100'; scaleVal.textContent = '100%';
-      }
-      scaleEl.max = pctNoUpscale.checked ? '100' : '200';
-      scheduleResize();
-    });
 
     // ── Presets ───────────────────────────────────────────────────
     const PRESETS = {
@@ -397,7 +410,7 @@
       pinterest: { mode: 'exact',   exact: { targetW: 1000, targetH: 1500, fit: 'cover' } },
       half:      { mode: 'percent', percent: { scale: 50 } },
       quarter:   { mode: 'percent', percent: { scale: 25 } },
-      thumb256:  { mode: 'max',     max: { maxW: 256, maxH: 256, keepAspect: true, noUpscale: true } },
+      thumb256:  { mode: 'max',     max: { maxW: 256, maxH: 256, keepAspect: true } },
     };
     document.querySelectorAll('.pill[data-preset]').forEach(p => {
       p.addEventListener('click', () => applyPreset(p.dataset.preset));
@@ -409,23 +422,26 @@
       if (preset.max)     Object.assign(settings.max,     preset.max);
       if (preset.exact)   Object.assign(settings.exact,   preset.exact);
       if (preset.percent) Object.assign(settings.percent, preset.percent);
+      // If lock-aspect is on in Exact mode, the captured ratio should track
+      // whatever the preset sets — otherwise the next W/H edit would snap
+      // back to the previously-locked ratio.
+      if (settings.exact.lockAspect && settings.exact.targetW > 0 && settings.exact.targetH > 0) {
+        settings.exact.lockRatio = settings.exact.targetW / settings.exact.targetH;
+      }
       pushSettingsToUi();
       syncModePills();
-      syncFitPills();
-      syncBgPills();
       scheduleResize();
     }
 
     function pushSettingsToUi() {
-      maxW.value          = settings.max.maxW;
-      maxH.value          = settings.max.maxH;
+      maxW.value           = settings.max.maxW;
+      maxH.value           = settings.max.maxH;
       maxKeepAspect.checked = settings.max.keepAspect;
-      maxNoUpscale.checked  = settings.max.noUpscale;
-      exactW.value        = settings.exact.targetW;
-      exactH.value        = settings.exact.targetH;
-      scaleEl.value       = String(settings.percent.scale);
-      scaleVal.textContent = `${settings.percent.scale}%`;
-      pctNoUpscale.checked = settings.percent.noUpscale;
+      exactW.value         = settings.exact.targetW;
+      exactH.value         = settings.exact.targetH;
+      exactLockAspect.checked = settings.exact.lockAspect;
+      scaleEl.value        = String(settings.percent.scale);
+      scaleVal.textContent  = `${settings.percent.scale}%`;
     }
 
     // ── Output format / quality / filename ────────────────────────
@@ -488,27 +504,22 @@
     function buildOpts(item) {
       const format = resolveFormatFor(item);
       const base = { enabled: true, mode: settings.mode, format, quality: settings.quality };
+      // noUpscale defaults to true in computeTargetSize when omitted, which
+      // matches the always-on behaviour we want.
       if (settings.mode === 'max') {
         Object.assign(base, {
           maxW: settings.max.maxW,
           maxH: settings.max.maxH,
           keepAspect: settings.max.keepAspect,
-          noUpscale: settings.max.noUpscale,
         });
       } else if (settings.mode === 'exact') {
         Object.assign(base, {
           targetW: settings.exact.targetW,
           targetH: settings.exact.targetH,
-          fit: settings.exact.fit,
-          background: (format === 'jpeg' && settings.exact.background === 'transparent')
-            ? '#ffffff'
-            : settings.exact.background,
+          fit: 'cover', // resizer always center-crops to the target; worker handles JPEG-on-alpha bg internally
         });
       } else {
-        Object.assign(base, {
-          scale: settings.percent.scale,
-          noUpscale: settings.percent.noUpscale,
-        });
+        Object.assign(base, { scale: settings.percent.scale });
       }
       return base;
     }
@@ -583,9 +594,12 @@
           kept: false, error: null, encoding: true,
         };
         items.push(item);
-        renderCard(item);
         probeQueue.push(probeAndEncode(item));
       }
+      // Render everything in the loop's *final* count so the layout picks the
+      // right template (the first dropped file briefly rendered as a single
+      // card before the next one arrives — re-render so they're consistent).
+      renderAllCards();
       updateSummary();
       syncFormatPills();
       await Promise.all(probeQueue);
@@ -658,6 +672,9 @@
 
     let resizeTimer = null;
     function scheduleResize() {
+      // Re-render in place so the single-card preview (aspect / fit / bg)
+      // tracks the controls without waiting for the debounced encode.
+      renderAllCards();
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => resizeAll(), 220);
     }
@@ -700,13 +717,48 @@
 
     // ── Rendering ─────────────────────────────────────────────────
     function ensureCardEl(item) {
+      const wantClass = items.length === 1 ? 'single-card' : 'row-card';
       let card = document.getElementById(`row-${item.id}`);
-      if (card) return card;
+      if (card) {
+        // Switching between single and bulk layout — swap the class so the
+        // CSS shape matches the new template.
+        if (card.className !== wantClass) card.className = wantClass;
+        return card;
+      }
       card = document.createElement('div');
       card.id = `row-${item.id}`;
-      card.className = 'row-card';
+      card.className = wantClass;
       filesEl.appendChild(card);
       return card;
+    }
+
+    // The resize op preserves aspect when:
+    //   - Percent mode (uniform scale)
+    //   - Max mode + keep aspect (default)
+    //   - Exact mode where the target W:H happens to match the source's
+    function isAspectPreserved(item) {
+      if (settings.mode === 'percent') return true;
+      if (settings.mode === 'max' && settings.max.keepAspect) return true;
+      if (settings.mode === 'exact' && item.srcW && item.srcH
+        && settings.exact.targetW && settings.exact.targetH) {
+        const src = item.srcW / item.srcH;
+        const tgt = settings.exact.targetW / settings.exact.targetH;
+        return Math.abs((src - tgt) / src) < 0.01;
+      }
+      return false;
+    }
+
+    // Inline style for the single-card hero preview — adopts the active
+    // target aspect ratio (and matching object-fit + bg for exact mode).
+    function heroPreviewStyle(item) {
+      if (settings.mode === 'exact'
+        && settings.exact.targetW && settings.exact.targetH) {
+        return `aspect-ratio:${settings.exact.targetW}/${settings.exact.targetH};object-fit:cover`;
+      }
+      if (item.srcW && item.srcH) {
+        return `aspect-ratio:${item.srcW}/${item.srcH};object-fit:cover`;
+      }
+      return '';
     }
 
     function deltaClass(after, before) {
@@ -717,8 +769,8 @@
       return 'delta-neutral';
     }
 
-    function renderCard(item) {
-      const card = ensureCardEl(item);
+    // Shared bits used by both row + single templates.
+    function statsLines(item) {
       const srcSize = item.srcSize;
       const dstSize = item.dstBlob ? item.dstBlob.size : 0;
       const before = `${item.srcW || '?'}×${item.srcH || '?'} · ${srcExt(item.srcMime)} · ${formatBytes(srcSize)}`;
@@ -732,6 +784,21 @@
             : '<span class="text-gray-500">queued…</span>';
       const pct = (item.dstBlob && srcSize) ? formatPct(dstSize, srcSize) : '';
       const pctCls = deltaClass(dstSize, srcSize);
+      return { before, after, pct, pctCls };
+    }
+
+    function renderCard(item) {
+      if (items.length === 1) {
+        if (isAspectPreserved(item)) renderSingleDiffCard(item);
+        else renderSingleHeroCard(item);
+      } else {
+        renderRowCard(item);
+      }
+    }
+
+    function renderRowCard(item) {
+      const card = ensureCardEl(item);
+      const { before, after, pct, pctCls } = statsLines(item);
 
       card.innerHTML = `
         <img class="thumb" src="${item.srcUrl}" alt="" loading="lazy">
@@ -748,6 +815,69 @@
       `;
     }
 
+    // Single + aspect-changing — show one big preview of the cropped/letterboxed
+    // result using srcUrl + CSS (object-fit). The encoded blob is identical
+    // visually so we don't wait for it.
+    function renderSingleHeroCard(item) {
+      const card = ensureCardEl(item);
+      const { before, after, pct, pctCls } = statsLines(item);
+      const previewStyle = heroPreviewStyle(item);
+      card.innerHTML = `
+        <div class="flex items-baseline justify-between gap-2 mb-3 min-w-0">
+          <span class="text-sm font-medium text-white truncate" title="${escapeHtml(item.dstName || item.name)}">${escapeHtml(item.dstName || item.name)}</span>
+        </div>
+        <img class="preview-area" src="${item.srcUrl}" alt="" style="${previewStyle}">
+        <div class="single-stats stats">
+          <div class="text-gray-500">${before}</div>
+          <div class="text-gray-200">→ ${after}${pct ? ` <span class="${pctCls}">(${pct})</span>` : ''}</div>
+        </div>
+        <div class="single-actions">
+          <button class="btn btn-primary"   data-action="download" data-id="${item.id}" ${item.dstBlob ? '' : 'disabled'}>⬇️ Download</button>
+          <button class="btn btn-secondary" data-action="reencode" data-id="${item.id}">🔄 Re-run</button>
+          <button class="btn btn-danger"    data-action="remove"   data-id="${item.id}">🗑️ Remove</button>
+        </div>
+      `;
+    }
+
+    // Single + aspect-preserved — show a drag-to-compare diff slider once
+    // the encode finishes. Before encode completes (or when there's no
+    // dstUrl yet), fall back to a single source preview.
+    function renderSingleDiffCard(item) {
+      const card = ensureCardEl(item);
+      // Preserve the user's slider position across re-renders so a settings
+      // change after dragging doesn't snap back to 50%.
+      const oldSlider = card.querySelector('.diff-slider');
+      const savedSplit = oldSlider ? oldSlider.value : '50';
+      const { before, after, pct, pctCls } = statsLines(item);
+      const aspect = (item.srcW && item.srcH) ? `aspect-ratio:${item.srcW}/${item.srcH};` : '';
+      const visual = (item.dstBlob && !item.error)
+        ? `
+          <div class="diff-wrap preview-area" style="${aspect}--split:${savedSplit}%;" data-id="${item.id}">
+            <img class="after"  src="${item.dstUrl}" alt="After">
+            <img class="before" src="${item.srcUrl}" alt="Before">
+            <div class="diff-handle"></div>
+            <span class="diff-tag before">before</span>
+            <span class="diff-tag after">after</span>
+            <input type="range" class="diff-slider" min="0" max="100" value="${savedSplit}" aria-label="Reveal slider">
+          </div>`
+        : `<img class="preview-area" src="${item.srcUrl}" alt="" style="${aspect}object-fit:contain">`;
+      card.innerHTML = `
+        <div class="flex items-baseline justify-between gap-2 mb-3 min-w-0">
+          <span class="text-sm font-medium text-white truncate" title="${escapeHtml(item.dstName || item.name)}">${escapeHtml(item.dstName || item.name)}</span>
+        </div>
+        ${visual}
+        <div class="single-stats stats">
+          <div class="text-gray-500">${before}</div>
+          <div class="text-gray-200">→ ${after}${pct ? ` <span class="${pctCls}">(${pct})</span>` : ''}</div>
+        </div>
+        <div class="single-actions">
+          <button class="btn btn-primary"   data-action="download" data-id="${item.id}" ${item.dstBlob ? '' : 'disabled'}>⬇️ Download</button>
+          <button class="btn btn-secondary" data-action="reencode" data-id="${item.id}">🔄 Re-run</button>
+          <button class="btn btn-danger"    data-action="remove"   data-id="${item.id}">🗑️ Remove</button>
+        </div>
+      `;
+    }
+
     function renderAllCards() {
       for (const item of items) {
         // refresh dstName under new pattern
@@ -755,6 +885,14 @@
         renderCard(item);
       }
     }
+
+    // Diff slider drag — single-aspect-preserved card uses .diff-wrap.
+    filesEl.addEventListener('input', e => {
+      if (e.target.classList?.contains('diff-slider')) {
+        const wrap = e.target.closest('.diff-wrap');
+        if (wrap) wrap.style.setProperty('--split', `${e.target.value}%`);
+      }
+    });
 
     filesEl.addEventListener('click', e => {
       const btn = e.target.closest('button[data-action]');
@@ -767,6 +905,7 @@
         items.splice(items.indexOf(item), 1);
         document.getElementById(`row-${item.id}`)?.remove();
         if (items.length === 0) showEmpty();
+        else renderAllCards(); // remaining card may need single-mode template now
         updateSummary();
         syncFormatPills();
       } else if (btn.dataset.action === 'download') {
@@ -897,8 +1036,6 @@
     // Initial UI sync
     pushSettingsToUi();
     syncModePills();
-    syncFitPills();
-    syncBgPills();
     syncFormatPills();
     qualityVal.textContent = parseFloat(qualityEl.value).toFixed(2);
     if (!support.webp && settings.format === 'webp') settings.format = 'png';
