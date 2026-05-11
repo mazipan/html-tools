@@ -378,10 +378,6 @@
           "a": "Yes — we read the EXIF orientation flag when decoding so portrait photos don't crop sideways."
         },
         {
-          "q": "Can I crop and resize in one shot?",
-          "a": "Yes. Toggle \"Resize output\" and set a long-edge size; we crop first, then downscale to that size before encoding."
-        },
-        {
           "q": "What about animated GIFs?",
           "a": "We crop the first frame only. If you need to crop every frame, that's a different tool — we don't support it here."
         }

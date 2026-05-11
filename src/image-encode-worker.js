@@ -19,7 +19,6 @@
 //       sx, sy, sw, sh,                      // source rectangle in source pixels
 //       format,                              // 'png' | 'jpeg' | 'webp'
 //       quality,                             // 0..1 for lossy formats
-//       resizeLongEdge,                      // optional integer — scale so long edge equals this
 //       background,                          // opaque colour for JPEG-on-alpha (default '#ffffff')
 //     }
 //   }
@@ -164,32 +163,18 @@ async function runCrop(id, file, opts) {
     if (sx + sw > srcW) sw = srcW - sx;
     if (sy + sh > srcH) sh = srcH - sy;
 
-    // Resize the cropped region so the long edge equals resizeLongEdge.
-    // Shrink-only — never upscale a small crop.
-    let dstW = sw;
-    let dstH = sh;
-    const longEdge = Number(opts.resizeLongEdge) || 0;
-    if (longEdge > 0) {
-      const long = Math.max(sw, sh);
-      if (longEdge < long) {
-        const scale = longEdge / long;
-        dstW = Math.max(1, Math.round(sw * scale));
-        dstH = Math.max(1, Math.round(sh * scale));
-      }
-    }
-
-    const canvas = new OffscreenCanvas(dstW, dstH);
+    const canvas = new OffscreenCanvas(sw, sh);
     const ctx = canvas.getContext('2d');
     if (opts.format === 'jpeg') {
       ctx.fillStyle = opts.background && opts.background !== 'transparent' ? opts.background : '#ffffff';
-      ctx.fillRect(0, 0, dstW, dstH);
+      ctx.fillRect(0, 0, sw, sh);
     }
-    ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, dstW, dstH);
+    ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, sw, sh);
 
     const info = FORMAT_INFO[opts.format] || FORMAT_INFO.png;
     const quality = info.lossless ? undefined : opts.quality;
     const blob = await canvas.convertToBlob({ type: info.mime, quality });
-    self.postMessage({ id, w: dstW, h: dstH, blob });
+    self.postMessage({ id, w: sw, h: sh, blob });
   } catch (err) {
     self.postMessage({ id, error: err && err.message ? err.message : String(err) });
   } finally {

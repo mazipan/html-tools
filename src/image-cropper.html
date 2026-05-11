@@ -213,7 +213,7 @@
       <div class="flex flex-wrap items-baseline justify-between gap-2 mb-5">
         <p id="meta" class="stats text-gray-400"></p>
         <div class="flex flex-wrap items-center gap-2">
-          <label class="switch"><input id="grid-toggle" type="checkbox" checked><span>Rule-of-thirds grid</span></label>
+          <label class="switch"><input id="grid-toggle" type="checkbox" checked><span>Show grid</span></label>
         </div>
       </div>
       <div id="warn-chips" class="-mt-3 mb-5"></div>
@@ -248,8 +248,8 @@
           H <input id="num-h" type="number" min="1" value="0" step="1" class="num-input" aria-label="Crop height in source pixels">
         </div>
         <div class="flex flex-wrap gap-2 mt-3">
-          <button id="reset-btn"  class="btn btn-sm btn-secondary" type="button">↩️ Reset to full image</button>
-          <button id="center-btn" class="btn btn-sm btn-secondary" type="button">🎯 Center crop</button>
+          <button id="reset-btn"  class="btn btn-secondary" type="button">↩️ Reset</button>
+          <button id="center-btn" class="btn btn-secondary" type="button">🎯 Center crop</button>
         </div>
       </section>
 
@@ -275,16 +275,7 @@
             <p class="text-[0.7rem] text-gray-600 mt-1.5">Lossy formats only — slider is hidden for PNG.</p>
           </div>
 
-          <div>
-            <label class="switch"><input id="resize-toggle" type="checkbox"><span>Resize output</span></label>
-            <div class="flex items-center gap-2 text-sm text-gray-400 mt-2">
-              long edge <input id="resize-long" type="number" min="16" max="20000" value="512" step="1" class="num-input" disabled aria-label="Long edge in pixels">
-              <span>px</span>
-            </div>
-            <p class="text-[0.7rem] text-gray-600 mt-1.5">Shrink the cropped region so the longer side equals this — useful for avatars and OG-card exports.</p>
-          </div>
-
-          <div class="min-w-0">
+          <div class="min-w-0 md:col-span-2">
             <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2" for="filename-pattern">Filename pattern</label>
             <select id="filename-pattern" class="select w-full">
               <option value="{name}-crop.{ext}">{name}-crop.{ext}</option>
@@ -335,7 +326,7 @@
           <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
             <li>The crop is taken from the <em>original</em> source — the preview is just a downscaled view, so the export is always at full resolution.</li>
             <li>iPhone photos with EXIF orientation are read with the correct rotation — no sideways crops.</li>
-            <li>For an avatar workflow: lock <strong class="text-gray-300">1:1</strong>, toggle <strong class="text-gray-300">Resize output</strong> to 512 px, pick <strong class="text-gray-300">WebP</strong>.</li>
+            <li>For an avatar workflow: lock <strong class="text-gray-300">1:1</strong>, drag the crop box, pick <strong class="text-gray-300">WebP</strong> output.</li>
           </ul>
         </div>
       </div>
@@ -375,8 +366,6 @@
     const qualityVal   = document.getElementById('quality-val');
     const qualityWrap  = document.getElementById('quality-wrap');
     const formatNote   = document.getElementById('format-note');
-    const resizeToggle = document.getElementById('resize-toggle');
-    const resizeLong   = document.getElementById('resize-long');
     const filenameSel  = document.getElementById('filename-pattern');
     const downloadBtn  = document.getElementById('download-btn');
     const copyBtn      = document.getElementById('copy-btn');
@@ -406,8 +395,6 @@
     let ratio = 0;                 // computed W/H ratio when locked, 0 = free
     let outFormat = 'png';
     let quality = 0.92;
-    let resizeLongEnabled = false;
-    let resizeLongPx = 512;
     let pattern = '{name}-crop.{ext}';
 
     // Live region for screen-reader announcements (coarse, debounced).
@@ -883,15 +870,6 @@
       quality = parseFloat(qualityEl.value);
       qualityVal.textContent = quality.toFixed(2);
     });
-    resizeToggle.addEventListener('change', () => {
-      resizeLongEnabled = resizeToggle.checked;
-      resizeLong.disabled = !resizeLongEnabled;
-    });
-    resizeLong.addEventListener('change', () => {
-      const n = parseInt(resizeLong.value, 10);
-      resizeLongPx = Number.isFinite(n) && n >= 16 ? n : 512;
-      resizeLong.value = resizeLongPx;
-    });
     filenameSel.addEventListener('change', () => { pattern = filenameSel.value; });
     gridToggle.addEventListener('change', () => { cropGridEl.classList.toggle('hidden', !gridToggle.checked); });
 
@@ -970,7 +948,6 @@
         format: fmt,
         quality,
       };
-      if (resizeLongEnabled && resizeLongPx > 0) opts.resizeLongEdge = resizeLongPx;
       statusEl.textContent = 'Encoding…';
       try {
         const result = await workerCrop(opts);
