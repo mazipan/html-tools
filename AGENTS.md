@@ -17,6 +17,7 @@ Current tools (all under `src/`):
 - `gradients.html` — curated gradient gallery (87 gradients); copy CSS/Tailwind or export PNG
 - `blob.html` — blob generator: CSS border-radius blobs (8-value syntax, animate) + SVG blobs (catmull-rom path, copy/download)
 - `waves.html` — wave generator: single SVG wave (amplitude, frequency, position, gradient fill) + stacked waves (layers, spacing, color interpolation); copy/download SVG
+- `meta-tag-preview.html` — meta tag preview: paste a URL (fetched via `https://oge.vercel.app/api?url=` CORS proxy) or raw `<head>` HTML; renders live Google search, Twitter/X card, Facebook OG, and LinkedIn preview cards; collapsible raw-tags table shows all extracted `og:*`, `twitter:*`, title, description, canonical, robots, and viewport properties
 - `image-converter.html` — image format converter: drop PNG/JPEG/WebP/AVIF/GIF/BMP, re-encode as PNG/JPEG/WebP/AVIF with quality slider, before/after byte size, drag-to-compare visual diff, optional max-dimension resize, batch zip download. Encoding goes through the shared `image-encode-worker.js`.
 - `image-resizer.html` — batch image resizer: drop up to 100 images, resize via percentage (shrink-only), exact W×H with aspect-lock + center-crop, or max-dimension cap with aspect-lock; social-card presets (OG/Twitter/Facebook/LinkedIn/Pinterest) shown only when aspect-lock is off; same-as-input / PNG / JPEG / WebP output; filename templating (defaults to overwriting the source name); single + zip download. With one file loaded, switches to a hero or diff-slider preview at the target aspect. Encoding happens in `image-encode-worker.js` (Web Worker + OffscreenCanvas).
 - `image-compressor.html` — image compressor: drop up to 50 images, pick a quality preset (Lossless / Visually identical / Smaller / Smallest) or a target size in KB. Target-size mode binary-searches the quality value inside the worker (up to 8 iterations per file, ±5% tolerance). Format strategy: Same as input / Auto / Force WebP. Optional long-edge resize toggle. Single + zip download.
@@ -68,6 +69,7 @@ Each tool's `faqs` is an array of `{ q, a }` entries; aim for 3–5 genuinely co
 
 ## Pull request rules
 
+- **Every PR must include a `Closes #<issue_number>` line** in the PR description (or the commit message that lands on `main`) so GitHub auto-closes the linked issue on merge. If there is no related issue, omit the line — don't invent a number.
 - **Every PR must target `main`. Never set a PR's base to another in-flight PR's branch.** Merged must mean deployed.
 - Stacked PRs (one PR's base = another PR's branch) are a silent footgun: when the dependency merges into `main`, GitHub does **not** auto-rebase the stacked PR. Merging the stacked PR while its base still points at the now-defunct feature branch lands the merge commit on that dead branch instead of `main` — the PR shows as "Merged" but the changes never ship.
 - If a branch genuinely needs commits from another in-flight PR, either (a) wait for the dependency to merge first and rebase onto `main`, or (b) absorb the rebase pain at merge time. Never use a non-`main` base as a shortcut.
