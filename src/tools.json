@@ -479,6 +479,36 @@
       "maxWidth": "1100px"
     },
     {
+      "slug": "og-image-builder",
+      "name": "OG Image Builder",
+      "icon": "🖼️",
+      "category": "Generators",
+      "description": "Design a 1200×630 Open Graph image with title, subtitle, gradient background, and logo — export as PNG. Runs in your browser, no tracking.",
+      "faqs": [
+        {
+          "q": "What's an Open Graph image and why does size matter?",
+          "a": "It's the preview image social platforms (Facebook, LinkedIn, X/Twitter, Slack, Discord, …) show when someone shares your link. 1200×630 is the standard Open Graph and Twitter summary-large-image size — using it avoids cropping or pixelation across platforms."
+        },
+        {
+          "q": "Does my image ever leave my browser?",
+          "a": "No. The canvas is rendered locally and exported via canvas.toBlob — there's no upload, no server, no third-party API. Even the logo you drop in is read with FileReader and never transmitted."
+        },
+        {
+          "q": "Why are only a few fonts offered?",
+          "a": "Canvas can only render fonts the device has installed (or that this page loads). We expose the two web-fonts this site already ships (Bricolage Grotesque, IBM Plex Mono) plus Georgia (universally installed) so the exported PNG matches the preview on every machine."
+        },
+        {
+          "q": "What does 'auto-shrink' do to long titles?",
+          "a": "If a title overflows the safe area (60 px inset on all sides), the renderer steps the font size down in 4 px increments until it fits or hits a sensible minimum. For very long titles, also enable word-wrap or split with a manual line break."
+        },
+        {
+          "q": "Why might Copy image fail?",
+          "a": "Browsers only allow image clipboard writes from a user gesture, and only on https / localhost. Firefox in particular gates image/png clipboard writes behind a flag in older releases. If the copy fails, use Download PNG — it works everywhere."
+        }
+      ],
+      "maxWidth": "1400px"
+    },
+    {
       "slug": "waves",
       "name": "Wave Generator",
       "icon": "〰️",

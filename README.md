@@ -26,6 +26,7 @@ A collection of single-file browser-native utilities. All logic runs client-side
 | [Blob Generator](src/blob.html) | Generate organic blob shapes via CSS border-radius or SVG path |
 | [Wave Generator](src/waves.html) | Generate SVG wave dividers — single wave or stacked layers |
 | [Cron Decoder](src/cron-decoder.html) | Decode a cron expression into plain English and preview the next 10 run times, or build one field by field |
+| [OG Image Builder](src/og-image-builder.html) | Design a 1200×630 Open Graph social card — title, subtitle, gradient background, logo — export as PNG |
 
 ## Design system
 
