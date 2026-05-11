@@ -21,6 +21,7 @@ const FORMAT_INFO = {
   png:  { mime: 'image/png',  lossless: true  },
   jpeg: { mime: 'image/jpeg', lossless: false },
   webp: { mime: 'image/webp', lossless: false },
+  avif: { mime: 'image/avif', lossless: false },
 };
 
 // Kept in sync with src/image-utils.js. Duplicated here so the worker has no
@@ -106,6 +107,36 @@ function drawResized(ctx, bitmap, opts, dstW, dstH) {
   }
 }
 
+// Binary-search the quality value until the output blob falls inside
+// `targetBytes ± tolerance`, or `maxIter` iterations have run.
+// Returns the best blob found (smallest one ≤ upper bound, or the smallest
+// tried overall if even the most aggressive quality was too big).
+async function compressToTarget(canvas, mime, targetBytes, tolerance, maxIter) {
+  const tol = tolerance ?? 0.05;
+  const cap = Math.max(1, maxIter || 8);
+  const upper = targetBytes * (1 + tol);
+  const lower = targetBytes * (1 - tol);
+  let lo = 0.30, hi = 1.00;
+  let best = null;      // last blob ≤ upper
+  let smallest = null;  // smallest tried, regardless of target
+  let iterations = 0;
+  for (let i = 0; i < cap; i++) {
+    iterations = i + 1;
+    const q = (lo + hi) / 2;
+    const blob = await canvas.convertToBlob({ type: mime, quality: q });
+    if (!smallest || blob.size < smallest.blob.size) smallest = { blob, q };
+    if (blob.size <= upper) {
+      best = { blob, q };
+      if (blob.size >= lower) break;
+      lo = q; // we have headroom — push quality up
+    } else {
+      hi = q; // shrink further
+    }
+  }
+  const winner = best || smallest;
+  return { blob: winner.blob, finalQuality: winner.q, iterations, hitTarget: !!best };
+}
+
 self.onmessage = async (e) => {
   const { id, file, opts } = e.data;
   let bitmap;
@@ -130,10 +161,25 @@ self.onmessage = async (e) => {
     drawResized(ctx, bitmap, opts, dstW, dstH);
 
     const info = FORMAT_INFO[opts.format] || FORMAT_INFO.png;
-    const quality = info.lossless ? undefined : opts.quality;
-    const blob = await canvas.convertToBlob({ type: info.mime, quality });
 
-    self.postMessage({ id, w: dstW, h: dstH, blob });
+    // Target-size mode — only meaningful for lossy formats. The page should
+    // route lossless presets to a non-target encode path.
+    if (opts.targetKB && !info.lossless) {
+      const result = await compressToTarget(
+        canvas, info.mime, opts.targetKB * 1024,
+        opts.tolerance, opts.maxIterations,
+      );
+      self.postMessage({
+        id, w: dstW, h: dstH, blob: result.blob,
+        finalQuality: result.finalQuality,
+        iterations: result.iterations,
+        hitTarget: result.hitTarget,
+      });
+    } else {
+      const quality = info.lossless ? undefined : opts.quality;
+      const blob = await canvas.convertToBlob({ type: info.mime, quality });
+      self.postMessage({ id, w: dstW, h: dstH, blob });
+    }
   } catch (err) {
     self.postMessage({ id, error: err && err.message ? err.message : String(err) });
   } finally {
