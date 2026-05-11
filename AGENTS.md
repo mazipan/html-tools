@@ -36,8 +36,8 @@ Current tools (all under `src/`):
 ## Adding a new tool
 
 1. Create a new `.html` file inside `src/` (e.g. `src/base64.html`) following the pattern of an existing tool.
-2. Add an entry for the tool in `src/tools.json` (`slug`, `name`, `icon`, `category`, `description`, `faqs`). Then run `npm run generate:sections` to write the FAQ block, "More tools" cross-link block, and JSON-LD structured data into `src/<slug>.html` (and refresh every other tool's "More tools" list so the new tool shows up there too).
-3. Include shared partials in `<head>` — see "Shared HTML partials" below. The minimum head is `meta-base` + per-page meta + `meta-social` + per-page icon + `head-fonts` + `<link rel="stylesheet" href="styles.css">` + optional per-page `<style>` + `head-theme`.
+2. Add an entry for the tool in `src/tools.json` (`slug`, `name`, `icon`, `category`, `description`, `faqs`). Then run `npm run generate:sections` to write the FAQ block, "More tools" cross-link block, and JSON-LD structured data into `src/<slug>.html` (and refresh every other tool's "More tools" list so the new tool shows up there too). Also run `npm run generate:favicon` to rasterize the tool's emoji into `src/favicon-<slug>.png` and commit it.
+3. Include shared partials in `<head>` — see "Shared HTML partials" below. The minimum head is `meta-base` + per-page meta + `meta-social` + per-page icon (`<link rel="icon" type="image/png" sizes="32x32" href="favicon-<slug>.png">`) + `head-fonts` + `<link rel="stylesheet" href="styles.css">` + optional per-page `<style>` + `head-theme`.
 4. Include the shared site header at the top of `<body>` with a `<nav aria-label="Breadcrumb">` linking back to `index.html` — copy the header block from an existing tool. Mark the current page span with `aria-current="page"`. See "Semantic landmarks" below.
 5. Wrap the tool UI in `<main class="…">` (exactly one `<main>` per page). Inside, the page heading goes in an `<h1>` that matches the tool name.
 6. Include the shared footer at the bottom with `&copy; <span id="year"></span> Irfan Maulana<span id="deploy-time"></span>` and end with `<include src="_partials/footer-script.html"></include>`. The footer-script partial uses a `"__BUILD_TIME__"` placeholder that `scripts/build.mjs` replaces with the real ISO timestamp.
@@ -49,7 +49,7 @@ Current tools (all under `src/`):
 
 Common markup lives in `src/_partials/` and is inlined at build time via `posthtml-include` (configured in `.posthtmlrc`). Use `<include src="_partials/<name>.html"></include>`:
 
-- `meta-base.html` — charset, viewport, `google-site-verification`, author, theme-color, robots. Place at the top of `<head>`.
+- `meta-base.html` — charset, viewport, `google-site-verification`, author, theme-color, robots, and a site-wide fallback favicon (`favicon.png`, the 🛠️ icon). Place at the top of `<head>`. Per-tool pages declare their own `<link rel="icon">` after the partial, which the browser uses in preference to the fallback.
 - `meta-social.html` — `og:type`, `og:site_name`, `og:image*`, `twitter:card`, `twitter:image`. Place after the per-page Open Graph and Twitter title/description tags.
 - `head-fonts.html` — Google Fonts preconnects + the IBM Plex Mono / Bricolage Grotesque stylesheet. Place before `styles.css`.
 - `head-theme.html` — inline theme-init script. Place last in `<head>` so the `data-theme` attribute is set before the body renders.
@@ -169,6 +169,14 @@ Rules:
 
 The 1200×630 social card lives at `src/og-image.png` and is committed to the repo. The source is `src/og-image.svg`; rerun `npm run generate:og` whenever the SVG changes and commit the regenerated PNG. The build only copies `src/og-image.png` to `dist/` — it does not regenerate it on every build.
 
+## Favicons
+
+Each tool has a 32×32 PNG favicon rasterized from its `tools.json` emoji, plus a site-wide fallback `src/favicon.png` (🛠️) referenced from `_partials/meta-base.html`. The PNGs live in `src/favicon-<slug>.png` (and `src/favicon.png`) and are committed to the repo; Parcel picks them up via per-page `<link rel="icon" type="image/png" sizes="32x32" href="favicon-<slug>.png">`.
+
+Rerun `npm run generate:favicon` whenever a tool's icon changes or a new tool is added to `tools.json`, then commit the regenerated PNGs. The generator reads Twemoji SVGs from `node_modules/@twemoji/svg` (no network at run time) and renders them with Resvg.
+
+When adding a new tool, after registering it in `tools.json` and running `npm run generate:favicon`, point the per-page `<link rel="icon">` at the new `favicon-<slug>.png`.
+
 ## Commands
 
 ```bash
@@ -176,5 +184,6 @@ npm run dev                 # start dev server (watches all *.html)
 npm run build               # production build → dist/
 npm run preview             # serve dist/ locally to spot-check the production build
 npm run generate:og         # regenerate src/og-image.png from src/og-image.svg
+npm run generate:favicon    # regenerate src/favicon*.png from tools.json emojis
 npm run generate:sections   # rewrite FAQ / More tools / JSON-LD blocks in src/*.html from src/tools.json
 ```

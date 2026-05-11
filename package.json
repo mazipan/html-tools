@@ -8,6 +8,7 @@
     "build": "npm run clean && node scripts/build.mjs",
     "preview": "serve dist",
     "generate:og": "node scripts/generate-og-image.mjs",
+    "generate:favicon": "node scripts/generate-favicon.mjs",
     "generate:sections": "node scripts/generate-sections.mjs"
   },
   "license": "ISC",
@@ -18,6 +19,7 @@
     "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/postcss": "^4.2.4",
     "@tailwindcss/typography": "^0.5.19",
+    "@twemoji/svg": "^15.0.0",
     "js-yaml": "4.1.1",
     "parcel": "^2.16.4",
     "posthtml-include": "2.0.1",
