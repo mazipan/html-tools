@@ -28,7 +28,10 @@
     .row-card:hover { border-color: #374151; }
     .row-card .thumb {
       width: 56px;
-      height: 56px;
+      /* aspect-ratio + object-fit are set inline per card so the thumb
+         mirrors whatever crop/letterbox the current settings will produce.
+         Fallback 1:1 keeps the box square while the source is still decoding. */
+      aspect-ratio: 1;
       border-radius: 0.4rem;
       background: #0b1220;
       object-fit: cover;
@@ -657,8 +660,34 @@
 
     let resizeTimer = null;
     function scheduleResize() {
+      // Refresh thumb aspect/fit immediately so the preview tracks the
+      // controls without waiting for the debounced encode to finish.
+      renderAllCards();
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => resizeAll(), 220);
+    }
+
+    // Inline style for each card's thumbnail — adopts the active target
+    // aspect ratio (and the matching object-fit + background for exact mode)
+    // so the thumb visually previews the crop / letterbox / stretch.
+    function thumbStyle(item) {
+      if (settings.mode === 'exact') {
+        const tW = settings.exact.targetW;
+        const tH = settings.exact.targetH;
+        if (tW && tH) {
+          const fit = settings.exact.fit;
+          const cssFit = fit === 'stretch' ? 'fill' : fit;
+          const bg = (fit === 'contain' && settings.exact.background && settings.exact.background !== 'transparent')
+            ? `;background:${settings.exact.background}` : '';
+          return `aspect-ratio:${tW}/${tH};object-fit:${cssFit}${bg}`;
+        }
+      }
+      // max + percent: keep the source aspect so the full image is visible
+      // without a misleading square crop.
+      if (item.srcW && item.srcH) {
+        return `aspect-ratio:${item.srcW}/${item.srcH};object-fit:cover`;
+      }
+      return '';
     }
 
     async function resizeAll() {
@@ -733,7 +762,7 @@
       const pctCls = deltaClass(dstSize, srcSize);
 
       card.innerHTML = `
-        <img class="thumb" src="${item.srcUrl}" alt="" loading="lazy">
+        <img class="thumb" src="${item.srcUrl}" alt="" loading="lazy" style="${thumbStyle(item)}">
         <div class="min-w-0">
           <div class="text-sm font-medium text-white truncate" title="${escapeHtml(item.dstName || item.name)}">${escapeHtml(item.dstName || item.name)}</div>
           <div class="row-stats stats text-gray-500">${before}</div>
