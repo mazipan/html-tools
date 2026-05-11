@@ -20,6 +20,7 @@ A collection of single-file browser-native utilities. All logic runs client-side
 | [SVG → JSX](src/svg-to-jsx.html) | Convert SVG markup to React JSX |
 | [Image Format Converter](src/image-converter.html) | Re-encode images between PNG, JPEG, WebP, and AVIF with a quality slider and visual diff |
 | [Image Resizer](src/image-resizer.html) | Batch-resize images via max dimensions, exact size, or percentage — with social-card presets |
+| [Image Compressor](src/image-compressor.html) | Shrink images via quality presets or binary-search to a target KB size |
 | [Gradients](src/gradients.html) | Curated gradient gallery — copy CSS, Tailwind, or export PNG |
 | [Blob Generator](src/blob.html) | Generate organic blob shapes via CSS border-radius or SVG path |
 | [Wave Generator](src/waves.html) | Generate SVG wave dividers — single wave or stacked layers |

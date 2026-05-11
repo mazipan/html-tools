@@ -283,6 +283,40 @@
       "maxWidth": "1400px"
     },
     {
+      "slug": "image-compressor",
+      "name": "Image Compressor",
+      "icon": "🗜️",
+      "category": "Image",
+      "description": "Shrink PNG, JPEG, WebP, and AVIF images entirely in your browser. Quality presets or target-size mode (binary-search to a KB budget). Batch-friendly.",
+      "faqs": [
+        {
+          "q": "Does my image ever leave my computer?",
+          "a": "No. Everything happens locally in your browser — no upload, no server, no third-party API. Decoding and encoding run in a Web Worker."
+        },
+        {
+          "q": "What's the difference between this and the Image Format Converter?",
+          "a": "The converter is about format choice (PNG → WebP, etc.). The compressor is about hitting a size target — pick a preset, or specify a KB budget and we binary-search the quality for you."
+        },
+        {
+          "q": "How does target-size mode work?",
+          "a": "We re-encode the image with different quality values and binary-search until the output falls inside your target ± tolerance (default ±5%). Up to 8 iterations per file; we surface the final quality and iteration count."
+        },
+        {
+          "q": "What if my target size isn't achievable?",
+          "a": "We surface the smallest size we managed and flag the card with \"target not hit.\" Common cause: a giant photo at a too-aggressive target — tick \"Resize first\" to shrink the input before encoding."
+        },
+        {
+          "q": "What does 'Lossless' actually mean here?",
+          "a": "PNG output — pixel-identical to the source, just with PNG's compression. The quality slider doesn't apply. (Canvas-based WebP-lossless isn't exposed by browsers, so PNG is the only true-lossless option in this tool.)"
+        },
+        {
+          "q": "Why is my output sometimes bigger than the input?",
+          "a": "Re-encoding already-compressed lossy formats can grow the file (the source was already aggressive). The summary bar flags this in red so you don't accidentally ship a worse copy — keep the original in that case."
+        }
+      ],
+      "maxWidth": "1200px"
+    },
+    {
       "slug": "image-resizer",
       "name": "Image Resizer",
       "icon": "📐",

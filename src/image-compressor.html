@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <include src="_partials/meta-base.html"></include>
+  <title>Image Compressor — HTML Tools</title>
+  <meta name="description" content="Compress PNG, JPEG, WebP, and AVIF images entirely in your browser. Quality presets or target-size mode (binary-search to a KB budget). Batch-friendly.">
+  <link rel="canonical" href="https://tools.mazipan.space/image-compressor">
+  <meta property="og:title" content="Image Compressor — HTML Tools">
+  <meta property="og:description" content="Compress PNG, JPEG, WebP, and AVIF images entirely in your browser. Quality presets or target-size mode (binary-search to a KB budget). Batch-friendly.">
+  <meta property="og:url" content="https://tools.mazipan.space/image-compressor">
+  <meta name="twitter:title" content="Image Compressor — HTML Tools">
+  <meta name="twitter:description" content="Compress PNG, JPEG, WebP, and AVIF images entirely in your browser. Quality presets or target-size mode (binary-search to a KB budget). Batch-friendly.">
+  <include src="_partials/meta-social.html"></include>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗜️</text></svg>">
+  <include src="_partials/head-fonts.html"></include>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .summary-bar {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: rgba(3, 7, 18, 0.92);
+      backdrop-filter: blur(6px);
+      border: 1px solid #1f2937;
+      border-radius: 0.65rem;
+      padding: 0.6rem 0.9rem;
+      margin-bottom: 0.75rem;
+    }
+    .mode-panel { display: none; }
+    .mode-panel.on { display: block; }
+  </style>
+  <include src="_partials/head-theme.html"></include>
+</head>
+<body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+
+  <header class="border-b border-gray-800 px-6 py-4">
+    <nav aria-label="Breadcrumb" class="max-w-[1200px] mx-auto flex items-center gap-3">
+      <a href="index.html" class="no-underline text-white font-bold text-lg tracking-tight hover:text-blue-400 transition-colors">HTML Tools</a>
+      <span class="text-gray-700">/</span>
+      <span class="text-gray-400 text-sm flex items-center gap-1.5" aria-current="page">🗜️ Image Compressor</span>
+    </nav>
+  </header>
+
+  <main class="max-w-[1200px] mx-auto w-full flex-1 py-8 px-6">
+
+    <header class="mb-7">
+      <h1 class="text-3xl font-bold text-white flex items-center gap-3">🗜️ Image Compressor</h1>
+      <p class="mt-1.5 text-sm text-gray-500">Shrink PNG, JPEG, WebP, and AVIF locally — pick a quality preset, or aim for an exact size in KB and we'll binary-search the quality.</p>
+    </header>
+
+    <!-- Drop zone -->
+    <div id="drop" class="drop-zone p-8 mb-5 text-center" tabindex="0" role="button" aria-label="Drop images here, or click to choose files">
+      <div id="drop-empty">
+        <div class="text-3xl mb-2" aria-hidden="true">🗜️</div>
+        <p class="text-sm text-gray-300 font-medium">Drop image(s) here, click to choose, or paste with Ctrl/Cmd+V</p>
+        <p class="text-xs text-gray-500 mt-1.5">Accepts PNG, JPEG, WebP, AVIF, BMP — up to 50 files</p>
+      </div>
+      <div id="drop-compact" class="hidden text-xs text-gray-500">+ Drop more · click · paste</div>
+    </div>
+    <input id="file-input" type="file" accept="image/*" multiple class="hidden">
+
+    <div id="error-bar" class="hidden error-bar mb-4"></div>
+
+    <!-- Controls -->
+    <section id="controls" class="hidden border border-gray-800 rounded-xl bg-gray-900/40 p-5 mb-5">
+
+      <!-- Output decisions (top) -->
+      <div class="grid gap-5 md:grid-cols-2">
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Output format</label>
+          <div class="flex flex-wrap gap-1.5">
+            <button class="pill" data-strategy="same" type="button">Same as input</button>
+            <button class="pill" data-strategy="auto" type="button">Auto (best for size)</button>
+            <button class="pill" data-strategy="webp" type="button">Force WebP</button>
+          </div>
+          <p id="format-note" class="text-[0.7rem] text-gray-600 mt-1.5">Auto picks WebP for photos and PNG/WebP for images with transparency. AVIF output isn't exposed here — encode time is too long for batch.</p>
+        </div>
+
+        <div class="min-w-0">
+          <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2" for="filename-pattern">Filename pattern</label>
+          <select id="filename-pattern" class="select w-full">
+            <option value="{name}-compressed.{ext}">{name}-compressed.{ext}</option>
+            <option value="{name}-{w}x{h}.{ext}">{name}-{w}x{h}.{ext}</option>
+            <option value="{name}.{ext}">{name}.{ext}</option>
+          </select>
+          <p class="text-[0.7rem] text-gray-600 mt-1.5"><code>{name}.{ext}</code> reuses the source filename — safe inside a zip; would overwrite siblings on single download.</p>
+        </div>
+      </div>
+
+      <!-- Mode toggle -->
+      <div class="mt-5 pt-4 border-t border-gray-800">
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Compression mode</label>
+        <div role="radiogroup" aria-label="Compression mode" class="flex flex-wrap gap-1.5">
+          <button class="pill" data-mode="preset" type="button" role="radio">Quality preset</button>
+          <button class="pill" data-mode="target" type="button" role="radio">Target size</button>
+        </div>
+      </div>
+
+      <!-- Preset mode panel -->
+      <div class="mode-panel" data-panel="preset">
+        <div class="mt-4">
+          <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Quality preset</label>
+          <div role="radiogroup" aria-label="Quality preset" class="flex flex-wrap gap-1.5">
+            <button class="pill" data-preset="lossless"   type="button" role="radio">Lossless</button>
+            <button class="pill" data-preset="visual"     type="button" role="radio">Visually identical</button>
+            <button class="pill" data-preset="smaller"    type="button" role="radio">Smaller</button>
+            <button class="pill" data-preset="smallest"   type="button" role="radio">Smallest</button>
+          </div>
+          <p id="preset-note" class="text-[0.7rem] text-gray-600 mt-1.5">Visually identical (q=0.85) is the default. Lossless forces PNG output regardless of format strategy; Smallest forces WebP at q=0.50.</p>
+        </div>
+      </div>
+
+      <!-- Target-size mode panel -->
+      <div class="mode-panel" data-panel="target">
+        <div class="grid gap-4 md:grid-cols-2 mt-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2" for="target-kb">Target size</label>
+            <div class="flex items-center gap-2 text-sm text-gray-400">
+              <input id="target-kb" type="number" min="1" max="100000" value="200" class="num-input" aria-label="Target size in kilobytes">
+              <span>KB</span>
+              <span class="text-xs text-gray-600 ml-1">±5% tolerance</span>
+            </div>
+            <p class="text-[0.7rem] text-gray-600 mt-1.5">Binary-search the quality value (up to 8 iterations per file). Target-size mode needs a lossy format — PNG sources are bumped to WebP when needed.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resize -->
+      <div class="mt-5 pt-4 border-t border-gray-800">
+        <label class="switch">
+          <input id="resize-toggle" type="checkbox">
+          <span>Resize first — cap long edge at</span>
+        </label>
+        <span class="text-sm text-gray-400 ml-2">
+          <input id="resize-long-edge" type="number" min="64" max="20000" value="2400" class="num-input" aria-label="Long-edge cap in pixels" disabled>
+          px
+        </span>
+        <p class="text-[0.7rem] text-gray-600 mt-1.5">Most "compress this photo" requests are actually "this 4032×3024 phone photo is too big." Resizing before encoding gets the bulk of the savings.</p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-gray-800">
+        <button id="compress-btn" class="btn btn-secondary" type="button">🗜️ Compress all</button>
+        <button id="zip-btn"      class="btn btn-primary"   type="button" disabled>📦 Download all (zip)</button>
+        <button id="clear-btn"    class="btn btn-danger"    type="button">🗑️ Clear</button>
+        <span id="status" class="ml-auto text-xs text-gray-600" aria-live="polite"></span>
+      </div>
+    </section>
+
+    <!-- Summary bar -->
+    <div id="summary-bar" class="summary-bar hidden stats text-gray-300" aria-live="polite"></div>
+
+    <!-- File cards -->
+    <section id="files" class="grid grid-cols-1 md:grid-cols-2 gap-3"></section>
+
+  </main>
+
+  <script src="image-utils.js"></script>
+  <script type="module">
+    const dropEl       = document.getElementById('drop');
+    const dropEmpty    = document.getElementById('drop-empty');
+    const dropCompact  = document.getElementById('drop-compact');
+    const fileInput    = document.getElementById('file-input');
+    const controlsEl   = document.getElementById('controls');
+    const filesEl      = document.getElementById('files');
+    const errorBar     = document.getElementById('error-bar');
+    const statusEl     = document.getElementById('status');
+    const summaryBar   = document.getElementById('summary-bar');
+    const formatNote   = document.getElementById('format-note');
+    const presetNote   = document.getElementById('preset-note');
+    const filenameSel  = document.getElementById('filename-pattern');
+    const targetKbEl   = document.getElementById('target-kb');
+    const resizeToggle = document.getElementById('resize-toggle');
+    const resizeLongEdge = document.getElementById('resize-long-edge');
+    const compressBtn  = document.getElementById('compress-btn');
+    const zipBtn       = document.getElementById('zip-btn');
+    const clearBtn     = document.getElementById('clear-btn');
+
+    const support = {
+      png:  supportsMime('image/png'),
+      jpeg: supportsMime('image/jpeg'),
+      webp: supportsMime('image/webp'),
+      avif: supportsMime('image/avif'),
+    };
+
+    const HARD_CAP = 50;
+    const SOFT_WARN = 20;
+
+    const PRESETS = {
+      lossless: { quality: undefined, label: 'Lossless'           },
+      visual:   { quality: 0.85,      label: 'Visually identical' },
+      smaller:  { quality: 0.70,      label: 'Smaller'            },
+      smallest: { quality: 0.50,      label: 'Smallest'           },
+    };
+
+    const settings = {
+      mode: 'preset',            // 'preset' | 'target'
+      preset: 'visual',          // key of PRESETS
+      targetKB: 200,
+      tolerance: 0.05,
+      strategy: 'same',          // 'same' | 'auto' | 'webp'
+      resize: { enabled: false, longEdge: 2400 },
+      pattern: '{name}-compressed.{ext}',
+    };
+
+    /** @type {Array<{id:string,file:File,name:string,srcMime:string,srcSize:number,srcW:number,srcH:number,srcUrl:string,dstBlob:Blob|null,dstUrl:string|null,dstW:number,dstH:number,dstFormat:string,dstName:string,finalQuality:number|null,iterations:number|null,hitTarget:boolean,error:string|null,encoding:boolean}>} */
+    const items = [];
+    let nextId = 1;
+
+    // ── Worker ────────────────────────────────────────────────────
+    // Mirrors the const FORMAT_INFO in image-utils.js; module-scope can't
+    // reach a top-level `const` declared in a classic script.
+    const FORMAT_INFO_TABLE = {
+      png:  { mime: 'image/png',  ext: 'png',  lossless: true  },
+      jpeg: { mime: 'image/jpeg', ext: 'jpg',  lossless: false },
+      webp: { mime: 'image/webp', ext: 'webp', lossless: false },
+      avif: { mime: 'image/avif', ext: 'avif', lossless: false },
+    };
+    const worker = new Worker(new URL('./image-encode-worker.js', import.meta.url), { type: 'module' });
+    const pending = new Map();
+    let nextJobId = 1;
+    worker.onmessage = (e) => {
+      const job = pending.get(e.data.id);
+      if (!job) return;
+      pending.delete(e.data.id);
+      if (e.data.error) job.reject(new Error(e.data.error));
+      else job.resolve(e.data);
+    };
+    worker.onerror = (e) => showError(`Worker error: ${e.message || 'unknown'}`);
+    function workerEncode(file, opts) {
+      const id = `j${nextJobId++}`;
+      return new Promise((resolve, reject) => {
+        pending.set(id, { resolve, reject });
+        worker.postMessage({ id, file, opts });
+      });
+    }
+
+    // ── Format strategy resolution ────────────────────────────────
+    function inferSrcFormat(mime) {
+      if (mime === 'image/png')  return 'png';
+      if (mime === 'image/jpeg') return 'jpeg';
+      if (mime === 'image/webp') return 'webp';
+      if (mime === 'image/avif') return 'avif';
+      return 'png'; // bmp/gif fall back to png
+    }
+    function pickAutoFormat(srcMime) {
+      const hasAlpha = sourceHasAlpha(srcMime);
+      if (support.webp) return 'webp';
+      return hasAlpha ? 'png' : 'jpeg';
+    }
+    function resolveFormat(item) {
+      // Quality preset overrides
+      if (settings.mode === 'preset') {
+        if (settings.preset === 'lossless') return 'png';
+        if (settings.preset === 'smallest') return support.webp ? 'webp' : 'jpeg';
+      }
+      // Strategy
+      if (settings.strategy === 'webp') return support.webp ? 'webp' : 'jpeg';
+      if (settings.strategy === 'auto') return pickAutoFormat(item.srcMime);
+      // 'same'
+      const src = inferSrcFormat(item.srcMime);
+      // Target-size mode needs a lossy format — bump PNG sources to WebP/JPEG.
+      if (settings.mode === 'target' && FORMAT_INFO_TABLE[src].lossless) {
+        return support.webp ? 'webp' : 'jpeg';
+      }
+      return src;
+    }
+
+    // ── Mode + preset + strategy syncing ──────────────────────────
+    function syncModePills() {
+      document.querySelectorAll('.pill[data-mode]').forEach(p => {
+        p.classList.toggle('on', p.dataset.mode === settings.mode);
+        p.setAttribute('aria-checked', p.dataset.mode === settings.mode ? 'true' : 'false');
+      });
+      document.querySelectorAll('.mode-panel').forEach(panel => {
+        panel.classList.toggle('on', panel.dataset.panel === settings.mode);
+      });
+    }
+    function syncPresetPills() {
+      document.querySelectorAll('.pill[data-preset]').forEach(p => {
+        p.classList.toggle('on', p.dataset.preset === settings.preset);
+        p.setAttribute('aria-checked', p.dataset.preset === settings.preset ? 'true' : 'false');
+      });
+    }
+    function syncStrategyPills() {
+      document.querySelectorAll('.pill[data-strategy]').forEach(p => {
+        const s = p.dataset.strategy;
+        const ok = s !== 'webp' || support.webp;
+        p.disabled = !ok;
+        p.classList.toggle('on', s === settings.strategy);
+        p.title = ok ? '' : "Your browser can't encode WebP.";
+      });
+    }
+
+    document.querySelectorAll('.pill[data-mode]').forEach(p => {
+      p.addEventListener('click', () => {
+        settings.mode = p.dataset.mode;
+        syncModePills();
+        scheduleEncode();
+      });
+    });
+    document.querySelectorAll('.pill[data-preset]').forEach(p => {
+      p.addEventListener('click', () => {
+        settings.preset = p.dataset.preset;
+        syncPresetPills();
+        scheduleEncode();
+      });
+    });
+    document.querySelectorAll('.pill[data-strategy]').forEach(p => {
+      p.addEventListener('click', () => {
+        if (p.disabled) return;
+        settings.strategy = p.dataset.strategy;
+        syncStrategyPills();
+        scheduleEncode();
+      });
+    });
+
+    targetKbEl.addEventListener('change', () => {
+      settings.targetKB = Math.max(1, parseInt(targetKbEl.value, 10) || 1);
+      scheduleEncode();
+    });
+
+    resizeToggle.addEventListener('change', () => {
+      settings.resize.enabled = resizeToggle.checked;
+      resizeLongEdge.disabled = !resizeToggle.checked;
+      scheduleEncode();
+    });
+    resizeLongEdge.addEventListener('change', () => {
+      settings.resize.longEdge = Math.max(64, parseInt(resizeLongEdge.value, 10) || 64);
+      scheduleEncode();
+    });
+
+    filenameSel.addEventListener('change', () => {
+      settings.pattern = filenameSel.value;
+      renderAllCards();
+    });
+
+    compressBtn.addEventListener('click', () => encodeAll());
+    clearBtn.addEventListener('click',    () => clearAll());
+    zipBtn.addEventListener('click',      () => downloadZip());
+
+    // ── Drop zone ─────────────────────────────────────────────────
+    ['dragenter', 'dragover'].forEach(evt => {
+      dropEl.addEventListener(evt, e => { e.preventDefault(); dropEl.classList.add('dragover'); });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+      dropEl.addEventListener(evt, e => {
+        e.preventDefault();
+        if (evt === 'dragleave' && dropEl.contains(e.relatedTarget)) return;
+        dropEl.classList.remove('dragover');
+      });
+    });
+    dropEl.addEventListener('drop', e => {
+      const files = [...(e.dataTransfer?.files || [])];
+      if (files.length) addFiles(files);
+    });
+    dropEl.addEventListener('click', () => fileInput.click());
+    dropEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+    });
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files?.length) addFiles([...fileInput.files]);
+      fileInput.value = '';
+    });
+    window.addEventListener('paste', e => {
+      const list = [...(e.clipboardData?.items || [])];
+      const pasted = list.filter(i => i.type.startsWith('image/')).map(i => i.getAsFile()).filter(Boolean);
+      if (pasted.length) addFiles(pasted);
+    });
+
+    // ── Add files ─────────────────────────────────────────────────
+    async function addFiles(rawFiles) {
+      const imgFiles = rawFiles.filter(f => f.type.startsWith('image/'));
+      const remaining = HARD_CAP - items.length;
+      const toAdd = imgFiles.slice(0, Math.max(0, remaining));
+      const dropped = rawFiles.length - imgFiles.length;
+      const overflow = imgFiles.length - toAdd.length;
+      const messages = [];
+      if (dropped)  messages.push(`${dropped} non-image file${dropped === 1 ? '' : 's'} skipped`);
+      if (overflow) messages.push(`${overflow} file${overflow === 1 ? '' : 's'} skipped (cap is ${HARD_CAP})`);
+      if (messages.length) showError(messages.join(' · ')); else clearError();
+
+      controlsEl.classList.remove('hidden');
+      summaryBar.classList.remove('hidden');
+      dropEmpty.classList.add('hidden');
+      dropCompact.classList.remove('hidden');
+      dropEl.classList.add('compact', 'p-3');
+      dropEl.classList.remove('p-8');
+
+      if (items.length + toAdd.length > SOFT_WARN) {
+        statusEl.textContent = `Large batch — encoding may take a moment.`;
+      }
+
+      const probeQueue = [];
+      for (const file of toAdd) {
+        const id = `f${nextId++}`;
+        const item = {
+          id, file, name: file.name,
+          srcMime: file.type, srcSize: file.size,
+          srcW: 0, srcH: 0,
+          srcUrl: URL.createObjectURL(file),
+          dstBlob: null, dstUrl: null, dstW: 0, dstH: 0,
+          dstFormat: 'png', dstName: file.name,
+          finalQuality: null, iterations: null, hitTarget: false,
+          error: null, encoding: true,
+        };
+        items.push(item);
+        renderCard(item);
+        probeQueue.push(probeAndEncode(item));
+      }
+      updateSummary();
+      syncStrategyPills();
+      await Promise.all(probeQueue);
+      statusEl.textContent = '';
+    }
+
+    async function probeAndEncode(item) {
+      try {
+        const bm = await createImageBitmap(item.file, { imageOrientation: 'from-image' });
+        item.srcW = bm.width;
+        item.srcH = bm.height;
+        bm.close?.();
+      } catch (err) {
+        item.error = `Decode failed: ${err.message || err}`;
+        item.encoding = false;
+        renderCard(item);
+        updateSummary();
+        return;
+      }
+      await encodeOne(item);
+      updateSummary();
+    }
+
+    // ── Encoding ──────────────────────────────────────────────────
+    function buildOpts(item) {
+      const format = resolveFormat(item);
+      const info = FORMAT_INFO_TABLE[format];
+      const opts = { format };
+
+      // Optional long-edge resize via 'max' mode.
+      if (settings.resize.enabled) {
+        Object.assign(opts, {
+          enabled: true,
+          mode: 'max',
+          maxW: settings.resize.longEdge,
+          maxH: settings.resize.longEdge,
+          keepAspect: true,
+          noUpscale: true,
+        });
+      }
+
+      if (info.lossless) {
+        // Lossless output (PNG) — no quality, no target search.
+        return opts;
+      }
+
+      if (settings.mode === 'target') {
+        opts.targetKB = settings.targetKB;
+        opts.tolerance = settings.tolerance;
+      } else {
+        const preset = PRESETS[settings.preset] || PRESETS.visual;
+        opts.quality = preset.quality;
+      }
+      return opts;
+    }
+
+    async function encodeOne(item) {
+      if (!item.srcW) return;
+      item.encoding = true;
+      item.error = null;
+      renderCard(item);
+
+      const opts = buildOpts(item);
+      const format = opts.format;
+      item.dstFormat = format;
+
+      try {
+        const result = await workerEncode(item.file, opts);
+        if (item.dstUrl) URL.revokeObjectURL(item.dstUrl);
+        item.dstBlob = result.blob;
+        item.dstUrl = URL.createObjectURL(result.blob);
+        item.dstW = result.w;
+        item.dstH = result.h;
+        item.finalQuality = result.finalQuality ?? null;
+        item.iterations   = result.iterations   ?? null;
+        item.hitTarget    = result.hitTarget    ?? false;
+        item.dstName = renderFilename(item, format);
+      } catch (err) {
+        item.error = `Encode to ${format.toUpperCase()} failed: ${err.message || err}`;
+      }
+      item.encoding = false;
+      renderCard(item);
+    }
+
+    let encodeTimer = null;
+    function scheduleEncode() {
+      clearTimeout(encodeTimer);
+      encodeTimer = setTimeout(() => encodeAll(), 220);
+    }
+
+    async function encodeAll() {
+      if (items.length === 0) return;
+      statusEl.textContent = `Compressing ${items.length} image${items.length === 1 ? '' : 's'}…`;
+      for (const it of items) {
+        if (!it.srcW) continue;
+        await encodeOne(it);
+        updateSummary();
+      }
+      statusEl.textContent = '';
+    }
+
+    // ── Filename templating ───────────────────────────────────────
+    function renderFilename(item, format) {
+      const ext = FORMAT_INFO_TABLE[format].ext;
+      const dot = item.name.lastIndexOf('.');
+      const stem = dot >= 0 ? item.name.slice(0, dot) : item.name;
+      return settings.pattern
+        .replace('{name}', stem)
+        .replace('{w}', String(item.dstW || item.srcW))
+        .replace('{h}', String(item.dstH || item.srcH))
+        .replace('{ext}', ext);
+    }
+
+    // ── Rendering ─────────────────────────────────────────────────
+    function ensureCardEl(item) {
+      let card = document.getElementById(`card-${item.id}`);
+      if (card) return card;
+      card = document.createElement('div');
+      card.id = `card-${item.id}`;
+      card.className = 'file-card';
+      filesEl.appendChild(card);
+      return card;
+    }
+    function deltaClass(after, before) {
+      if (!before) return 'delta-neutral';
+      const pct = (after - before) / before;
+      if (pct <= -0.02) return 'delta-good';
+      if (pct >=  0.02) return 'delta-bad';
+      return 'delta-neutral';
+    }
+    function srcExt(mime) {
+      return mime ? mime.replace(/^image\//, '').toUpperCase() : '?';
+    }
+    function renderCard(item) {
+      const card = ensureCardEl(item);
+      const beforeStats = `${item.srcW || '?'}×${item.srcH || '?'} · ${srcExt(item.srcMime)} · ${formatBytes(item.srcSize)}`;
+      const dstSize = item.dstBlob ? item.dstBlob.size : 0;
+      const afterStats = item.error
+        ? `<span class="text-red-400">${escapeHtml(item.error)}</span>`
+        : item.dstBlob
+          ? `${item.dstW}×${item.dstH} · ${item.dstFormat.toUpperCase()} · ${formatBytes(dstSize)}`
+          : item.encoding
+            ? '<span class="text-gray-500">encoding…</span>'
+            : '<span class="text-gray-500">queued…</span>';
+      const pct = (item.dstBlob && item.srcSize) ? formatPct(dstSize, item.srcSize) : '';
+      const pctCls = deltaClass(dstSize, item.srcSize);
+
+      // Detail line only in target-size mode and when we have iteration data.
+      let detailLine = '';
+      if (item.dstBlob && item.iterations != null) {
+        const tag = item.hitTarget ? '' : ' <span class="text-amber-400">(target not hit)</span>';
+        const q = item.finalQuality != null ? ` · q=${item.finalQuality.toFixed(2)}` : '';
+        detailLine = `<div class="text-gray-500">${item.iterations} iteration${item.iterations === 1 ? '' : 's'}${q}${tag}</div>`;
+      }
+
+      const showDiff = item.dstBlob && !item.error;
+      const visualBlock = showDiff
+        ? `
+          <div class="diff-wrap aspect-video" data-id="${item.id}">
+            <img class="after"  src="${item.dstUrl}" alt="After">
+            <img class="before" src="${item.srcUrl}" alt="Before">
+            <div class="diff-handle"></div>
+            <span class="diff-tag before">before</span>
+            <span class="diff-tag after">after</span>
+            <input type="range" class="diff-slider" min="0" max="100" value="50" aria-label="Reveal slider">
+          </div>`
+        : `
+          <div class="grid grid-cols-2 gap-2">
+            <div class="thumb-box aspect-square">
+              <img src="${item.srcUrl}" alt="Source preview">
+              <span class="thumb-label">before</span>
+            </div>
+            <div class="thumb-box aspect-square">
+              ${item.dstUrl ? `<img src="${item.dstUrl}" alt="Output preview">` : ''}
+              <span class="thumb-label">after</span>
+            </div>
+          </div>`;
+
+      card.innerHTML = `
+        <div class="flex items-baseline justify-between gap-2 mb-2 min-w-0">
+          <span class="text-sm font-medium text-white truncate" title="${escapeHtml(item.dstName || item.name)}">${escapeHtml(item.dstName || item.name)}</span>
+          <button class="text-xs text-gray-500 hover:text-red-400 transition-colors" data-action="remove" data-id="${item.id}" aria-label="Remove">remove</button>
+        </div>
+        ${visualBlock}
+        <div class="stats mt-2.5 leading-snug">
+          <div class="text-gray-500">${beforeStats}</div>
+          <div class="text-gray-200">${afterStats}${pct ? ` <span class="${pctCls} ml-1.5">(${pct})</span>` : ''}</div>
+          ${detailLine}
+        </div>
+        <div class="flex gap-2 mt-3">
+          <button class="btn btn-primary"   data-action="download" data-id="${item.id}" ${item.dstBlob ? '' : 'disabled'}>⬇️ Download</button>
+          <button class="btn btn-secondary" data-action="reencode" data-id="${item.id}">🔄 Re-run</button>
+        </div>
+      `;
+    }
+    function renderAllCards() {
+      for (const item of items) {
+        if (item.dstBlob) item.dstName = renderFilename(item, item.dstFormat);
+        renderCard(item);
+      }
+    }
+
+    filesEl.addEventListener('input', e => {
+      if (e.target.classList?.contains('diff-slider')) {
+        const wrap = e.target.closest('.diff-wrap');
+        if (wrap) wrap.style.setProperty('--split', `${e.target.value}%`);
+      }
+    });
+
+    filesEl.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const item = items.find(i => i.id === btn.dataset.id);
+      if (!item) return;
+      if (btn.dataset.action === 'remove') {
+        if (item.srcUrl) URL.revokeObjectURL(item.srcUrl);
+        if (item.dstUrl) URL.revokeObjectURL(item.dstUrl);
+        items.splice(items.indexOf(item), 1);
+        document.getElementById(`card-${item.id}`)?.remove();
+        if (items.length === 0) showEmpty();
+        updateSummary();
+      } else if (btn.dataset.action === 'download') {
+        downloadOne(item);
+      } else if (btn.dataset.action === 'reencode') {
+        encodeOne(item).then(updateSummary);
+      }
+    });
+
+    function showEmpty() {
+      controlsEl.classList.add('hidden');
+      summaryBar.classList.add('hidden');
+      dropEmpty.classList.remove('hidden');
+      dropCompact.classList.add('hidden');
+      dropEl.classList.remove('compact', 'p-3');
+      dropEl.classList.add('p-8');
+    }
+
+    function updateSummary() {
+      const n = items.length;
+      compressBtn.textContent = n === 1 ? '🗜️ Compress'        : '🗜️ Compress all';
+      zipBtn.textContent      = n === 1 ? '📦 Download as zip' : '📦 Download all (zip)';
+      if (n === 0) { summaryBar.classList.add('hidden'); summaryBar.textContent = ''; return; }
+      summaryBar.classList.remove('hidden');
+      const totalBefore = items.reduce((a, i) => a + (i.srcSize || 0), 0);
+      const totalAfter  = items.reduce((a, i) => a + (i.dstBlob ? i.dstBlob.size : 0), 0);
+      const ready  = items.filter(i => i.dstBlob).length;
+      const failed = items.filter(i => i.error).length;
+      const cls = deltaClass(totalAfter, totalBefore);
+      const pct = totalBefore ? formatPct(totalAfter, totalBefore) : '';
+      const tail = failed ? ` · ${failed} failed` : '';
+      summaryBar.innerHTML = `${n} image${n === 1 ? '' : 's'} · ${formatBytes(totalBefore)} → ${formatBytes(totalAfter)} <span class="${cls}">(${pct})</span> · ${ready}/${n} ready${tail}`;
+      zipBtn.disabled = ready < 1;
+    }
+
+    function clearAll() {
+      for (const item of items) {
+        if (item.srcUrl) URL.revokeObjectURL(item.srcUrl);
+        if (item.dstUrl) URL.revokeObjectURL(item.dstUrl);
+      }
+      items.length = 0;
+      filesEl.innerHTML = '';
+      clearError();
+      statusEl.textContent = '';
+      showEmpty();
+      updateSummary();
+    }
+
+    // ── Download ──────────────────────────────────────────────────
+    function uniqueName(base, taken) {
+      if (!taken.has(base)) { taken.add(base); return base; }
+      const dot = base.lastIndexOf('.');
+      const stem = dot >= 0 ? base.slice(0, dot) : base;
+      const ext  = dot >= 0 ? base.slice(dot) : '';
+      let n = 1;
+      while (taken.has(`${stem}-${n}${ext}`)) n++;
+      const out = `${stem}-${n}${ext}`;
+      taken.add(out);
+      return out;
+    }
+
+    function downloadOne(item) {
+      if (!item.dstBlob) return;
+      const a = document.createElement('a');
+      a.href = item.dstUrl;
+      a.download = item.dstName || item.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    async function downloadZip() {
+      const ready = items.filter(i => i.dstBlob);
+      if (ready.length === 0) return;
+      zipBtn.disabled = true;
+      statusEl.textContent = `Packaging ${ready.length} image${ready.length === 1 ? '' : 's'} into a zip…`;
+      const taken = new Set();
+      const entries = ready.map(i => ({
+        name: uniqueName(i.dstName || i.name, taken),
+        blob: i.dstBlob,
+      }));
+      try {
+        const zip = await buildStoreZip(entries);
+        const url = URL.createObjectURL(zip);
+        const a = document.createElement('a');
+        a.href = url;
+        const stamp = new Date().toISOString().slice(0, 10);
+        a.download = `compressed-images-${stamp}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        statusEl.textContent = `Downloaded ${ready.length} image${ready.length === 1 ? '' : 's'} as ${a.download}`;
+      } catch (err) {
+        showError(`Zip build failed: ${err.message || err}`);
+        statusEl.textContent = '';
+      }
+      zipBtn.disabled = false;
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────
+    function showError(msg) {
+      errorBar.textContent = msg;
+      errorBar.classList.remove('hidden');
+    }
+    function clearError() {
+      errorBar.textContent = '';
+      errorBar.classList.add('hidden');
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Initial UI sync
+    syncModePills();
+    syncPresetPills();
+    syncStrategyPills();
+  </script>
+
+  <section class="max-w-[1200px] mx-auto w-full px-6 py-8 border-t border-gray-800">
+    <div class="grid gap-6 md:grid-cols-2">
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">About Image Compressor</h2>
+        <p class="text-gray-400 leading-relaxed">Drop one or many images, pick a quality preset, or specify a target file size and let the tool binary-search the right quality for you. Decoding, re-encoding, and the search loop all run locally in a Web Worker — your images never leave the browser.</p>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">How to use</h2>
+        <ol class="text-gray-400 leading-relaxed space-y-2 list-decimal list-inside">
+          <li>Drop image(s), click the drop zone, or paste from the clipboard.</li>
+          <li>Pick a mode: <strong class="text-gray-300">Quality preset</strong> for "make it smaller, pick a tradeoff" or <strong class="text-gray-300">Target size</strong> for "fit under N kilobytes."</li>
+          <li>Optionally tick <strong class="text-gray-300">Resize first</strong> to cap the long edge — most compression wins come from downsizing huge phone photos before encoding.</li>
+          <li>Download single results, or <strong class="text-gray-300">Download all (zip)</strong> for the batch.</li>
+        </ol>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">Common use cases</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Fitting an image under an email attachment limit (e.g. 250 KB).</li>
+          <li>Bulk-shrinking screenshots for a static site.</li>
+          <li>Trading PNG for WebP at the same visual quality to save bandwidth.</li>
+          <li>Converting and compressing in one pass — pick "Auto" format strategy and a preset.</li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">Tips</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li><strong class="text-gray-300">Visually identical</strong> (q=0.85) is the sweet spot for photos. Drop to <strong class="text-gray-300">Smaller</strong> for thumbnails.</li>
+          <li>For target-size mode, set a realistic budget — a 4K screenshot won't hit 50 KB without a quality you'd hate. The tool surfaces "target not hit" when the constraint isn't achievable.</li>
+          <li>WebP is usually smaller than JPEG at the same quality and supports transparency — pick <strong class="text-gray-300">Auto</strong> or <strong class="text-gray-300">Force WebP</strong> to take advantage.</li>
+          <li>EXIF and color profiles are stripped by the Canvas pipeline — a privacy plus, but worth knowing if you depend on them.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <include src="_partials/footer-script.html"></include>
+
+  <footer class="max-w-[1200px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
+    &copy; <span id="year"></span> Irfan Maulana &amp; Claude<br><span id="deploy-time"></span>
+  </footer>
+
+</body>
+</html>
