@@ -544,7 +544,10 @@ input[type="radio"]:disabled { cursor: not-allowed; opacity: 0.5; }
   padding: 0.35rem 0.6rem;
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
   font-size: 0.78rem;
-  width: 7ch;
+  /* Browsers overlay a spinner inside this width — ~1.5ch of the content
+     area is eaten by it on desktop. 9ch keeps 5-digit pixel values
+     (e.g. 20000) and KB targets fully visible. */
+  width: 9ch;
   outline: none;
   transition: border-color 0.12s;
 }
