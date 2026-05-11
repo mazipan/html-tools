@@ -867,3 +867,157 @@ input[type="range"].range:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 .diff-tag.before { left: 0.4rem; }
 .diff-tag.after  { right: 0.4rem; }
+
+/* ── Light theme — shared component overrides ─────────────── */
+/* The component definitions above use hardcoded dark hexes for surface,    */
+/* border, and muted text. These rules flip them for data-theme="light" so  */
+/* every shared class looks at home on the light page background.           */
+
+/* Cards */
+html[data-theme="light"] .card,
+html[data-theme="light"] .file-card {
+  background: #ffffff;
+  border-color: #e5e7eb;
+}
+html[data-theme="light"] .card:hover,
+html[data-theme="light"] .file-card:hover { border-color: #d1d5db; }
+
+/* Pills */
+html[data-theme="light"] .pill {
+  background: #ffffff;
+  border-color: #d1d5db;
+  color: #4b5563;
+}
+html[data-theme="light"] .pill:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  color: #111827;
+}
+html[data-theme="light"] .pill.on {
+  background: color-mix(in srgb, var(--accent) 16%, #ffffff);
+  border-color: var(--accent);
+  color: #111827;
+}
+
+/* Chips */
+html[data-theme="light"] .chip {
+  background: #ffffff;
+  border-color: #d1d5db;
+  color: #374151;
+}
+html[data-theme="light"] .chip:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  color: #111827;
+}
+html[data-theme="light"] .chip.on {
+  background: color-mix(in srgb, var(--accent) 16%, #ffffff);
+  border-color: var(--accent);
+  color: #111827;
+}
+
+/* Text inputs / textarea / num-input / select */
+html[data-theme="light"] .input,
+html[data-theme="light"] .textarea,
+html[data-theme="light"] .num-input,
+html[data-theme="light"] .select {
+  background-color: #ffffff;
+  border-color: #d1d5db;
+  color: #111827;
+}
+html[data-theme="light"] .select {
+  /* re-color the chevron SVG (gray-500) for light bg */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%236b7280' viewBox='0 0 16 16'%3e%3cpath d='M4 6l4 4 4-4z'/%3e%3c/svg%3e");
+}
+html[data-theme="light"] .input::placeholder,
+html[data-theme="light"] .textarea::placeholder { color: #9ca3af; }
+
+/* Switch (off-state track) */
+html[data-theme="light"] .switch { color: #4b5563; }
+html[data-theme="light"] .switch > input[type="checkbox"] { background: #d1d5db; }
+
+/* Range slider — thumb border picks up the page bg, not the dark surface */
+html[data-theme="light"] input[type="range"].range { background: #e5e7eb; }
+html[data-theme="light"] input[type="range"].range::-webkit-slider-thumb { border-color: #ffffff; }
+html[data-theme="light"] input[type="range"].range::-moz-range-thumb { border-color: #ffffff; }
+
+/* Color swatch */
+html[data-theme="light"] .swatch { border-color: #d1d5db; }
+
+/* Drop zone */
+html[data-theme="light"] .drop-zone {
+  background: #ffffff;
+  border-color: #d1d5db;
+}
+html[data-theme="light"] .drop-zone:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+html[data-theme="light"] .drop-zone.dragover {
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+  border-color: var(--accent);
+}
+
+/* Toolbar */
+html[data-theme="light"] .toolbar {
+  background: #ffffff;
+  border-color: #e5e7eb;
+}
+
+/* Disclosure */
+html[data-theme="light"] .disclosure { border-color: #e5e7eb; }
+html[data-theme="light"] .disclosure:hover,
+html[data-theme="light"] .disclosure[open] { border-color: #d1d5db; }
+html[data-theme="light"] .disclosure > summary { color: #111827; }
+html[data-theme="light"] .disclosure > summary::after { color: #6b7280; }
+html[data-theme="light"] .disclosure > .disclosure-content > .disclosure-body { color: #4b5563; }
+
+/* Cheat table */
+html[data-theme="light"] .cheat-table th,
+html[data-theme="light"] .cheat-table td { border-bottom-color: #e5e7eb; }
+html[data-theme="light"] .cheat-table th { color: #6b7280; }
+html[data-theme="light"] .cheat-table td:first-child { color: #7c3aed; }
+html[data-theme="light"] .cheat-table td:nth-child(2) { color: #374151; }
+
+/* Stats */
+html[data-theme="light"] .delta-neutral { color: #6b7280; }
+
+/* Error / warn bars — darken the text so it reads on near-white */
+html[data-theme="light"] .error-bar { color: #b91c1c; }
+html[data-theme="light"] .warn-bar  { color: #92400e; }
+
+/* Image thumbnail + diff slider checker patterns */
+html[data-theme="light"] .thumb-box,
+html[data-theme="light"] .diff-wrap {
+  background:
+    linear-gradient(45deg, #e5e7eb 25%, transparent 25%),
+    linear-gradient(-45deg, #e5e7eb 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e5e7eb 75%),
+    linear-gradient(-45deg, transparent 75%, #e5e7eb 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  background-color: #f9fafb;
+}
+html[data-theme="light"] .diff-handle::after { border-color: #9ca3af; }
+
+/* Button :active state for secondary in light */
+html[data-theme="light"] .btn-secondary:active { background-color: #f3f4f6; }
+
+/* JSON tree decorations (used by json-formatter; keep readable on white) */
+html[data-theme="light"] .line-num {
+  color: #9ca3af;
+  border-right-color: #e5e7eb;
+}
+html[data-theme="light"] .tree-children { border-left-color: #e5e7eb; }
+html[data-theme="light"] .tree-row:hover { background: rgba(0,0,0,0.04); }
+html[data-theme="light"] .toggle-btn { color: #6b7280; }
+html[data-theme="light"] .toggle-btn:hover { color: #111827; background: #e5e7eb; }
+/* JSON syntax — swap the neon-on-dark palette for one that reads on white */
+html[data-theme="light"] .json-key    { color: #7c3aed; }
+html[data-theme="light"] .json-string { color: #047857; }
+html[data-theme="light"] .json-number { color: #c2410c; }
+html[data-theme="light"] .json-bool   { color: #be123c; }
+html[data-theme="light"] .json-null   { color: #be123c; }
+html[data-theme="light"] .json-punct  { color: #6b7280; }
+html[data-theme="light"] .collapsed-preview { color: #6b7280; }
+html[data-theme="light"] .tree-comma { color: #6b7280; }

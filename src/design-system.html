@@ -168,6 +168,52 @@
       font-size: 0.78rem;
       margin-bottom: 1.5rem;
     }
+
+    /* Light theme overrides for the design-system-only ds-* classes. */
+    html[data-theme="light"] .ds-toc-toggle {
+      background: #ffffff;
+      border-color: #d1d5db;
+      color: #111827;
+    }
+    html[data-theme="light"] .ds-toc-toggle .chevron { color: #6b7280; }
+    html[data-theme="light"] .ds-toc-list {
+      background: #ffffff;
+      border-color: #e5e7eb;
+    }
+    html[data-theme="light"] .ds-toc-list a { color: #4b5563; }
+    html[data-theme="light"] .ds-toc-list a:hover { color: #111827; border-color: #d1d5db; }
+    html[data-theme="light"] .ds-toc-list h3 { color: #6b7280; }
+    html[data-theme="light"] .ds-section { border-top-color: #e5e7eb; }
+    html[data-theme="light"] .ds-section h2 { color: #111827; }
+    html[data-theme="light"] .ds-section > p.lead { color: #4b5563; }
+    html[data-theme="light"] .ds-state-label { color: #6b7280; }
+    html[data-theme="light"] .ds-snippet {
+      background: #f9fafb;
+      border-color: #e5e7eb;
+    }
+    html[data-theme="light"] .ds-snippet pre { color: #111827; }
+    html[data-theme="light"] .ds-snippet button.copy {
+      background: #ffffff;
+      border-color: #d1d5db;
+      color: #6b7280;
+    }
+    html[data-theme="light"] .ds-snippet button.copy:hover {
+      color: #111827;
+      border-color: #9ca3af;
+    }
+    html[data-theme="light"] .ds-snippet button.copy.ok {
+      color: #047857;
+      border-color: #a7f3d0;
+      background: rgba(16,185,129,0.1);
+    }
+    html[data-theme="light"] .ds-color-tile {
+      background: #ffffff;
+      border-color: #e5e7eb;
+    }
+    html[data-theme="light"] .ds-color-chip { border-color: #d1d5db; }
+    html[data-theme="light"] .ds-color-tile .name { color: #111827; }
+    html[data-theme="light"] .ds-color-tile .val { color: #6b7280; }
+    html[data-theme="light"] .ds-banner { color: #92400e; }
   </style>
   <include src="_partials/head-theme.html"></include>
 </head>
