@@ -321,31 +321,35 @@
       "name": "Image Resizer",
       "icon": "📐",
       "category": "Image",
-      "description": "Batch-resize PNG, JPEG, WebP, and AVIF images entirely in your browser. Max dimensions, exact size, or percentage; presets for OG, Twitter, and other social cards. Download single or as zip.",
+      "description": "Batch-resize PNG, JPEG, WebP, and AVIF images entirely in your browser. Percentage, exact dimensions with aspect lock, or max-dimension cap; single + zip download.",
       "faqs": [
         {
           "q": "Does my image ever leave my computer?",
           "a": "No. Everything runs locally in your browser — decoding, resizing, and encoding all happen on-device via a Web Worker."
         },
         {
-          "q": "What's the difference between Max, Exact, and Percentage?",
-          "a": "Max caps the largest side and keeps the aspect ratio (good for blog images). Exact forces every output to a specific W×H regardless of input shape (good for social cards). Percentage scales every image by the same factor."
+          "q": "What's the difference between Percentage, Exact, and Max?",
+          "a": "Percentage scales every image by the same factor — quick \"halve everything\" workflows. Exact forces every output to a specific W × H and center-crops to fill — useful for social cards (OG 1200×630, Twitter 1600×900, etc.). Max caps the longer side while keeping the source aspect — good for blog images where you want \"max 1600px wide\" without distorting."
         },
         {
-          "q": "Will it upscale my image?",
-          "a": "Not by default — \"Don't upscale\" is on, so anything already smaller than the target is kept as-is. Turn it off if you really want enlargement (quality will suffer)."
+          "q": "What does Lock aspect ratio do?",
+          "a": "In Max mode it preserves the source's aspect while fitting inside your max W × max H. In Exact mode it captures the current W:H when toggled on — editing one dimension then auto-fills the other so the captured ratio stays constant. Default is on in both modes."
         },
         {
-          "q": "What's the difference between Contain, Cover, and Stretch?",
-          "a": "Contain fits the image inside the target box and pads with a background color (letterbox). Cover fills the box by cropping from the center. Stretch ignores the aspect ratio and distorts — rarely what you want."
+          "q": "Will the resizer upscale a small image?",
+          "a": "Max and Percentage modes are shrink-only — they never produce output larger than the source (Percentage's slider caps at 100% for the same reason). Exact mode returns whatever W × H you set, including dimensions larger than the source — the result will just look fuzzier."
+        },
+        {
+          "q": "Where did the presets go?",
+          "a": "Presets (OG 1200×630, Twitter 1600×900, Half, Quarter, Thumb 256) only appear when Lock aspect ratio is off in Max or Exact mode — they set explicit dimensions, which would otherwise silently violate the locked ratio. Percentage mode is implicitly always locked, so presets don't appear there."
         },
         {
           "q": "Can I download all my resized images at once?",
-          "a": "Yes. The Download all button packs them into a single store-only zip, so unpacking is instant."
+          "a": "Yes. The Download all (zip) button packs every output into a single store-only zip — unpacking is instant. Each row's Download button gets a single file."
         },
         {
           "q": "Why are some files marked 'kept original'?",
-          "a": "If the source is already at or below the target and the format isn't changing, we skip the re-encode so you don't lose quality for no benefit."
+          "a": "If the source is already at or below the target and the format isn't changing, we skip the re-encode so you don't lose quality for no benefit. The file goes into the zip verbatim."
         }
       ],
       "maxWidth": "1200px"
