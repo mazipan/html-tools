@@ -489,9 +489,9 @@
       const maxW = W - SAFE * 2;
       const maxH = H - SAFE * 2 - 80; // leave room for domain badge
 
-      // Title — auto-shrink to fit. Step down 4 px at a time until
-      // the title (and subtitle reservation) fit inside maxW × maxH,
-      // or we hit the minimum legible size.
+      // Title — auto-shrink to fit. Step down 4 px at a time until the
+      // (title + gap + subtitle) block fits the safe area, or we hit
+      // the minimum legible size.
       let titlePx = state.titleSize;
       let titleLines = [];
       const minPx = 32;
@@ -501,14 +501,16 @@
           ? wrapText(c, state.title, maxW)
           : state.title.split('\n');
         const lineH = titlePx * 1.15;
-        const totalH = titleLines.length * lineH;
-        c.font = `400 ${state.subtitleSize}px ${state.font}`;
-        const subReserve = state.subtitle.trim()
-          ? state.subtitleSize * 1.3 * wrapText(c, state.subtitle, maxW).length + state.titleGap
+        const titleH = titleLines.length
+          ? (titleLines.length - 1) * lineH + titlePx
           : 0;
+        c.font = `400 ${state.subtitleSize}px ${state.font}`;
+        const subN = state.subtitle.trim() ? wrapText(c, state.subtitle, maxW).length : 0;
+        const subH = subN ? (subN - 1) * state.subtitleSize * 1.3 + state.subtitleSize : 0;
+        const totalH = titleH + (subN ? state.titleGap + subH : 0);
         c.font = `${state.titleWeight} ${titlePx}px ${state.font}`;
         const fits = titleLines.every(ln => c.measureText(ln).width <= maxW);
-        if (totalH + subReserve <= maxH && fits) break;
+        if (totalH <= maxH && fits) break;
         titlePx -= 4;
       }
 
@@ -516,16 +518,21 @@
       c.font = `400 ${state.subtitleSize}px ${state.font}`;
       const subtitleLines = state.subtitle.trim() ? wrapText(c, state.subtitle, maxW) : [];
       const subLineH = state.subtitleSize * 1.3;
-      const titleTotalH = titleLines.length * lineH;
-      const subTotalH = subtitleLines.length * subLineH;
-      const gap = subtitleLines.length ? state.titleGap : 0;
-      const blockH = titleTotalH + gap + subTotalH;
 
-      // Vertical-center the title+subtitle block within the safe area
-      let y = SAFE + (maxH - blockH) / 2 + titlePx * 0.9;
+      // Block height measured top-of-em-box to bottom-of-em-box; no
+      // trailing line-height padding. That makes `state.titleGap` the
+      // literal pixel space between the title's last line and the
+      // subtitle, instead of being padded by line-height leading.
+      const titleH = titleLines.length ? (titleLines.length - 1) * lineH + titlePx : 0;
+      const subH = subtitleLines.length ? (subtitleLines.length - 1) * subLineH + state.subtitleSize : 0;
+      const blockH = titleH + (subtitleLines.length ? state.titleGap + subH : 0);
+
+      // Vertical-center the title+subtitle block within the safe area.
+      // textBaseline='top' so `y` tracks the top of each em-box.
+      let y = SAFE + (maxH - blockH) / 2;
 
       c.fillStyle = state.titleColor;
-      c.textBaseline = 'alphabetic';
+      c.textBaseline = 'top';
       c.textAlign = 'left';
       if (state.textShadow) {
         c.shadowColor = 'rgba(0,0,0,0.35)';
@@ -537,9 +544,11 @@
         c.fillText(line, SAFE, y);
         y += lineH;
       }
+      // Strip trailing line-leading so `y` lands at the title's em-box bottom.
+      if (titleLines.length) y -= (lineH - titlePx);
 
       if (subtitleLines.length) {
-        y += gap - (lineH - titlePx); // tighten the gap
+        y += state.titleGap;
         c.font = `400 ${state.subtitleSize}px ${state.font}`;
         c.fillStyle = blend(state.titleColor, 0.75);
         for (const line of subtitleLines) {
