@@ -58,6 +58,35 @@
     }
     .mode-panel { display: none; }
     .mode-panel.on { display: block; }
+    /* Single-file mode — wide card with a hero preview or a diff-slider compare. */
+    .single-card {
+      border: 1px solid #1f2937;
+      border-radius: 0.7rem;
+      background: rgba(17, 24, 39, 0.55);
+      padding: 1rem;
+    }
+    .single-card .preview-area {
+      display: block;
+      max-width: 100%;
+      max-height: 480px;
+      margin: 0 auto 0.9rem;
+      border-radius: 0.5rem;
+      border: 1px solid #1f2937;
+      background: #0b1220;
+      /* aspect-ratio set inline per item */
+    }
+    .single-card .diff-wrap.preview-area {
+      /* Keep diff-wrap's own checker background for transparency previews. */
+      background:
+        linear-gradient(45deg, #1f2937 25%, transparent 25%),
+        linear-gradient(-45deg, #1f2937 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #1f2937 75%),
+        linear-gradient(-45deg, transparent 75%, #1f2937 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+    }
+    .single-stats { line-height: 1.4; margin-bottom: 0.8rem; }
+    .single-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
   </style>
   <include src="_partials/head-theme.html"></include>
 </head>
@@ -583,9 +612,12 @@
           kept: false, error: null, encoding: true,
         };
         items.push(item);
-        renderCard(item);
         probeQueue.push(probeAndEncode(item));
       }
+      // Render everything in the loop's *final* count so the layout picks the
+      // right template (the first dropped file briefly rendered as a single
+      // card before the next one arrives — re-render so they're consistent).
+      renderAllCards();
       updateSummary();
       syncFormatPills();
       await Promise.all(probeQueue);
@@ -658,6 +690,9 @@
 
     let resizeTimer = null;
     function scheduleResize() {
+      // Re-render in place so the single-card preview (aspect / fit / bg)
+      // tracks the controls without waiting for the debounced encode.
+      renderAllCards();
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => resizeAll(), 220);
     }
@@ -700,13 +735,52 @@
 
     // ── Rendering ─────────────────────────────────────────────────
     function ensureCardEl(item) {
+      const wantClass = items.length === 1 ? 'single-card' : 'row-card';
       let card = document.getElementById(`row-${item.id}`);
-      if (card) return card;
+      if (card) {
+        // Switching between single and bulk layout — swap the class so the
+        // CSS shape matches the new template.
+        if (card.className !== wantClass) card.className = wantClass;
+        return card;
+      }
       card = document.createElement('div');
       card.id = `row-${item.id}`;
-      card.className = 'row-card';
+      card.className = wantClass;
       filesEl.appendChild(card);
       return card;
+    }
+
+    // The resize op preserves aspect when:
+    //   - Percent mode (uniform scale)
+    //   - Max mode + keep aspect (default)
+    //   - Exact mode where the target W:H happens to match the source's
+    function isAspectPreserved(item) {
+      if (settings.mode === 'percent') return true;
+      if (settings.mode === 'max' && settings.max.keepAspect) return true;
+      if (settings.mode === 'exact' && item.srcW && item.srcH
+        && settings.exact.targetW && settings.exact.targetH) {
+        const src = item.srcW / item.srcH;
+        const tgt = settings.exact.targetW / settings.exact.targetH;
+        return Math.abs((src - tgt) / src) < 0.01;
+      }
+      return false;
+    }
+
+    // Inline style for the single-card hero preview — adopts the active
+    // target aspect ratio (and matching object-fit + bg for exact mode).
+    function heroPreviewStyle(item) {
+      if (settings.mode === 'exact'
+        && settings.exact.targetW && settings.exact.targetH) {
+        const fit = settings.exact.fit;
+        const cssFit = fit === 'stretch' ? 'fill' : fit;
+        const bg = (fit === 'contain' && settings.exact.background && settings.exact.background !== 'transparent')
+          ? `;background:${settings.exact.background}` : '';
+        return `aspect-ratio:${settings.exact.targetW}/${settings.exact.targetH};object-fit:${cssFit}${bg}`;
+      }
+      if (item.srcW && item.srcH) {
+        return `aspect-ratio:${item.srcW}/${item.srcH};object-fit:cover`;
+      }
+      return '';
     }
 
     function deltaClass(after, before) {
@@ -717,8 +791,8 @@
       return 'delta-neutral';
     }
 
-    function renderCard(item) {
-      const card = ensureCardEl(item);
+    // Shared bits used by both row + single templates.
+    function statsLines(item) {
       const srcSize = item.srcSize;
       const dstSize = item.dstBlob ? item.dstBlob.size : 0;
       const before = `${item.srcW || '?'}×${item.srcH || '?'} · ${srcExt(item.srcMime)} · ${formatBytes(srcSize)}`;
@@ -732,6 +806,21 @@
             : '<span class="text-gray-500">queued…</span>';
       const pct = (item.dstBlob && srcSize) ? formatPct(dstSize, srcSize) : '';
       const pctCls = deltaClass(dstSize, srcSize);
+      return { before, after, pct, pctCls };
+    }
+
+    function renderCard(item) {
+      if (items.length === 1) {
+        if (isAspectPreserved(item)) renderSingleDiffCard(item);
+        else renderSingleHeroCard(item);
+      } else {
+        renderRowCard(item);
+      }
+    }
+
+    function renderRowCard(item) {
+      const card = ensureCardEl(item);
+      const { before, after, pct, pctCls } = statsLines(item);
 
       card.innerHTML = `
         <img class="thumb" src="${item.srcUrl}" alt="" loading="lazy">
@@ -748,6 +837,69 @@
       `;
     }
 
+    // Single + aspect-changing — show one big preview of the cropped/letterboxed
+    // result using srcUrl + CSS (object-fit). The encoded blob is identical
+    // visually so we don't wait for it.
+    function renderSingleHeroCard(item) {
+      const card = ensureCardEl(item);
+      const { before, after, pct, pctCls } = statsLines(item);
+      const previewStyle = heroPreviewStyle(item);
+      card.innerHTML = `
+        <div class="flex items-baseline justify-between gap-2 mb-3 min-w-0">
+          <span class="text-sm font-medium text-white truncate" title="${escapeHtml(item.dstName || item.name)}">${escapeHtml(item.dstName || item.name)}</span>
+        </div>
+        <img class="preview-area" src="${item.srcUrl}" alt="" style="${previewStyle}">
+        <div class="single-stats stats">
+          <div class="text-gray-500">${before}</div>
+          <div class="text-gray-200">→ ${after}${pct ? ` <span class="${pctCls}">(${pct})</span>` : ''}</div>
+        </div>
+        <div class="single-actions">
+          <button class="btn btn-primary"   data-action="download" data-id="${item.id}" ${item.dstBlob ? '' : 'disabled'}>⬇️ Download</button>
+          <button class="btn btn-secondary" data-action="reencode" data-id="${item.id}">🔄 Re-run</button>
+          <button class="btn btn-danger"    data-action="remove"   data-id="${item.id}">🗑️ Remove</button>
+        </div>
+      `;
+    }
+
+    // Single + aspect-preserved — show a drag-to-compare diff slider once
+    // the encode finishes. Before encode completes (or when there's no
+    // dstUrl yet), fall back to a single source preview.
+    function renderSingleDiffCard(item) {
+      const card = ensureCardEl(item);
+      // Preserve the user's slider position across re-renders so a settings
+      // change after dragging doesn't snap back to 50%.
+      const oldSlider = card.querySelector('.diff-slider');
+      const savedSplit = oldSlider ? oldSlider.value : '50';
+      const { before, after, pct, pctCls } = statsLines(item);
+      const aspect = (item.srcW && item.srcH) ? `aspect-ratio:${item.srcW}/${item.srcH};` : '';
+      const visual = (item.dstBlob && !item.error)
+        ? `
+          <div class="diff-wrap preview-area" style="${aspect}--split:${savedSplit}%;" data-id="${item.id}">
+            <img class="after"  src="${item.dstUrl}" alt="After">
+            <img class="before" src="${item.srcUrl}" alt="Before">
+            <div class="diff-handle"></div>
+            <span class="diff-tag before">before</span>
+            <span class="diff-tag after">after</span>
+            <input type="range" class="diff-slider" min="0" max="100" value="${savedSplit}" aria-label="Reveal slider">
+          </div>`
+        : `<img class="preview-area" src="${item.srcUrl}" alt="" style="${aspect}object-fit:contain">`;
+      card.innerHTML = `
+        <div class="flex items-baseline justify-between gap-2 mb-3 min-w-0">
+          <span class="text-sm font-medium text-white truncate" title="${escapeHtml(item.dstName || item.name)}">${escapeHtml(item.dstName || item.name)}</span>
+        </div>
+        ${visual}
+        <div class="single-stats stats">
+          <div class="text-gray-500">${before}</div>
+          <div class="text-gray-200">→ ${after}${pct ? ` <span class="${pctCls}">(${pct})</span>` : ''}</div>
+        </div>
+        <div class="single-actions">
+          <button class="btn btn-primary"   data-action="download" data-id="${item.id}" ${item.dstBlob ? '' : 'disabled'}>⬇️ Download</button>
+          <button class="btn btn-secondary" data-action="reencode" data-id="${item.id}">🔄 Re-run</button>
+          <button class="btn btn-danger"    data-action="remove"   data-id="${item.id}">🗑️ Remove</button>
+        </div>
+      `;
+    }
+
     function renderAllCards() {
       for (const item of items) {
         // refresh dstName under new pattern
@@ -755,6 +907,14 @@
         renderCard(item);
       }
     }
+
+    // Diff slider drag — single-aspect-preserved card uses .diff-wrap.
+    filesEl.addEventListener('input', e => {
+      if (e.target.classList?.contains('diff-slider')) {
+        const wrap = e.target.closest('.diff-wrap');
+        if (wrap) wrap.style.setProperty('--split', `${e.target.value}%`);
+      }
+    });
 
     filesEl.addEventListener('click', e => {
       const btn = e.target.closest('button[data-action]');
@@ -767,6 +927,7 @@
         items.splice(items.indexOf(item), 1);
         document.getElementById(`row-${item.id}`)?.remove();
         if (items.length === 0) showEmpty();
+        else renderAllCards(); // remaining card may need single-mode template now
         updateSummary();
         syncFormatPills();
       } else if (btn.dataset.action === 'download') {
