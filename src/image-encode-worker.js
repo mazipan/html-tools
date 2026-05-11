@@ -3,7 +3,7 @@
 // One job per message. The page is responsible for queueing and parallelism
 // (kept simple for now: serial queue per worker, one worker per page).
 //
-// Inbound:
+// Inbound (encode — default when `type` is omitted):
 //   { id, file, opts: {
 //       enabled, mode,                       // 'max' | 'exact' | 'percent'
 //       maxW, maxH, keepAspect, noUpscale,   // max
@@ -11,6 +11,16 @@
 //       scale,                               // percent (and noUpscale)
 //       format,                              // 'png' | 'jpeg' | 'webp'
 //       quality,                             // 0..1 for lossy formats
+//     }
+//   }
+//
+// Inbound (crop — used by the image cropper):
+//   { id, type: 'crop', file, opts: {
+//       sx, sy, sw, sh,                      // source rectangle in source pixels
+//       format,                              // 'png' | 'jpeg' | 'webp'
+//       quality,                             // 0..1 for lossy formats
+//       circle,                              // true → clip to an inscribed circle (alpha corners)
+//       background,                          // opaque colour for JPEG-on-alpha (default '#ffffff')
 //     }
 //   }
 //
@@ -137,8 +147,59 @@ async function compressToTarget(canvas, mime, targetBytes, tolerance, maxIter) {
   return { blob: winner.blob, finalQuality: winner.q, iterations, hitTarget: !!best };
 }
 
+async function runCrop(id, file, opts) {
+  let bitmap;
+  try {
+    bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    const srcW = bitmap.width;
+    const srcH = bitmap.height;
+
+    // Clamp the crop rect to the source bounds — protects against rounding
+    // mismatches between the preview coordinate system and the actual decoded
+    // dimensions (EXIF rotation in particular can shift things by ±1 px).
+    let sx = Math.max(0, Math.floor(opts.sx || 0));
+    let sy = Math.max(0, Math.floor(opts.sy || 0));
+    let sw = Math.max(1, Math.floor(opts.sw || srcW));
+    let sh = Math.max(1, Math.floor(opts.sh || srcH));
+    if (sx + sw > srcW) sw = srcW - sx;
+    if (sy + sh > srcH) sh = srcH - sy;
+
+    const canvas = new OffscreenCanvas(sw, sh);
+    const ctx = canvas.getContext('2d');
+    if (opts.format === 'jpeg') {
+      ctx.fillStyle = opts.background && opts.background !== 'transparent' ? opts.background : '#ffffff';
+      ctx.fillRect(0, 0, sw, sh);
+    }
+    if (opts.circle) {
+      // Clip to the inscribed circle so the corners go transparent on alpha
+      // formats. JPEG would render them as the background fill above, which
+      // defeats the whole feature — the page disables JPEG for circles.
+      ctx.save();
+      ctx.beginPath();
+      const r = Math.min(sw, sh) / 2;
+      ctx.arc(sw / 2, sh / 2, r, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+    }
+    ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, sw, sh);
+    if (opts.circle) ctx.restore();
+
+    const info = FORMAT_INFO[opts.format] || FORMAT_INFO.png;
+    const quality = info.lossless ? undefined : opts.quality;
+    const blob = await canvas.convertToBlob({ type: info.mime, quality });
+    self.postMessage({ id, w: sw, h: sh, blob });
+  } catch (err) {
+    self.postMessage({ id, error: err && err.message ? err.message : String(err) });
+  } finally {
+    bitmap?.close?.();
+  }
+}
+
 self.onmessage = async (e) => {
-  const { id, file, opts } = e.data;
+  const { id, type, file, opts } = e.data;
+  if (type === 'crop') {
+    return runCrop(id, file, opts);
+  }
   let bitmap;
   try {
     bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
