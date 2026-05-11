@@ -36,7 +36,7 @@ Current tools (all under `src/`):
 ## Adding a new tool
 
 1. Create a new `.html` file inside `src/` (e.g. `src/base64.html`) following the pattern of an existing tool.
-2. Add an entry for the tool in `src/tools.json` (`slug`, `name`, `icon`, `category`, `description`). The build uses this manifest to emit per-tool JSON-LD structured data; future cross-tool features (related links, FAQ, etc.) will read it too.
+2. Add an entry for the tool in `src/tools.json` (`slug`, `name`, `icon`, `category`, `description`, `faqs`). Then run `npm run generate:sections` to write the FAQ block, "More tools" cross-link block, and JSON-LD structured data into `src/<slug>.html` (and refresh every other tool's "More tools" list so the new tool shows up there too).
 3. Include shared partials in `<head>` — see "Shared HTML partials" below. The minimum head is `meta-base` + per-page meta + `meta-social` + per-page icon + `head-fonts` + `<link rel="stylesheet" href="styles.css">` + optional per-page `<style>` + `head-theme`.
 4. Include the shared site header at the top of `<body>` with a `<nav aria-label="Breadcrumb">` linking back to `index.html` — copy the header block from an existing tool. Mark the current page span with `aria-current="page"`. See "Semantic landmarks" below.
 5. Wrap the tool UI in `<main class="…">` (exactly one `<main>` per page). Inside, the page heading goes in an `<h1>` that matches the tool name.
@@ -59,13 +59,15 @@ The site header (the `HTML Tools / Tool Name` strip) is intentionally **not** a 
 
 ## Tools manifest
 
-`src/tools.json` is the single source of truth for the site name, publisher, and per-tool metadata (slug, name, icon, category, description, faqs). `scripts/build.mjs` reads it to:
+`src/tools.json` is the single source of truth for the site name, publisher, and per-tool metadata (slug, name, icon, category, description, faqs). It's read by `scripts/generate-sections.mjs` (`npm run generate:sections`), which writes three blocks directly into `src/*.html` so they're visible in `npm run dev` and bundle through Parcel like the rest of the markup:
 
-- Inject JSON-LD `WebApplication` + `BreadcrumbList` + `FAQPage` blocks on each tool page (and `WebSite` on the index).
-- Inject a visible FAQ section (collapsible `<details>` blocks) before the cross-tool block on every tool page.
-- Inject a "More tools" cross-link block before the footer on every tool page (excluding the current tool and the index).
+- JSON-LD `WebApplication` + `BreadcrumbList` + `FAQPage` blocks on each tool page (and `WebSite` on the index) — inside `<head>`, wrapped in `<!-- BEGIN:json-ld --> … <!-- END:json-ld -->`.
+- A visible FAQ section (collapsible `<details>` blocks) before the footer on every tool page — wrapped in `<!-- BEGIN:faq --> … <!-- END:faq -->`.
+- A "More tools" cross-link block before the footer on every tool page (excluding the index) — wrapped in `<!-- BEGIN:more-tools --> … <!-- END:more-tools -->`.
 
-Each tool's `faqs` is an array of `{ q, a }` entries; aim for 3–5 genuinely common questions per tool. New tools must be registered here so the build picks them up. **Note:** these injections happen only at production build time (`npm run build`), not in dev (`npm run dev`).
+Each tool's `faqs` is an array of `{ q, a }` entries; aim for 3–5 genuinely common questions per tool. New tools must be registered here so the generator picks them up.
+
+**Re-run `npm run generate:sections` whenever you edit `src/tools.json`.** The script is idempotent — sentinel-wrapped regions are replaced in place on every run, so re-running can never produce duplicate blocks. The generated regions are committed as source.
 
 ## Pull request rules
 
@@ -170,8 +172,9 @@ The 1200×630 social card lives at `src/og-image.png` and is committed to the re
 ## Commands
 
 ```bash
-npm run dev          # start dev server (watches all *.html)
-npm run build        # production build → dist/
-npm run preview      # serve dist/ locally to spot-check the production build
-npm run generate:og  # regenerate src/og-image.png from src/og-image.svg
+npm run dev                 # start dev server (watches all *.html)
+npm run build               # production build → dist/
+npm run preview             # serve dist/ locally to spot-check the production build
+npm run generate:og         # regenerate src/og-image.png from src/og-image.svg
+npm run generate:sections   # rewrite FAQ / More tools / JSON-LD blocks in src/*.html from src/tools.json
 ```
