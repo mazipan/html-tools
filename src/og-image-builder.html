@@ -170,6 +170,21 @@
       <!-- ── Controls column ────────────────────────────────────── -->
       <div>
 
+        <!-- Text color -->
+        <div class="og-section">
+          <label class="og-section-label">Text color</label>
+          <div class="toolbar">
+            <label class="flex items-center gap-2 text-xs text-gray-400">
+              Title
+              <input id="title-color" type="color" class="swatch-input" value="#ffffff">
+            </label>
+            <label class="switch text-xs">
+              <input type="checkbox" id="text-shadow" checked>
+              <span>Drop shadow</span>
+            </label>
+          </div>
+        </div>
+
         <!-- Title -->
         <div class="og-section">
           <label for="title-input" class="og-section-label">Title</label>
@@ -257,26 +272,7 @@
             </label>
             <button type="button" class="btn btn-secondary" onclick="shufflePattern()" title="Re-seed the random layout">🔀 Shuffle</button>
           </div>
-          <p class="text-[0.7rem] text-gray-600 leading-snug mt-1.5">Drawn in the accent color at low opacity, behind the text.</p>
-        </div>
-
-        <!-- Colors -->
-        <div class="og-section">
-          <label class="og-section-label">Text colors</label>
-          <div class="toolbar">
-            <label class="flex items-center gap-2 text-xs text-gray-400">
-              Title
-              <input id="title-color" type="color" class="swatch-input" value="#ffffff">
-            </label>
-            <label class="flex items-center gap-2 text-xs text-gray-400">
-              Accent
-              <input id="accent-color" type="color" class="swatch-input" value="#60a5fa">
-            </label>
-            <label class="switch text-xs">
-              <input type="checkbox" id="text-shadow" checked>
-              <span>Drop shadow</span>
-            </label>
-          </div>
+          <p class="text-[0.7rem] text-gray-600 leading-snug mt-1.5">Drawn in the badge color at low opacity, behind the text.</p>
         </div>
 
         <!-- Logo -->
@@ -317,6 +313,12 @@
         <div class="og-section">
           <label for="domain-input" class="og-section-label">Domain badge</label>
           <input id="domain-input" type="text" class="input" placeholder="example.com — leave blank to hide" value="tools.mazipan.space">
+          <div id="badge-color-row" class="toolbar mt-2">
+            <label class="flex items-center gap-2 text-xs text-gray-400">
+              Badge color
+              <input id="badge-color" type="color" class="swatch-input" value="#60a5fa">
+            </label>
+          </div>
         </div>
 
         <!-- Font -->
@@ -446,7 +448,7 @@
       bgGradient: 0,             // index into GRADIENTS
       bgSolid: '#0b1220',
       titleColor: '#ffffff',
-      accentColor: '#60a5fa',
+      badgeColor: '#60a5fa',
       textShadow: true,
       logoImg: null,             // HTMLImageElement | null
       logoName: '',
@@ -520,7 +522,7 @@
         const rows = Math.max(2, Math.round(count / cols));
         const dx = W / (cols + 1);
         const dy = H / (rows + 1);
-        c.fillStyle = withAlpha(state.accentColor, 0.18);
+        c.fillStyle = withAlpha(state.badgeColor, 0.18);
         for (let r = 1; r <= rows; r++) {
           for (let col = 1; col <= cols; col++) {
             c.beginPath();
@@ -537,8 +539,8 @@
         const y = rng() * H;
         const size = 10 + rng() * 28;
         const alpha = 0.08 + rng() * 0.18;
-        c.fillStyle = withAlpha(state.accentColor, alpha);
-        c.strokeStyle = withAlpha(state.accentColor, alpha);
+        c.fillStyle = withAlpha(state.badgeColor, alpha);
+        c.strokeStyle = withAlpha(state.badgeColor, alpha);
 
         let shape = state.pattern;
         if (shape === 'mixed') {
@@ -700,9 +702,9 @@
       const x = SAFE;
       const y = H - SAFE - h;
 
-      c.fillStyle = withAlpha(state.accentColor, 0.18);
+      c.fillStyle = withAlpha(state.badgeColor, 0.18);
       roundRect(c, x, y, w, h, 999); c.fill();
-      c.strokeStyle = withAlpha(state.accentColor, 0.5);
+      c.strokeStyle = withAlpha(state.badgeColor, 0.5);
       c.lineWidth = 1.5;
       roundRect(c, x, y, w, h, 999); c.stroke();
 
@@ -834,7 +836,7 @@
         titleSize: 100, titleWeight: 700, titleWrap: true,
         subtitleSize: 32, titleGap: 16,
         bgMode: 'gradient', bgGradient: 0, // Midnight
-        titleColor: '#ffffff', accentColor: '#60a5fa',
+        titleColor: '#ffffff', badgeColor: '#60a5fa',
         textShadow: false,
         font: "'Bricolage Grotesque', system-ui, sans-serif",
         domain: 'tools.mazipan.space',
@@ -845,7 +847,7 @@
         titleSize: 132, titleWeight: 800, titleWrap: false,
         subtitleSize: 36, titleGap: 16,
         bgMode: 'solid', bgSolid: '#ec4899',
-        titleColor: '#ffffff', accentColor: '#fde047',
+        titleColor: '#ffffff', badgeColor: '#fde047',
         textShadow: true,
         font: "'Bricolage Grotesque', system-ui, sans-serif",
         domain: 'tools.mazipan.space',
@@ -856,7 +858,7 @@
         titleSize: 80, titleWeight: 600, titleWrap: true,
         subtitleSize: 30, titleGap: 12,
         bgMode: 'solid', bgSolid: '#f8fafc',
-        titleColor: '#0f172a', accentColor: '#1e3a8a',
+        titleColor: '#0f172a', badgeColor: '#1e3a8a',
         textShadow: false,
         font: 'Georgia, "Times New Roman", serif',
         domain: 'tools.mazipan.space',
@@ -900,7 +902,7 @@
       $('bg-color').value = state.bgSolid;
       $('bg-color-text').value = state.bgSolid;
       $('title-color').value = state.titleColor;
-      $('accent-color').value = state.accentColor;
+      $('badge-color').value = state.badgeColor;
       $('text-shadow').checked = state.textShadow;
       $('logo-pos').value = state.logoPos;
       $('logo-size').value = state.logoSize;
@@ -915,6 +917,7 @@
       document.querySelectorAll('#grad-grid .grad-tile').forEach((t, i) => {
         t.classList.toggle('on', i === state.bgGradient);
       });
+      updateBadgeRowVisibility();
     }
 
     function wireControls() {
@@ -945,14 +948,14 @@
         }
       });
       bind('title-color', 'titleColor');
-      bind('accent-color', 'accentColor');
+      bind('badge-color', 'badgeColor');
       const ts = document.getElementById('text-shadow');
       ts.addEventListener('change', () => { state.textShadow = ts.checked; scheduleRender(); });
       bind('logo-pos', 'logoPos');
       bind('logo-size', 'logoSize', v => +v, () => {
         document.getElementById('logo-size-val').textContent = state.logoSize;
       });
-      bind('domain-input', 'domain');
+      bind('domain-input', 'domain', v => v, updateBadgeRowVisibility);
       bind('font-family', 'font');
       bind('pattern-type', 'pattern');
       bind('pattern-density', 'patternDensity', v => +v, () => {
@@ -963,6 +966,11 @@
     function shufflePattern() {
       state.patternSeed = Math.floor(Math.random() * 1e9);
       scheduleRender();
+    }
+
+    function updateBadgeRowVisibility() {
+      const hasDomain = !!state.domain.trim();
+      document.getElementById('badge-color-row').classList.toggle('hidden', !hasDomain);
     }
 
     // ── Export ───────────────────────────────────────────────────
