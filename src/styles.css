@@ -440,8 +440,8 @@ input[type="radio"]:disabled { cursor: not-allowed; opacity: 0.5; }
   -webkit-appearance: none;
   position: relative;
   flex-shrink: 0;
-  width: 2rem;
-  height: 1rem;
+  width: 2.5rem;
+  height: 1.25rem;
   border-radius: 9999px;
   background: #374151;
   cursor: pointer;
@@ -453,8 +453,8 @@ input[type="radio"]:disabled { cursor: not-allowed; opacity: 0.5; }
   position: absolute;
   top: 50%;
   left: 2px;
-  width: 0.75rem;
-  height: 0.75rem;
+  width: 1rem;
+  height: 1rem;
   border-radius: 50%;
   background: #fff;
   transform: translateY(-50%);
@@ -462,7 +462,7 @@ input[type="radio"]:disabled { cursor: not-allowed; opacity: 0.5; }
   box-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 .switch > input[type="checkbox"]:checked { background: var(--accent); }
-.switch > input[type="checkbox"]:checked::after { transform: translate(1rem, -50%); }
+.switch > input[type="checkbox"]:checked::after { transform: translate(1.25rem, -50%); }
 .switch > input[type="checkbox"]:disabled { opacity: 0.5; cursor: not-allowed; }
 .switch:has(> input:disabled) { cursor: not-allowed; opacity: 0.6; }
 
