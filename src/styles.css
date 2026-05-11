@@ -931,10 +931,20 @@ html[data-theme="light"] .select {
 }
 html[data-theme="light"] .input::placeholder,
 html[data-theme="light"] .textarea::placeholder { color: #9ca3af; }
+/* The base light override has higher specificity than `.input:focus`, so the
+   accent border-color on focus has to be re-declared at this scope. */
+html[data-theme="light"] .input:focus,
+html[data-theme="light"] .textarea:focus,
+html[data-theme="light"] .num-input:focus,
+html[data-theme="light"] .select:focus { border-color: var(--accent-h); }
 
-/* Switch (off-state track) */
+/* Switch — the light override has higher specificity than the original
+   `.switch > input[type="checkbox"]:checked` rule (extra attribute selector
+   on html), so the :checked state must be re-declared here or toggling-on
+   in light theme leaves the track at the off-state color. */
 html[data-theme="light"] .switch { color: #4b5563; }
 html[data-theme="light"] .switch > input[type="checkbox"] { background: #d1d5db; }
+html[data-theme="light"] .switch > input[type="checkbox"]:checked { background: var(--accent); }
 
 /* Range slider — thumb border picks up the page bg, not the dark surface */
 html[data-theme="light"] input[type="range"].range { background: #e5e7eb; }
