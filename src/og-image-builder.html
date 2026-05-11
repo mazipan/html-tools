@@ -208,6 +208,11 @@
               <input id="subtitle-size" type="range" class="range" min="20" max="56" value="34" style="width:90px;">
               <span id="subtitle-size-val" class="text-gray-500 tabular-nums" style="min-width:2.5em;">34</span>
             </label>
+            <label class="flex items-center gap-1.5 text-xs text-gray-400">
+              Gap
+              <input id="title-gap" type="range" class="range" min="0" max="80" value="16" style="width:90px;">
+              <span id="title-gap-val" class="text-gray-500 tabular-nums" style="min-width:2.5em;">16</span>
+            </label>
           </div>
         </div>
 
@@ -410,6 +415,7 @@
       titleWeight: 700,
       titleWrap: true,
       subtitleSize: 34,
+      titleGap: 16,                // px between title baseline-bottom and subtitle
       bgMode: 'gradient',       // 'gradient' | 'solid'
       bgGradient: 0,             // index into GRADIENTS
       bgSolid: '#0b1220',
@@ -498,7 +504,7 @@
         const totalH = titleLines.length * lineH;
         c.font = `400 ${state.subtitleSize}px ${state.font}`;
         const subReserve = state.subtitle.trim()
-          ? state.subtitleSize * 1.3 * wrapText(c, state.subtitle, maxW).length + 24
+          ? state.subtitleSize * 1.3 * wrapText(c, state.subtitle, maxW).length + state.titleGap
           : 0;
         c.font = `${state.titleWeight} ${titlePx}px ${state.font}`;
         const fits = titleLines.every(ln => c.measureText(ln).width <= maxW);
@@ -512,7 +518,7 @@
       const subLineH = state.subtitleSize * 1.3;
       const titleTotalH = titleLines.length * lineH;
       const subTotalH = subtitleLines.length * subLineH;
-      const gap = subtitleLines.length ? 24 : 0;
+      const gap = subtitleLines.length ? state.titleGap : 0;
       const blockH = titleTotalH + gap + subTotalH;
 
       // Vertical-center the title+subtitle block within the safe area
@@ -705,7 +711,7 @@
         title: 'Ship faster.',
         subtitle: 'A short, punchy description.',
         titleSize: 100, titleWeight: 700, titleWrap: true,
-        subtitleSize: 32,
+        subtitleSize: 32, titleGap: 16,
         bgMode: 'gradient', bgGradient: 0, // Midnight
         titleColor: '#ffffff', accentColor: '#60a5fa',
         textShadow: false,
@@ -716,7 +722,7 @@
         title: 'Big Claim,\nFew Words.',
         subtitle: '',
         titleSize: 132, titleWeight: 800, titleWrap: false,
-        subtitleSize: 36,
+        subtitleSize: 36, titleGap: 16,
         bgMode: 'solid', bgSolid: '#ec4899',
         titleColor: '#ffffff', accentColor: '#fde047',
         textShadow: true,
@@ -727,7 +733,7 @@
         title: 'The Classic Card',
         subtitle: 'Subtle, readable, and timeless.',
         titleSize: 80, titleWeight: 600, titleWrap: true,
-        subtitleSize: 30,
+        subtitleSize: 30, titleGap: 12,
         bgMode: 'solid', bgSolid: '#f8fafc',
         titleColor: '#0f172a', accentColor: '#1e3a8a',
         textShadow: false,
@@ -768,6 +774,8 @@
       $('title-wrap').checked = state.titleWrap;
       $('subtitle-size').value = state.subtitleSize;
       $('subtitle-size-val').textContent = state.subtitleSize;
+      $('title-gap').value = state.titleGap;
+      $('title-gap-val').textContent = state.titleGap;
       $('bg-color').value = state.bgSolid;
       $('bg-color-text').value = state.bgSolid;
       $('title-color').value = state.titleColor;
@@ -796,6 +804,9 @@
       tw.addEventListener('change', () => { state.titleWrap = tw.checked; scheduleRender(); });
       bind('subtitle-size', 'subtitleSize', v => +v, () => {
         document.getElementById('subtitle-size-val').textContent = state.subtitleSize;
+      });
+      bind('title-gap', 'titleGap', v => +v, () => {
+        document.getElementById('title-gap-val').textContent = state.titleGap;
       });
       bind('bg-color', 'bgSolid', v => v, () => {
         document.getElementById('bg-color-text').value = state.bgSolid;
