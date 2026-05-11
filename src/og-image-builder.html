@@ -170,12 +170,18 @@
       <!-- ── Controls column ────────────────────────────────────── -->
       <div>
 
-        <!-- Text color -->
+        <!-- Text settings -->
         <div class="og-section">
-          <label class="og-section-label">Text color</label>
+          <label class="og-section-label">Text settings</label>
+          <select id="font-family" class="select mb-2" style="width:100%;">
+            <option value="'Bricolage Grotesque', system-ui, sans-serif">Bricolage Grotesque (sans)</option>
+            <option value="Georgia, 'Times New Roman', serif">Georgia (serif)</option>
+            <option value="'IBM Plex Mono', ui-monospace, monospace">IBM Plex Mono (mono)</option>
+            <option value="system-ui, -apple-system, sans-serif">System sans-serif</option>
+          </select>
           <div class="toolbar">
             <label class="flex items-center gap-2 text-xs text-gray-400">
-              Title
+              Color
               <input id="title-color" type="color" class="swatch-input" value="#ffffff">
             </label>
             <label class="switch text-xs">
@@ -255,17 +261,6 @@
               <input id="badge-color" type="color" class="swatch-input" value="#60a5fa">
             </label>
           </div>
-        </div>
-
-        <!-- Font -->
-        <div class="og-section">
-          <label class="og-section-label">Font family</label>
-          <select id="font-family" class="select" style="width:100%;">
-            <option value="'Bricolage Grotesque', system-ui, sans-serif">Bricolage Grotesque (sans)</option>
-            <option value="Georgia, 'Times New Roman', serif">Georgia (serif)</option>
-            <option value="'IBM Plex Mono', ui-monospace, monospace">IBM Plex Mono (mono)</option>
-            <option value="system-ui, -apple-system, sans-serif">System sans-serif</option>
-          </select>
         </div>
 
         <!-- Pattern (optional, collapsed by default) -->
