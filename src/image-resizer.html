@@ -196,7 +196,7 @@
               <span>×</span>
               H <input id="exact-h" type="number" min="1" max="20000" value="630"  class="num-input" aria-label="Target height in pixels">
             </div>
-            <label class="switch mt-2.5"><input id="exact-lock-aspect" type="checkbox"><span>Lock aspect ratio</span></label>
+            <label class="switch mt-2.5"><input id="exact-lock-aspect" type="checkbox" checked><span>Lock aspect ratio</span></label>
             <p class="text-[0.7rem] text-gray-600 mt-1">When on, editing one dimension auto-fills the other so the ratio captured at toggle-on stays constant.</p>
           </div>
           <div>
@@ -230,22 +230,21 @@
         </div>
       </div>
 
-      <!-- Presets (collapsed by default; hidden entirely in percent mode) -->
-      <details id="presets-disclosure" class="disclosure mt-4">
-        <summary>📋 Presets</summary>
-        <div class="disclosure-content"><div class="disclosure-body">
-          <div class="flex flex-wrap gap-1.5">
-            <button class="pill" data-preset="og"        type="button">OG 1200×630</button>
-            <button class="pill" data-preset="twitter"   type="button">Twitter 1600×900</button>
-            <button class="pill" data-preset="facebook"  type="button">Facebook 1200×630</button>
-            <button class="pill" data-preset="linkedin"  type="button">LinkedIn 1200×627</button>
-            <button class="pill" data-preset="pinterest" type="button">Pinterest 1000×1500</button>
-            <button class="pill" data-preset="half"      type="button">Half</button>
-            <button class="pill" data-preset="quarter"   type="button">Quarter</button>
-            <button class="pill" data-preset="thumb256"  type="button">Thumb 256</button>
-          </div>
-        </div></div>
-      </details>
+      <!-- Presets — only visible when the user has opted out of aspect-locking
+           (a preset would otherwise silently violate the locked ratio). -->
+      <section id="presets-section" class="mt-4 hidden">
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Presets</label>
+        <div class="flex flex-wrap gap-1.5">
+          <button class="pill" data-preset="og"        type="button">OG 1200×630</button>
+          <button class="pill" data-preset="twitter"   type="button">Twitter 1600×900</button>
+          <button class="pill" data-preset="facebook"  type="button">Facebook 1200×630</button>
+          <button class="pill" data-preset="linkedin"  type="button">LinkedIn 1200×627</button>
+          <button class="pill" data-preset="pinterest" type="button">Pinterest 1000×1500</button>
+          <button class="pill" data-preset="half"      type="button">Half</button>
+          <button class="pill" data-preset="quarter"   type="button">Quarter</button>
+          <button class="pill" data-preset="thumb256"  type="button">Thumb 256</button>
+        </div>
+      </section>
 
       <div class="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-gray-800">
         <button id="resize-btn"   class="btn btn-secondary" type="button">🔄 Resize all</button>
@@ -294,7 +293,7 @@
     const scaleVal          = document.getElementById('scale-val');
     const bgCustom          = document.getElementById('bg-custom');
     const bgRow             = document.getElementById('bg-row');
-    const presetsDisclosure = document.getElementById('presets-disclosure');
+    const presetsSection    = document.getElementById('presets-section');
 
     const support = {
       png:  supportsMime('image/png'),
@@ -309,10 +308,13 @@
     // worker / computeTargetSize defaults are relied on — no `noUpscale`
     // toggle is exposed. Percent slider is capped at 100% for the same
     // reason; for explicit larger dims the user goes to Exact mode.
+    // Aspect lock defaults ON everywhere — max keeps the source aspect, exact
+    // keeps whatever W:H the user last set. Presets are only shown when the
+    // user explicitly opts out of locking.
     const settings = {
       mode: 'max',
       max:    { maxW: 1600, maxH: 1600, keepAspect: true },
-      exact:  { targetW: 1200, targetH: 630, fit: 'cover', background: '#ffffff', lockAspect: false, lockRatio: 0 },
+      exact:  { targetW: 1200, targetH: 630, fit: 'cover', background: '#ffffff', lockAspect: true, lockRatio: 1200 / 630 },
       percent:{ scale: 50 },
       format: 'same',
       quality: 0.92,
@@ -354,9 +356,17 @@
       document.querySelectorAll('.mode-panel').forEach(panel => {
         panel.classList.toggle('on', panel.dataset.panel === settings.mode);
       });
-      // Presets only make sense when the user is shaping output by dimension —
-      // in percent mode they'd switch modes silently, so hide them.
-      presetsDisclosure.classList.toggle('hidden', settings.mode === 'percent');
+      syncPresetsVisibility();
+    }
+
+    // Presets are an "escape hatch" for setting explicit dimensions — visible
+    // only when the user has opted out of aspect-locking in the current mode.
+    // Percent mode is implicitly always locked (uniform scale), so presets
+    // stay hidden there.
+    function syncPresetsVisibility() {
+      const unlockedMax   = settings.mode === 'max'   && !settings.max.keepAspect;
+      const unlockedExact = settings.mode === 'exact' && !settings.exact.lockAspect;
+      presetsSection.classList.toggle('hidden', !(unlockedMax || unlockedExact));
     }
     document.querySelectorAll('.pill[data-mode]').forEach(p => {
       p.addEventListener('click', () => {
@@ -369,7 +379,11 @@
     // ── Max mode controls ─────────────────────────────────────────
     maxW.addEventListener('change', () => { settings.max.maxW = clampInt(maxW.value, 1, 20000); scheduleResize(); });
     maxH.addEventListener('change', () => { settings.max.maxH = clampInt(maxH.value, 1, 20000); scheduleResize(); });
-    maxKeepAspect.addEventListener('change', () => { settings.max.keepAspect = maxKeepAspect.checked; scheduleResize(); });
+    maxKeepAspect.addEventListener('change', () => {
+      settings.max.keepAspect = maxKeepAspect.checked;
+      syncPresetsVisibility();
+      scheduleResize();
+    });
 
     // ── Exact mode controls ───────────────────────────────────────
     exactW.addEventListener('change', () => {
@@ -398,6 +412,7 @@
       if (settings.exact.lockAspect && settings.exact.targetW > 0 && settings.exact.targetH > 0) {
         settings.exact.lockRatio = settings.exact.targetW / settings.exact.targetH;
       }
+      syncPresetsVisibility();
     });
     function syncFitPills() {
       document.querySelectorAll('.pill[data-fit]').forEach(p => {
