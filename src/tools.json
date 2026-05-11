@@ -419,6 +419,36 @@
       "maxWidth": "1200px"
     },
     {
+      "slug": "meta-tag-preview",
+      "name": "Meta Tag Preview",
+      "icon": "🔍",
+      "category": "Web / SEO",
+      "description": "Paste a URL or HTML snippet and see how it renders as a Twitter, Facebook, LinkedIn, and Google search card.",
+      "faqs": [
+        {
+          "q": "Does pasting a URL send my data to a third party?",
+          "a": "Yes — when you use URL mode, the URL is forwarded to a public CORS proxy (oge.vercel.app) that fetches the page server-side. Raw HTML mode parses entirely in your browser with no network request."
+        },
+        {
+          "q": "Why does the tool use a proxy instead of fetching directly?",
+          "a": "Browsers block cross-origin requests to arbitrary sites (CORS policy). A server-side proxy fetches the page for you and returns the meta data as JSON."
+        },
+        {
+          "q": "Which meta tags are extracted?",
+          "a": "Open Graph (og:title, og:description, og:image, og:url), Twitter Card (twitter:card, twitter:title, twitter:description, twitter:image), the plain <title> tag, meta description, canonical URL, robots, and viewport."
+        },
+        {
+          "q": "What is twitter:card and why does it change the preview?",
+          "a": "twitter:card controls the card layout Twitter uses: 'summary' shows a small thumbnail beside the text, while 'summary_large_image' shows a full-width banner image above the text."
+        },
+        {
+          "q": "Why is the image not showing in the preview?",
+          "a": "The image URL must be absolute (https://…) and publicly accessible. Relative URLs, data URIs, and images behind authentication won't load in the preview."
+        }
+      ],
+      "maxWidth": "1100px"
+    },
+    {
       "slug": "waves",
       "name": "Wave Generator",
       "icon": "〰️",
