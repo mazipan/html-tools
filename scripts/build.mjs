@@ -16,7 +16,6 @@ const log = (...args) => console.log('[build]', ...args);
 const tools = JSON.parse(readFileSync(resolve(root, 'src/tools.json'), 'utf8'));
 const SITE = tools.site;
 const SITE_URL = SITE.url;
-const SITE_HOME = `${SITE_URL}/`;
 log(`📋 tools.json loaded — ${tools.tools.length} tools: ${tools.tools.map(t => t.slug).join(', ')}`);
 
 const entries = await Array.fromAsync(glob('src/*.html', { cwd: root }));
@@ -85,8 +84,9 @@ if (existsFile(yamlPagePath)) {
 
 const cleanPath = f => f === 'index.html' ? '/' : `/${f.replace(/\.html$/, '')}`;
 // design-system is an internal contributor page. Routable (so the clean URL
-// works for direct visits) but excluded from sitemap, FAQ injection,
-// cross-tool blocks, and JSON-LD. robots.txt also disallows it.
+// works for direct visits) but excluded from the sitemap. The FAQ / More
+// tools / JSON-LD blocks are also skipped for it — see INTERNAL_PAGES in
+// scripts/generate-sections.mjs. robots.txt also disallows it.
 const INTERNAL_PAGES = new Set(['design-system.html']);
 const routable = htmlFiles.filter(f => !f.startsWith('google')).sort();
 const sitemapPages = routable.filter(f => !INTERNAL_PAGES.has(f));
@@ -113,152 +113,8 @@ ${sitemapUrls}
 writeFileSync(resolve(distDir, 'sitemap.xml'), sitemap);
 log(`🧭 generated sitemap.xml — ${sitemapPages.length} URLs (lastmod ${today})`);
 
-// Inject a "More tools" cross-link block before the footer on every tool
-// page (not on index — it already lists every tool). Keeps internal-link
-// equity flowing across the suite without hand-editing each tool file.
-const escHtml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
-function faqBlock(slug) {
-  const tool = tools.tools.find(t => t.slug === slug);
-  if (!tool || !tool.faqs?.length) return '';
-  const items = tool.faqs.map(({ q, a }) => `<details class="disclosure">
-        <summary>${escHtml(q)}</summary>
-        <div class="disclosure-content"><div class="disclosure-body">${escHtml(a)}</div></div>
-      </details>`).join('\n      ');
-  return `<section class="max-w-[${tool.maxWidth || '1100px'}] mx-auto w-full px-6 py-8 border-t border-gray-800">
-    <h2 class="text-xl font-bold text-white mb-6">FAQ</h2>
-    <div class="space-y-2">
-      ${items}
-    </div>
-  </section>
-  `;
-}
-
-let faqInjected = 0;
-const faqSkipped = [];
-for (const html of htmlFiles) {
-  if (html === 'index.html') continue;
-  const slug = html.replace(/\.html$/, '');
-  const block = faqBlock(slug);
-  if (!block) {
-    if (tools.tools.some(t => t.slug === slug)) faqSkipped.push(`${slug} (no faqs)`);
-    else faqSkipped.push(`${slug} (not in tools.json)`);
-    continue;
-  }
-  const htmlPath = resolve(distDir, html);
-  const content = readFileSync(htmlPath, 'utf8');
-  writeFileSync(htmlPath, content.replace(/<footer/, `${block}<footer`));
-  faqInjected++;
-}
-log(`❓ FAQ block injection — ${faqInjected} pages${faqSkipped.length ? ` (skipped: ${faqSkipped.join(', ')})` : ''}`);
-
-function crossToolBlock(currentSlug) {
-  const current = tools.tools.find(t => t.slug === currentSlug);
-  const others = tools.tools.filter(t => t.slug !== currentSlug);
-  const cards = others.map(t => `<a href="/${t.slug}" class="group flex items-start gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-400 transition-colors no-underline">
-        <span class="text-xl shrink-0 leading-none mt-0.5" aria-hidden="true">${t.icon}</span>
-        <span class="min-w-0 flex-1">
-          <span class="block text-sm font-medium text-white group-hover:text-blue-400 transition-colors">${escHtml(t.name)}</span>
-          <span class="block text-xs text-gray-500 mt-0.5 line-clamp-2">${escHtml(t.description)}</span>
-        </span>
-      </a>`).join('\n      ');
-  return `<section class="max-w-[${current?.maxWidth || '1100px'}] mx-auto w-full px-6 py-8 border-t border-gray-800">
-    <h2 class="text-xl font-bold text-white mb-6">More tools</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-      ${cards}
-    </div>
-  </section>
-  `;
-}
-
-let crossInjected = 0;
-const crossSkipped = [];
-for (const html of htmlFiles) {
-  if (html === 'index.html') continue;
-  const slug = html.replace(/\.html$/, '');
-  if (!tools.tools.some(t => t.slug === slug)) {
-    crossSkipped.push(`${slug} (not in tools.json)`);
-    continue;
-  }
-  const htmlPath = resolve(distDir, html);
-  const content = readFileSync(htmlPath, 'utf8');
-  writeFileSync(htmlPath, content.replace(/<footer/, `${crossToolBlock(slug)}<footer`));
-  crossInjected++;
-}
-log(`🔗 cross-tool block injection — ${crossInjected} pages${crossSkipped.length ? ` (skipped: ${crossSkipped.join(', ')})` : ''}`);
-
-// Inject JSON-LD structured data per page (WebSite for index;
-// WebApplication + BreadcrumbList for each tool).
-const ldScript = obj => `<script type="application/ld+json">${JSON.stringify(obj)}</script>`;
-
-function jsonLdForPage(filename) {
-  if (filename === 'index.html') {
-    return [{
-      '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      name: SITE.name,
-      url: SITE_HOME,
-      description: SITE.description,
-      publisher: {
-        '@type': 'Person',
-        name: SITE.publisher.name,
-        url: SITE.publisher.url,
-      },
-    }];
-  }
-  const slug = filename.replace(/\.html$/, '');
-  const tool = tools.tools.find(t => t.slug === slug);
-  if (!tool) return [];
-  const toolUrl = `${SITE_URL}/${tool.slug}`;
-  const blocks = [
-    {
-      '@context': 'https://schema.org',
-      '@type': 'WebApplication',
-      name: tool.name,
-      url: toolUrl,
-      description: tool.description,
-      applicationCategory: 'DeveloperApplication',
-      operatingSystem: 'Any',
-      browserRequirements: 'Requires JavaScript',
-      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-      isPartOf: { '@type': 'WebSite', name: SITE.name, url: SITE_HOME },
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: SITE.name, item: SITE_HOME },
-        { '@type': 'ListItem', position: 2, name: tool.name, item: toolUrl },
-      ],
-    },
-  ];
-  if (tool.faqs?.length) {
-    blocks.push({
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: tool.faqs.map(({ q, a }) => ({
-        '@type': 'Question',
-        name: q,
-        acceptedAnswer: { '@type': 'Answer', text: a },
-      })),
-    });
-  }
-  return blocks;
-}
-
-// Parcel's HTML minifier strips the optional </head> tag, so inject right
-// before the opening <body> instead.
-let ldPages = 0;
-let ldBlocks = 0;
-for (const html of htmlFiles) {
-  const ldObjs = jsonLdForPage(html);
-  if (ldObjs.length === 0) continue;
-  const htmlPath = resolve(distDir, html);
-  const content = readFileSync(htmlPath, 'utf8');
-  const ldHtml = ldObjs.map(ldScript).join('');
-  writeFileSync(htmlPath, content.replace(/<body(\s|>)/, `${ldHtml}<body$1`));
-  ldPages++;
-  ldBlocks += ldObjs.length;
-}
-log(`🏷️  JSON-LD injection — ${ldPages} pages, ${ldBlocks} structured-data blocks total`);
+// FAQ, "More tools" cross-link, and JSON-LD blocks are *not* injected here —
+// they live in src/*.html, written by scripts/generate-sections.mjs so they
+// show up in `npm run dev` and bundle through Parcel like any other markup.
+// Re-run `npm run generate:sections` after editing src/tools.json.
 log(`🎉 done in ${((Date.now() - t0) / 1000).toFixed(2)}s`);

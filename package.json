@@ -7,10 +7,13 @@
     "dev": "parcel 'src/*.html'",
     "build": "npm run clean && node scripts/build.mjs",
     "preview": "serve dist",
-    "generate:og": "node scripts/generate-og-image.mjs"
+    "generate:og": "node scripts/generate-og-image.mjs",
+    "generate:sections": "node scripts/generate-sections.mjs"
   },
   "license": "ISC",
   "devDependencies": {
+    "@parcel/packager-raw-url": "^2.16.4",
+    "@parcel/transformer-jsonld": "^2.16.4",
     "@parcel/transformer-posthtml": "2.16.4",
     "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/postcss": "^4.2.4",
