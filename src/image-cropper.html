@@ -3,13 +3,13 @@
 <head>
   <include src="_partials/meta-base.html"></include>
   <title>Image Cropper — HTML Tools</title>
-  <meta name="description" content="Crop any image to a region in your browser. Aspect-ratio presets (1:1, 4:3, 16:9, custom), numeric inputs, optional resize-on-export. No upload — runs locally.">
+  <meta name="description" content="Crop any image to a region in your browser. Rectangle or circle shape, aspect-ratio presets (1:1, 4:3, 16:9, custom), numeric inputs, keyboard nudge. No upload — runs locally.">
   <link rel="canonical" href="https://tools.mazipan.space/image-cropper">
   <meta property="og:title" content="Image Cropper — HTML Tools">
-  <meta property="og:description" content="Crop any image to a region in your browser. Aspect-ratio presets (1:1, 4:3, 16:9, custom), numeric inputs, optional resize-on-export. No upload — runs locally.">
+  <meta property="og:description" content="Crop any image to a region in your browser. Rectangle or circle shape, aspect-ratio presets (1:1, 4:3, 16:9, custom), numeric inputs, keyboard nudge. No upload — runs locally.">
   <meta property="og:url" content="https://tools.mazipan.space/image-cropper">
   <meta name="twitter:title" content="Image Cropper — HTML Tools">
-  <meta name="twitter:description" content="Crop any image to a region in your browser. Aspect-ratio presets (1:1, 4:3, 16:9, custom), numeric inputs, optional resize-on-export. No upload — runs locally.">
+  <meta name="twitter:description" content="Crop any image to a region in your browser. Rectangle or circle shape, aspect-ratio presets (1:1, 4:3, 16:9, custom), numeric inputs, keyboard nudge. No upload — runs locally.">
   <include src="_partials/meta-social.html"></include>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%E2%9C%82%EF%B8%8F</text></svg>">
   <include src="_partials/head-fonts.html"></include>
@@ -84,6 +84,32 @@
       background-repeat: no-repeat;
     }
     .crop-grid.hidden { display: none; }
+    /* Circle mode — overlay that paints the corners outside the inscribed
+       circle as part of the same dim mask. The crop box itself stays square
+       (the export canvas is square; just the corners go transparent), so
+       handles continue to sit at the square corners. */
+    .crop-circle-mask {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: none;
+      background: radial-gradient(circle closest-side at center, transparent 99.4%, rgba(0,0,0,0.55) 100%);
+      border-radius: 0; /* inherit nothing; just the gradient does the work */
+    }
+    .crop-box.is-circle .crop-circle-mask { display: block; }
+    /* A single 1 px outline at the inscribed-circle edge so the "this is
+       what gets exported" boundary is visible against light photos. */
+    .crop-circle-mask::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-sizing: border-box;
+    }
+    /* In circle mode the rule-of-thirds grid reads awkwardly through the
+       circle, so suppress it regardless of the user's toggle. */
+    .crop-box.is-circle .crop-grid { display: none; }
     .crop-handle {
       position: absolute;
       width: 10px;
@@ -173,7 +199,7 @@
 
     <header class="mb-7">
       <h1 class="text-3xl font-bold text-white flex items-center gap-3">✂️ Image Cropper</h1>
-      <p class="mt-1.5 text-sm text-gray-500">Crop a region of any image, locally — no upload. Drag the crop box, lock an aspect ratio, export as PNG / JPEG / WebP.</p>
+      <p class="mt-1.5 text-sm text-gray-500">Crop a region of any image, locally — no upload. Drag the crop box, lock an aspect ratio, optionally clip to a circle. Export as PNG / JPEG / WebP.</p>
     </header>
 
     <!-- Drop zone -->
@@ -198,6 +224,7 @@
           <img id="preview" alt="" draggable="false">
           <div id="crop-box" class="crop-box" tabindex="0" role="application" aria-label="Crop box — drag to move, arrow keys to nudge, Ctrl/Cmd+arrow to resize">
             <div class="crop-grid"></div>
+            <div class="crop-circle-mask"></div>
             <div class="crop-dims" id="crop-dims">0 × 0</div>
             <div class="crop-handle nw" data-handle="nw"></div>
             <div class="crop-handle n"  data-handle="n"></div>
@@ -217,6 +244,16 @@
         </div>
       </div>
       <div id="warn-chips" class="-mt-3 mb-5"></div>
+
+      <!-- Shape -->
+      <section class="border border-gray-800 rounded-xl bg-gray-900/40 p-5 mb-4">
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Shape</label>
+        <div role="radiogroup" aria-label="Crop shape" class="flex flex-wrap gap-1.5">
+          <button class="pill on" data-shape="rect"   type="button" role="radio" aria-checked="true">▭ Rectangle</button>
+          <button class="pill"    data-shape="circle" type="button" role="radio" aria-checked="false">⭕ Circle</button>
+        </div>
+        <p id="shape-note" class="text-[0.7rem] text-gray-600 mt-1.5"></p>
+      </section>
 
       <!-- Aspect ratio -->
       <section class="border border-gray-800 rounded-xl bg-gray-900/40 p-5 mb-4">
@@ -326,7 +363,7 @@
           <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
             <li>The crop is taken from the <em>original</em> source — the preview is just a downscaled view, so the export is always at full resolution.</li>
             <li>iPhone photos with EXIF orientation are read with the correct rotation — no sideways crops.</li>
-            <li>For an avatar workflow: lock <strong class="text-gray-300">1:1</strong>, drag the crop box, pick <strong class="text-gray-300">WebP</strong> output.</li>
+            <li>For a round avatar: switch <strong class="text-gray-300">Shape</strong> to <strong class="text-gray-300">Circle</strong>, drag the crop box, and export PNG — the corners come out transparent.</li>
           </ul>
         </div>
       </div>
@@ -396,6 +433,7 @@
     let outFormat = 'png';
     let quality = 0.92;
     let pattern = '{name}-crop.{ext}';
+    let shape = 'rect';            // 'rect' | 'circle' — circle forces 1:1 + alpha-capable format
 
     // Live region for screen-reader announcements (coarse, debounced).
     const announceEl = document.createElement('div');
@@ -557,7 +595,7 @@
         numW.value = cropW;
         numH.value = cropH;
       }
-      cropDimsEl.textContent = `${cropW} × ${cropH}`;
+      cropDimsEl.textContent = shape === 'circle' ? `⌀ ${cropW}` : `${cropW} × ${cropH}`;
       // Flip the dims chip inside the box when there's no headroom above.
       if (viewH > 0) {
         const yPx = (cropY / srcH) * viewH;
@@ -589,13 +627,53 @@
       `;
     }
 
+    // ── Shape ──────────────────────────────────────────────────────
+    // Circle mode is just a square crop with a circular alpha mask applied
+    // at export time — the bounding box stays a rectangle (forced to 1:1),
+    // and the worker clears the corners on PNG / WebP output.
+    const shapeNote = document.getElementById('shape-note');
+    function syncShapePills() {
+      document.querySelectorAll('.pill[data-shape]').forEach(p => {
+        const on = p.dataset.shape === shape;
+        p.classList.toggle('on', on);
+        p.setAttribute('aria-checked', on ? 'true' : 'false');
+      });
+      cropBoxEl.classList.toggle('is-circle', shape === 'circle');
+      shapeNote.textContent = shape === 'circle'
+        ? 'Circle crops are exported as PNG or WebP with transparent corners — aspect ratio is locked to 1:1.'
+        : '';
+    }
+    function setShape(newShape) {
+      shape = newShape;
+      syncShapePills();
+      if (shape === 'circle') {
+        // Force 1:1; reshape the box to a centered square inside the current footprint.
+        ratioMode = '1:1';
+        ratio = 1;
+        // JPEG has no alpha — fall back to PNG silently rather than producing
+        // a circle on a white square.
+        if (outFormat === 'jpeg') outFormat = 'png';
+      }
+      syncRatioPills();
+      syncFormatPills();
+      if (shape === 'circle') reshapeToRatio();
+      // Re-render the dims chip with the right unit (Ø vs W × H).
+      setCrop(cropX, cropY, cropW, cropH, { skipNumeric: true });
+    }
+    document.querySelectorAll('.pill[data-shape]').forEach(p => {
+      p.addEventListener('click', () => setShape(p.dataset.shape));
+    });
+
     // ── Aspect ratio ───────────────────────────────────────────────
     function syncRatioPills() {
+      const locked = shape === 'circle';
       document.querySelectorAll('.pill[data-ratio]').forEach(p => {
         p.classList.toggle('on', p.dataset.ratio === ratioMode);
         p.setAttribute('aria-checked', p.dataset.ratio === ratioMode ? 'true' : 'false');
+        p.disabled = locked && p.dataset.ratio !== '1:1';
+        p.title = p.disabled ? 'Circle crops are always 1:1.' : '';
       });
-      customWrap.style.display = ratioMode === 'custom' ? 'inline-flex' : 'none';
+      customWrap.style.display = (!locked && ratioMode === 'custom') ? 'inline-flex' : 'none';
       cropBoxEl.classList.toggle('ratio-locked', ratio > 0);
     }
     function computeRatio() {
@@ -847,13 +925,21 @@
 
     // ── Output controls ────────────────────────────────────────────
     function syncFormatPills() {
+      const needsAlpha = shape === 'circle';
+      const ALPHA_OK = { png: true, jpeg: false, webp: true };
       document.querySelectorAll('.pill[data-format]').forEach(p => {
         const f = p.dataset.format;
-        const ok = !!support[f];
+        const supported = !!support[f];
+        const alphaOk = ALPHA_OK[f];
+        const ok = supported && (!needsAlpha || alphaOk);
         p.disabled = !ok;
         p.classList.toggle('on', outFormat === f);
         p.setAttribute('aria-checked', outFormat === f ? 'true' : 'false');
-        p.title = ok ? '' : `Your browser can't encode ${f.toUpperCase()}.`;
+        p.title = !supported
+          ? `Your browser can't encode ${f.toUpperCase()}.`
+          : (needsAlpha && !alphaOk)
+            ? `${f.toUpperCase()} has no alpha channel — circle crops need PNG or WebP.`
+            : '';
       });
       const lossless = outFormat === 'png';
       qualityWrap.classList.toggle('hidden', lossless);
@@ -947,6 +1033,7 @@
         sx: cropX, sy: cropY, sw: cropW, sh: cropH,
         format: fmt,
         quality,
+        circle: shape === 'circle',
       };
       statusEl.textContent = 'Encoding…';
       try {

@@ -19,6 +19,7 @@
 //       sx, sy, sw, sh,                      // source rectangle in source pixels
 //       format,                              // 'png' | 'jpeg' | 'webp'
 //       quality,                             // 0..1 for lossy formats
+//       circle,                              // true → clip to an inscribed circle (alpha corners)
 //       background,                          // opaque colour for JPEG-on-alpha (default '#ffffff')
 //     }
 //   }
@@ -169,7 +170,19 @@ async function runCrop(id, file, opts) {
       ctx.fillStyle = opts.background && opts.background !== 'transparent' ? opts.background : '#ffffff';
       ctx.fillRect(0, 0, sw, sh);
     }
+    if (opts.circle) {
+      // Clip to the inscribed circle so the corners go transparent on alpha
+      // formats. JPEG would render them as the background fill above, which
+      // defeats the whole feature — the page disables JPEG for circles.
+      ctx.save();
+      ctx.beginPath();
+      const r = Math.min(sw, sh) / 2;
+      ctx.arc(sw / 2, sh / 2, r, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+    }
     ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, sw, sh);
+    if (opts.circle) ctx.restore();
 
     const info = FORMAT_INFO[opts.format] || FORMAT_INFO.png;
     const quality = info.lossless ? undefined : opts.quality;

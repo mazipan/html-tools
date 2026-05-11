@@ -359,7 +359,7 @@
       "name": "Image Cropper",
       "icon": "✂️",
       "category": "Image",
-      "description": "Crop any image to a region by dragging a crop box. Aspect-ratio presets (1:1, 4:3, 16:9, custom), numeric inputs, optional resize-on-export. Runs entirely in your browser.",
+      "description": "Crop any image to a region by dragging a crop box. Rectangle or circular shape, aspect-ratio presets (1:1, 4:3, 16:9, custom), numeric inputs, keyboard nudge. Runs entirely in your browser.",
       "faqs": [
         {
           "q": "Does my image ever leave my computer?",
@@ -372,6 +372,10 @@
         {
           "q": "How do I lock to a square (or other) aspect ratio?",
           "a": "Pick a ratio in the toolbar — 1:1, 4:3, 3:2, 16:9, 9:16, the original ratio of the source, or a custom W:H pair. Edge handles disappear when a ratio is locked; only corners are draggable."
+        },
+        {
+          "q": "Can I crop to a circle (e.g. for a round avatar)?",
+          "a": "Yes — switch the Shape control to Circle. The bounding box stays square (we force 1:1) and the corners outside the inscribed circle are rendered transparent. Output goes to PNG or WebP so the alpha is preserved; JPEG is disabled in circle mode."
         },
         {
           "q": "Will the orientation of my iPhone photo be respected?",
