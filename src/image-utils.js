@@ -26,23 +26,49 @@ function formatPct(after, before) {
   return `${sign}${delta.toFixed(0)}%`;
 }
 
-// Compute the output (W, H) for an input given a max-dimensions resize spec.
+// Compute the output (W, H) for an input given a resize spec. Modes:
+//   'max'     — fit inside maxW × maxH (default; converter uses this)
+//   'exact'   — return targetW × targetH unconditionally
+//   'percent' — scale by opts.scale (a percent, e.g. 50 = half)
+// `noUpscale` defaults to true on max/percent; ignored in exact mode.
 // Returns the input size unchanged when resize is off or no constraint applies.
 function computeTargetSize(srcW, srcH, opts) {
   if (!opts || !opts.enabled) return { w: srcW, h: srcH };
+  const mode = opts.mode || 'max';
+
+  if (mode === 'exact') {
+    return {
+      w: Math.max(1, Math.round(opts.targetW || srcW)),
+      h: Math.max(1, Math.round(opts.targetH || srcH)),
+    };
+  }
+
+  if (mode === 'percent') {
+    let s = (opts.scale || 100) / 100;
+    if (opts.noUpscale !== false) s = Math.min(s, 1);
+    return {
+      w: Math.max(1, Math.round(srcW * s)),
+      h: Math.max(1, Math.round(srcH * s)),
+    };
+  }
+
+  // 'max'
   const maxW = opts.maxW > 0 ? opts.maxW : Infinity;
   const maxH = opts.maxH > 0 ? opts.maxH : Infinity;
   if (!isFinite(maxW) && !isFinite(maxH)) return { w: srcW, h: srcH };
-  const scale = opts.keepAspect !== false
-    ? Math.min(maxW / srcW, maxH / srcH, 1)
-    : 1;
+  const noUpscale = opts.noUpscale !== false;
   if (opts.keepAspect !== false) {
-    return { w: Math.max(1, Math.round(srcW * scale)), h: Math.max(1, Math.round(srcH * scale)) };
+    const fit = Math.min(maxW / srcW, maxH / srcH);
+    const scale = noUpscale ? Math.min(fit, 1) : fit;
+    return {
+      w: Math.max(1, Math.round(srcW * scale)),
+      h: Math.max(1, Math.round(srcH * scale)),
+    };
   }
-  return {
-    w: Math.max(1, Math.min(srcW, isFinite(maxW) ? maxW : srcW)),
-    h: Math.max(1, Math.min(srcH, isFinite(maxH) ? maxH : srcH)),
-  };
+  let w = isFinite(maxW) ? maxW : srcW;
+  let h = isFinite(maxH) ? maxH : srcH;
+  if (noUpscale) { w = Math.min(srcW, w); h = Math.min(srcH, h); }
+  return { w: Math.max(1, Math.round(w)), h: Math.max(1, Math.round(h)) };
 }
 
 // Source MIME types that may carry alpha — used to decide whether a JPEG
