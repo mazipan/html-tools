@@ -14,207 +14,6 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖼️</text></svg>">
   <include src="_partials/head-fonts.html"></include>
   <link rel="stylesheet" href="styles.css">
-  <style>
-    .drop-zone {
-      border: 2px dashed #374151;
-      border-radius: 0.75rem;
-      background: #0b1220;
-      transition: border-color 0.15s, background-color 0.15s;
-      cursor: pointer;
-    }
-    .drop-zone:hover { border-color: #4b5563; background: #111827; }
-    .drop-zone.dragover { border-color: #3b82f6; background: rgba(59, 130, 246, 0.05); }
-    .drop-zone.compact { padding: 0.75rem 1rem; }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.4rem 0.85rem;
-      border-radius: 6px;
-      border: 1px solid #374151;
-      background: #1f2937;
-      color: #9ca3af;
-      font-family: 'IBM Plex Mono', ui-monospace, monospace;
-      font-size: 0.78rem;
-      font-weight: 500;
-      cursor: pointer;
-      user-select: none;
-      transition: all 0.12s;
-    }
-    .pill:hover:not(:disabled) { color: #d1d5db; border-color: #4b5563; }
-    .pill.on   { background: #1e3a8a; border-color: #3b82f6; color: #f9fafb; }
-    .pill:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    .file-card {
-      border: 1px solid #1f2937;
-      border-radius: 0.625rem;
-      background: #0b1220;
-      padding: 0.85rem;
-      transition: border-color 0.12s;
-    }
-    .file-card:hover { border-color: #374151; }
-
-    .thumb-box {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      background:
-        linear-gradient(45deg, #1f2937 25%, transparent 25%),
-        linear-gradient(-45deg, #1f2937 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, #1f2937 75%),
-        linear-gradient(-45deg, transparent 75%, #1f2937 75%);
-      background-size: 16px 16px;
-      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
-      border-radius: 0.4rem;
-      overflow: hidden;
-    }
-    .thumb-box img {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-    }
-    .thumb-label {
-      position: absolute;
-      top: 0.35rem;
-      left: 0.35rem;
-      padding: 0.1rem 0.45rem;
-      background: rgba(0,0,0,0.6);
-      color: #d1d5db;
-      font-size: 0.65rem;
-      font-family: 'IBM Plex Mono', ui-monospace, monospace;
-      border-radius: 4px;
-      pointer-events: none;
-    }
-
-    .diff-wrap {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      background:
-        linear-gradient(45deg, #1f2937 25%, transparent 25%),
-        linear-gradient(-45deg, #1f2937 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, #1f2937 75%),
-        linear-gradient(-45deg, transparent 75%, #1f2937 75%);
-      background-size: 16px 16px;
-      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
-      border-radius: 0.4rem;
-      overflow: hidden;
-      --split: 50%;
-    }
-    .diff-wrap img {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-      pointer-events: none;
-    }
-    .diff-wrap img.before {
-      clip-path: inset(0 calc(100% - var(--split)) 0 0);
-    }
-    .diff-handle {
-      position: absolute;
-      top: 0; bottom: 0;
-      left: var(--split);
-      width: 2px;
-      background: rgba(255,255,255,0.85);
-      transform: translateX(-1px);
-      pointer-events: none;
-    }
-    .diff-handle::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 24px;
-      height: 24px;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      background: rgba(255,255,255,0.9);
-      border: 2px solid #1f2937;
-    }
-    .diff-slider {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      cursor: ew-resize;
-    }
-    .diff-tag {
-      position: absolute;
-      top: 0.4rem;
-      padding: 0.1rem 0.45rem;
-      background: rgba(0,0,0,0.6);
-      color: #d1d5db;
-      font-size: 0.65rem;
-      font-family: 'IBM Plex Mono', ui-monospace, monospace;
-      border-radius: 4px;
-      pointer-events: none;
-    }
-    .diff-tag.before { left: 0.4rem; }
-    .diff-tag.after  { right: 0.4rem; }
-
-    .stats { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.78rem; }
-    .delta-good { color: #4ade80; }
-    .delta-bad  { color: #f87171; }
-    .delta-neutral { color: #9ca3af; }
-
-    input[type="range"].quality {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 100%;
-      height: 4px;
-      background: #1f2937;
-      border-radius: 2px;
-      outline: none;
-    }
-    input[type="range"].quality::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #3b82f6;
-      cursor: pointer;
-      border: 0;
-    }
-    input[type="range"].quality::-moz-range-thumb {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #3b82f6;
-      cursor: pointer;
-      border: 0;
-    }
-
-    .num-input {
-      background: #111827;
-      border: 1px solid #374151;
-      color: #e5e7eb;
-      border-radius: 6px;
-      padding: 0.35rem 0.6rem;
-      font-family: 'IBM Plex Mono', ui-monospace, monospace;
-      font-size: 0.78rem;
-      width: 7ch;
-      outline: none;
-    }
-    .num-input:focus { border-color: #3b82f6; }
-
-    .swatch {
-      display: inline-block;
-      width: 1.1rem;
-      height: 1.1rem;
-      border-radius: 4px;
-      border: 1px solid #374151;
-      vertical-align: middle;
-    }
-  </style>
   <include src="_partials/head-theme.html"></include>
 </head>
 <body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
@@ -245,7 +44,7 @@
     </div>
     <input id="file-input" type="file" accept="image/*" multiple class="hidden">
 
-    <div id="error-bar" class="hidden mb-4 p-3 rounded-lg border border-red-500/40 bg-red-500/10 text-red-300 text-xs"></div>
+    <div id="error-bar" class="hidden error-bar mb-4"></div>
 
     <!-- Controls (revealed once a file is loaded) -->
     <section id="controls" class="hidden border border-gray-800 rounded-xl bg-gray-900/40 p-5 mb-5">
@@ -266,7 +65,7 @@
             <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Quality</label>
             <span id="quality-val" class="text-xs text-gray-400 font-mono">0.85</span>
           </div>
-          <input id="quality" type="range" min="0.30" max="1.00" step="0.01" value="0.85" class="quality" aria-label="Output quality">
+          <input id="quality" type="range" min="0.30" max="1.00" step="0.01" value="0.85" class="range" aria-label="Output quality">
           <p id="quality-note" class="text-[0.7rem] text-gray-600 mt-1.5">Higher quality = larger file. Disabled for PNG (lossless).</p>
         </div>
 
@@ -294,9 +93,9 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-gray-800">
-        <button id="reencode-btn" class="btn btn-secondary" type="button">Re-encode all</button>
-        <button id="zip-btn" class="btn btn-primary" type="button">Download all (zip)</button>
-        <button id="clear-btn" class="btn btn-danger" type="button">Clear</button>
+        <button id="reencode-btn" class="btn btn-secondary" type="button">🔄 Re-encode all</button>
+        <button id="zip-btn" class="btn btn-primary" type="button">📦 Download all (zip)</button>
+        <button id="clear-btn" class="btn btn-danger" type="button">🗑️ Clear</button>
         <span id="summary" class="ml-auto stats text-gray-400"></span>
       </div>
     </section>
@@ -611,7 +410,7 @@
       const showDiff = item.dstBlob && !item.error;
       const visualBlock = showDiff
         ? `
-          <div class="diff-wrap" data-id="${item.id}">
+          <div class="diff-wrap aspect-video" data-id="${item.id}">
             <img class="after"  src="${item.dstUrl}" alt="After">
             <img class="before" src="${item.srcUrl}" alt="Before">
             <div class="diff-handle"></div>
@@ -621,11 +420,11 @@
           </div>`
         : `
           <div class="grid grid-cols-2 gap-2">
-            <div class="thumb-box">
+            <div class="thumb-box aspect-square">
               <img src="${item.srcUrl}" alt="Source preview">
               <span class="thumb-label">before</span>
             </div>
-            <div class="thumb-box">
+            <div class="thumb-box aspect-square">
               ${item.dstUrl ? `<img src="${item.dstUrl}" alt="Output preview">` : ''}
               <span class="thumb-label">after</span>
             </div>
@@ -644,8 +443,8 @@
           </div>
         </div>
         <div class="flex gap-2 mt-3">
-          <button class="btn btn-primary" data-action="download" data-id="${item.id}" ${item.dstBlob ? '' : 'disabled'}>Download</button>
-          <button class="btn btn-secondary" data-action="reencode" data-id="${item.id}">Re-run</button>
+          <button class="btn btn-primary" data-action="download" data-id="${item.id}" ${item.dstBlob ? '' : 'disabled'}>⬇️ Download</button>
+          <button class="btn btn-secondary" data-action="reencode" data-id="${item.id}">🔄 Re-run</button>
         </div>
       `;
     }

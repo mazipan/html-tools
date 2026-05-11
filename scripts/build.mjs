@@ -121,12 +121,9 @@ const escHtml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').repl
 function faqBlock(slug) {
   const tool = tools.tools.find(t => t.slug === slug);
   if (!tool || !tool.faqs?.length) return '';
-  const items = tool.faqs.map(({ q, a }) => `<details class="group rounded-lg border border-gray-800 hover:border-gray-700 transition-colors open:border-gray-700">
-        <summary class="cursor-pointer list-none px-4 py-3 text-sm font-medium text-gray-200 flex items-center justify-between gap-3 select-none">
-          <span>${escHtml(q)}</span>
-          <span class="text-gray-500 transition-transform group-open:rotate-180" aria-hidden="true">▾</span>
-        </summary>
-        <div class="px-4 pb-4 text-sm text-gray-400 leading-relaxed">${escHtml(a)}</div>
+  const items = tool.faqs.map(({ q, a }) => `<details class="disclosure">
+        <summary>${escHtml(q)}</summary>
+        <div class="disclosure-content"><div class="disclosure-body">${escHtml(a)}</div></div>
       </details>`).join('\n      ');
   return `<section class="max-w-[${tool.maxWidth || '1100px'}] mx-auto w-full px-6 py-8 border-t border-gray-800">
     <h2 class="text-xl font-bold text-white mb-6">FAQ</h2>

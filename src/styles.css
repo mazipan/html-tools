@@ -139,6 +139,9 @@ html[data-theme="light"] .text-gray-400   { color: #4b5563; }
 html[data-theme="light"] .text-gray-500   { color: #6b7280; }
 html[data-theme="light"] .text-gray-600   { color: #9ca3af; }
 html[data-theme="light"] .text-gray-700   { color: #d1d5db; }
+.checker {
+  background: repeating-conic-gradient(#111827 0% 25%, #0f172a 0% 50%) 0 0 / 20px 20px;
+}
 html[data-theme="light"] .checker {
   background: repeating-conic-gradient(#e5e7eb 0% 25%, #f3f4f6 0% 50%) 0 0 / 20px 20px;
 }
@@ -602,6 +605,20 @@ input[type="range"].range:disabled { opacity: 0.4; cursor: not-allowed; }
   transition: border-color 0.12s;
 }
 .file-card:hover { border-color: #374151; }
+
+/* ── Toolbar (options strip — flex row of label+control pairs) ── */
+/* For the inline "options bar" that sits above a tool's main input. */
+/* Use plain labels with .select / .num-input / checkbox inside.    */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #1f2937;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, #111827 50%, transparent);
+}
 
 /* ── Disclosure (collapsible details) ────────────────────────── */
 /* Markup:

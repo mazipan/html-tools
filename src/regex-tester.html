@@ -15,41 +15,6 @@
   <include src="_partials/head-fonts.html"></include>
   <link rel="stylesheet" href="styles.css">
   <style>
-    .flag-pill {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
-      border: 1px solid #374151;
-      background: #1f2937;
-      color: #6b7280;
-      font-family: 'IBM Plex Mono', ui-monospace, monospace;
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      user-select: none;
-      transition: all 0.12s;
-    }
-    .flag-pill:hover { color: #d1d5db; border-color: #4b5563; }
-    .flag-pill.on   { background: #1e3a8a; border-color: #3b82f6; color: #f9fafb; }
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.3rem;
-      padding: 0.3rem 0.7rem;
-      border-radius: 999px;
-      border: 1px solid #374151;
-      background: #1f2937;
-      color: #d1d5db;
-      font-size: 0.75rem;
-      cursor: pointer;
-      user-select: none;
-      transition: all 0.12s;
-    }
-    .chip:hover { border-color: #4b5563; color: #f9fafb; }
-    .chip.on    { background: #1e3a8a; border-color: #3b82f6; color: #fff; }
     .pattern-row {
       display: flex;
       align-items: stretch;
@@ -59,7 +24,7 @@
       background: #111827;
       overflow: hidden;
     }
-    .pattern-row:focus-within { border-color: #3b82f6; }
+    .pattern-row:focus-within { border-color: var(--accent-h); }
     .pattern-row .slash {
       display: flex;
       align-items: center;
@@ -87,11 +52,6 @@
     .match-captures { margin-top: 0.4rem; padding-left: 1rem; border-left: 2px solid #1f2937; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.75rem; color: #9ca3af; }
     .match-captures .cap-name { color: #c792ea; }
     .match-captures .cap-val  { color: #c3e88d; }
-    .cheat-table { width: 100%; border-collapse: collapse; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.78rem; }
-    .cheat-table th, .cheat-table td { text-align: left; padding: 0.35rem 0.6rem; border-bottom: 1px solid #1f2937; }
-    .cheat-table th { color: #9ca3af; font-weight: 600; }
-    .cheat-table td:first-child { color: #c792ea; white-space: nowrap; }
-    .cheat-table td:nth-child(2) { color: #d1d5db; }
   </style>
   <include src="_partials/head-theme.html"></include>
 </head>
@@ -123,23 +83,23 @@
     <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-1">
       <div class="flex items-center gap-1.5">
         <span class="text-xs text-gray-500 mr-0.5">Flags:</span>
-        <button class="flag-pill" data-flag="g" title="global — find every match">g</button>
-        <button class="flag-pill" data-flag="i" title="case-insensitive">i</button>
-        <button class="flag-pill" data-flag="m" title="multiline — ^/$ match each line">m</button>
-        <button class="flag-pill" data-flag="s" title="dotAll — . matches newlines">s</button>
-        <button class="flag-pill" data-flag="u" title="unicode — full unicode-aware classes">u</button>
-        <button class="flag-pill" data-flag="y" title="sticky — match at lastIndex only">y</button>
-        <button class="flag-pill" data-flag="d" title="indices — expose start/end of each capture">d</button>
+        <button class="pill pill-sm" data-flag="g" title="global — find every match">g</button>
+        <button class="pill pill-sm" data-flag="i" title="case-insensitive">i</button>
+        <button class="pill pill-sm" data-flag="m" title="multiline — ^/$ match each line">m</button>
+        <button class="pill pill-sm" data-flag="s" title="dotAll — . matches newlines">s</button>
+        <button class="pill pill-sm" data-flag="u" title="unicode — full unicode-aware classes">u</button>
+        <button class="pill pill-sm" data-flag="y" title="sticky — match at lastIndex only">y</button>
+        <button class="pill pill-sm" data-flag="d" title="indices — expose start/end of each capture">d</button>
       </div>
 
       <div class="flex items-center gap-1">
         <span class="text-xs text-gray-500 mr-0.5">Mode:</span>
-        <button id="mode-match"   onclick="setMode('match')"   class="btn btn-active btn-sm">Match</button>
-        <button id="mode-replace" onclick="setMode('replace')" class="btn btn-secondary btn-sm">Replace</button>
-        <button id="mode-split"   onclick="setMode('split')"   class="btn btn-secondary btn-sm">Split</button>
+        <button id="mode-match"   onclick="setMode('match')"   class="btn btn-active btn-sm">🎯 Match</button>
+        <button id="mode-replace" onclick="setMode('replace')" class="btn btn-secondary btn-sm">🔁 Replace</button>
+        <button id="mode-split"   onclick="setMode('split')"   class="btn btn-secondary btn-sm">✂️ Split</button>
       </div>
 
-      <button onclick="clearAll()" class="btn btn-danger">Clear</button>
+      <button onclick="clearAll()" class="btn btn-danger">🗑️ Clear</button>
     </div>
 
     <!-- Flag descriptions (always visible, compact) -->
@@ -158,7 +118,7 @@
     <!-- Replacement input (Replace mode only) -->
     <div id="replace-row" style="display:none" class="mb-3">
       <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Replacement string ($1, $2, $&lt;name&gt;, $&amp;)</label>
-      <input id="replacement" type="text" oninput="onInput()" placeholder="e.g. <a href=&quot;mailto:$&amp;&quot;>$1</a>" class="w-full bg-gray-900 border border-gray-700 text-gray-200 font-mono text-[0.8rem] rounded-lg px-3 py-2 outline-none focus:border-blue-400">
+      <input id="replacement" type="text" oninput="onInput()" placeholder="e.g. <a href=&quot;mailto:$&amp;&quot;>$1</a>" class="input input-mono">
     </div>
 
     <!-- Sample chips (above the test input) -->
@@ -191,7 +151,7 @@
       <div>
         <div class="flex items-center justify-between mb-2">
           <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" id="results-label">Matches</label>
-          <button onclick="copyOutput()" id="copy-btn" class="btn btn-secondary btn-sm" style="display:none">Copy</button>
+          <button onclick="copyOutput()" id="copy-btn" class="btn btn-secondary btn-sm" style="display:none">📋 Copy</button>
         </div>
         <div id="results"
              class="w-full h-[480px] min-h-[480px] rounded-lg border border-gray-700 bg-gray-900
@@ -203,73 +163,68 @@
     <div id="status" class="mt-2.5 text-xs text-gray-500 min-h-[18px]"></div>
 
     <!-- Regex explainer (token-by-token) -->
-    <details class="mt-6 rounded-lg border border-gray-800 hover:border-gray-700 transition-colors open:border-gray-700">
-      <summary class="cursor-pointer list-none px-4 py-3 text-sm font-medium text-gray-200 flex items-center justify-between gap-3 select-none">
-        <span>Explain this regex</span>
-        <span class="text-gray-500" aria-hidden="true">▾</span>
-      </summary>
-      <div id="explainer" class="px-4 pb-4 text-xs text-gray-400 leading-relaxed font-mono">
-        <div class="text-gray-500">Type a pattern above to see a token-by-token breakdown.</div>
-      </div>
+    <details class="disclosure mt-6">
+      <summary>🔍 Explain this regex</summary>
+      <div class="disclosure-content"><div class="disclosure-body">
+        <div id="explainer" class="text-xs text-gray-400 leading-relaxed font-mono">
+          <div class="text-gray-500">Type a pattern above to see a token-by-token breakdown.</div>
+        </div>
+      </div></div>
     </details>
 
     <!-- Copy as code (runnable JS snippet) -->
-    <details class="mt-3 rounded-lg border border-gray-800 hover:border-gray-700 transition-colors open:border-gray-700">
-      <summary class="cursor-pointer list-none px-4 py-3 text-sm font-medium text-gray-200 flex items-center justify-between gap-3 select-none">
-        <span>Copy as code</span>
-        <span class="text-gray-500" aria-hidden="true">▾</span>
-      </summary>
-      <div class="px-4 pb-4">
+    <details class="disclosure mt-3">
+      <summary>📋 Copy as code</summary>
+      <div class="disclosure-content"><div class="disclosure-body">
         <div class="flex items-center justify-between mb-2">
           <span class="text-xs text-gray-500">Runnable JavaScript snippet — paste into any console or playground.</span>
-          <button onclick="copyCode()" class="btn btn-secondary btn-sm">Copy</button>
+          <button onclick="copyCode()" class="btn btn-secondary btn-sm">📋 Copy</button>
         </div>
         <pre id="code-snippet"
              class="bg-gray-900 border border-gray-800 rounded-lg p-4 text-xs text-gray-200 font-mono leading-relaxed overflow-x-auto whitespace-pre"></pre>
-      </div>
+      </div></div>
     </details>
 
     <!-- Cheat sheet -->
-    <details class="mt-6 rounded-lg border border-gray-800 hover:border-gray-700 transition-colors open:border-gray-700">
-      <summary class="cursor-pointer list-none px-4 py-3 text-sm font-medium text-gray-200 flex items-center justify-between gap-3 select-none">
-        <span>Cheat sheet</span>
-        <span class="text-gray-500 transition-transform group-open:rotate-180" aria-hidden="true">▾</span>
-      </summary>
-      <div class="px-4 pb-4 grid gap-4 md:grid-cols-2">
-        <div>
-          <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Anchors &amp; classes</h3>
-          <table class="cheat-table">
-            <tbody>
-              <tr><td>^ $</td><td>start / end of string (line in <code>m</code> mode)</td></tr>
-              <tr><td>\b \B</td><td>word / non-word boundary</td></tr>
-              <tr><td>.</td><td>any char except newline (matches all in <code>s</code> mode)</td></tr>
-              <tr><td>\d \D</td><td>digit / non-digit</td></tr>
-              <tr><td>\w \W</td><td>word char / non-word char</td></tr>
-              <tr><td>\s \S</td><td>whitespace / non-whitespace</td></tr>
-              <tr><td>[abc] [^abc]</td><td>any of / not any of</td></tr>
-              <tr><td>[a-z]</td><td>character range</td></tr>
-            </tbody>
-          </table>
+    <details class="disclosure mt-6">
+      <summary>📖 Cheat sheet</summary>
+      <div class="disclosure-content"><div class="disclosure-body">
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Anchors &amp; classes</h3>
+            <table class="cheat-table">
+              <tbody>
+                <tr><td>^ $</td><td>start / end of string (line in <code>m</code> mode)</td></tr>
+                <tr><td>\b \B</td><td>word / non-word boundary</td></tr>
+                <tr><td>.</td><td>any char except newline (matches all in <code>s</code> mode)</td></tr>
+                <tr><td>\d \D</td><td>digit / non-digit</td></tr>
+                <tr><td>\w \W</td><td>word char / non-word char</td></tr>
+                <tr><td>\s \S</td><td>whitespace / non-whitespace</td></tr>
+                <tr><td>[abc] [^abc]</td><td>any of / not any of</td></tr>
+                <tr><td>[a-z]</td><td>character range</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Quantifiers &amp; groups</h3>
+            <table class="cheat-table">
+              <tbody>
+                <tr><td>* + ?</td><td>zero+ / one+ / optional</td></tr>
+                <tr><td>{n} {n,} {n,m}</td><td>exactly / at least / range</td></tr>
+                <tr><td>*? +? ??</td><td>lazy variants</td></tr>
+                <tr><td>(abc)</td><td>capturing group</td></tr>
+                <tr><td>(?:abc)</td><td>non-capturing group</td></tr>
+                <tr><td>(?&lt;name&gt;abc)</td><td>named group — back-ref via <code>$&lt;name&gt;</code></td></tr>
+                <tr><td>(?=abc)</td><td>lookahead</td></tr>
+                <tr><td>(?!abc)</td><td>negative lookahead</td></tr>
+                <tr><td>(?&lt;=abc)</td><td>lookbehind</td></tr>
+                <tr><td>(?&lt;!abc)</td><td>negative lookbehind</td></tr>
+                <tr><td>a|b</td><td>alternation</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div>
-          <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Quantifiers &amp; groups</h3>
-          <table class="cheat-table">
-            <tbody>
-              <tr><td>* + ?</td><td>zero+ / one+ / optional</td></tr>
-              <tr><td>{n} {n,} {n,m}</td><td>exactly / at least / range</td></tr>
-              <tr><td>*? +? ??</td><td>lazy variants</td></tr>
-              <tr><td>(abc)</td><td>capturing group</td></tr>
-              <tr><td>(?:abc)</td><td>non-capturing group</td></tr>
-              <tr><td>(?&lt;name&gt;abc)</td><td>named group — back-ref via <code>$&lt;name&gt;</code></td></tr>
-              <tr><td>(?=abc)</td><td>lookahead</td></tr>
-              <tr><td>(?!abc)</td><td>negative lookahead</td></tr>
-              <tr><td>(?&lt;=abc)</td><td>lookbehind</td></tr>
-              <tr><td>(?&lt;!abc)</td><td>negative lookbehind</td></tr>
-              <tr><td>a|b</td><td>alternation</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      </div></div>
     </details>
 
   </main>
@@ -300,7 +255,7 @@
     };
 
     // Flag pills
-    document.querySelectorAll('.flag-pill').forEach(el => {
+    document.querySelectorAll('[data-flag]').forEach(el => {
       const f = el.dataset.flag;
       if (flags.has(f)) el.classList.add('on');
       el.addEventListener('click', () => {
@@ -325,7 +280,7 @@
         patternEl.value = m[1];
         flags.clear();
         for (const f of m[2]) flags.add(f);
-        document.querySelectorAll('.flag-pill').forEach(el => {
+        document.querySelectorAll('[data-flag]').forEach(el => {
           el.classList.toggle('on', flags.has(el.dataset.flag));
         });
         updateFlagsDisplay();
@@ -358,7 +313,7 @@
       patternEl.value = s.pattern;
       flags.clear();
       for (const f of s.flags) flags.add(f);
-      document.querySelectorAll('.flag-pill').forEach(el => {
+      document.querySelectorAll('[data-flag]').forEach(el => {
         el.classList.toggle('on', flags.has(el.dataset.flag));
       });
       updateFlagsDisplay();
@@ -375,7 +330,7 @@
       testEl.value = '';
       replacementEl.value = '';
       flags.clear(); flags.add('g');
-      document.querySelectorAll('.flag-pill').forEach(el => {
+      document.querySelectorAll('[data-flag]').forEach(el => {
         el.classList.toggle('on', flags.has(el.dataset.flag));
       });
       document.querySelectorAll('.chip[data-sample]').forEach(el => el.classList.remove('on'));

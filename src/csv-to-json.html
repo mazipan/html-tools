@@ -43,15 +43,15 @@
       <button id="btn-j2c" onclick="setDirection('j2c')" class="btn btn-active">JSON → CSV</button>
       <button id="btn-c2j" onclick="setDirection('c2j')" class="btn btn-secondary">CSV → JSON</button>
       <div class="w-px h-5 bg-gray-700 mx-1"></div>
-      <button onclick="loadSample()" class="btn btn-secondary">Load sample</button>
-      <button onclick="clearAll()" class="btn btn-danger">Clear</button>
+      <button onclick="loadSample()" class="btn btn-secondary">📥 Load sample</button>
+      <button onclick="clearAll()" class="btn btn-danger">🗑️ Clear</button>
     </div>
 
     <!-- Options (JSON → CSV) -->
-    <div id="opts-j2c" class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-4 px-3 py-2.5 rounded-lg border border-gray-800 bg-gray-900/50">
+    <div id="opts-j2c" class="toolbar mb-4">
       <label class="flex items-center gap-2 text-xs text-gray-400">
         Delimiter
-        <select id="j2c-delim" onchange="convert()" class="bg-gray-900 border border-gray-700 text-xs text-gray-200 rounded-md px-2 py-1 outline-none hover:border-gray-600 focus:border-blue-400">
+        <select id="j2c-delim" onchange="convert()" class="select text-xs">
           <option value=",">,  (comma)</option>
           <option value=";">;  (semicolon)</option>
           <option value="\t">\t (tab)</option>
@@ -64,7 +64,7 @@
       </label>
       <label class="flex items-center gap-2 text-xs text-gray-400">
         Nested
-        <select id="j2c-nested" onchange="convert()" class="bg-gray-900 border border-gray-700 text-xs text-gray-200 rounded-md px-2 py-1 outline-none hover:border-gray-600 focus:border-blue-400">
+        <select id="j2c-nested" onchange="convert()" class="select text-xs">
           <option value="dot">dot path (a.b)</option>
           <option value="underscore">underscore (a_b)</option>
           <option value="json">JSON literal</option>
@@ -72,7 +72,7 @@
       </label>
       <label class="flex items-center gap-2 text-xs text-gray-400">
         Arrays
-        <select id="j2c-arrays" onchange="convert()" class="bg-gray-900 border border-gray-700 text-xs text-gray-200 rounded-md px-2 py-1 outline-none hover:border-gray-600 focus:border-blue-400">
+        <select id="j2c-arrays" onchange="convert()" class="select text-xs">
           <option value="commaSeparated">comma-separated</option>
           <option value="json">JSON literal</option>
         </select>
@@ -84,10 +84,10 @@
     </div>
 
     <!-- Options (CSV → JSON) -->
-    <div id="opts-c2j" style="display:none" class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-4 px-3 py-2.5 rounded-lg border border-gray-800 bg-gray-900/50">
+    <div id="opts-c2j" style="display:none" class="toolbar mb-4">
       <label class="flex items-center gap-2 text-xs text-gray-400">
         Delimiter
-        <select id="c2j-delim" onchange="convert()" class="bg-gray-900 border border-gray-700 text-xs text-gray-200 rounded-md px-2 py-1 outline-none hover:border-gray-600 focus:border-blue-400">
+        <select id="c2j-delim" onchange="convert()" class="select text-xs">
           <option value="auto">auto-detect</option>
           <option value=",">,  (comma)</option>
           <option value=";">;  (semicolon)</option>
@@ -137,11 +137,11 @@
         <div class="flex items-center justify-between mb-2">
           <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" id="output-label">CSV output</label>
           <div class="flex gap-1 items-center">
-            <button onclick="copyOutput()" class="btn btn-secondary btn-sm">Copy</button>
-            <button onclick="downloadOutput()" class="btn btn-secondary btn-sm">Download</button>
+            <button onclick="copyOutput()" class="btn btn-secondary btn-sm">📋 Copy</button>
+            <button onclick="downloadOutput()" class="btn btn-secondary btn-sm">⬇️ Download</button>
             <span id="view-divider" class="w-px h-3 bg-gray-700 mx-0.5" style="display:none"></span>
-            <button id="btn-tree" onclick="setView('tree')" class="btn btn-secondary btn-sm" style="display:none">Tree</button>
-            <button id="btn-raw" onclick="setView('raw')" class="btn btn-secondary btn-sm" style="display:none">Raw</button>
+            <button id="btn-tree" onclick="setView('tree')" class="btn btn-secondary btn-sm" style="display:none">🌳 Tree</button>
+            <button id="btn-raw" onclick="setView('raw')" class="btn btn-secondary btn-sm" style="display:none">📄 Raw</button>
           </div>
         </div>
 

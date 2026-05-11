@@ -219,6 +219,7 @@
           <a href="#drop-zone">Drop zone</a>
           <h3>Layout &amp; content</h3>
           <a href="#cards">Cards</a>
+          <a href="#toolbar">Toolbar</a>
           <a href="#disclosure">Disclosure</a>
           <a href="#cheat-table">Cheat table</a>
           <a href="#code">Code blocks</a>
@@ -574,6 +575,43 @@
 &lt;a href="…" class="card card-lift"&gt;…&lt;/a&gt;
 
 &lt;div class="file-card"&gt;…&lt;/div&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Toolbar -->
+        <section id="toolbar" class="ds-section">
+          <h2>Toolbar</h2>
+          <p class="lead">Horizontal options strip — a subtle inset surface that groups label + control pairs above the main input. Use plain <code class="text-gray-300">&lt;label&gt;</code>s with <code class="text-gray-300">.select</code>, <code class="text-gray-300">.num-input</code>, or checkboxes inside.</p>
+          <div class="toolbar my-3">
+            <label class="flex items-center gap-2 text-xs text-gray-400">
+              Delimiter
+              <select class="select text-xs">
+                <option>, (comma)</option>
+                <option>; (semicolon)</option>
+                <option>\t (tab)</option>
+              </select>
+            </label>
+            <label class="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer">
+              <input type="checkbox" checked>
+              Include header row
+            </label>
+            <label class="flex items-center gap-2 text-xs text-gray-400">
+              Width
+              <input type="number" min="40" max="200" value="80" class="num-input">
+            </label>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;div class="toolbar"&gt;
+  &lt;label class="flex items-center gap-2 text-xs text-gray-400"&gt;
+    Delimiter
+    &lt;select class="select text-xs"&gt;…&lt;/select&gt;
+  &lt;/label&gt;
+  &lt;label class="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer"&gt;
+    &lt;input type="checkbox" checked&gt;
+    Include header row
+  &lt;/label&gt;
+&lt;/div&gt;</pre>
           </div>
         </section>
 
