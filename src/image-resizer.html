@@ -17,8 +17,8 @@
   <style>
     .row-card {
       display: grid;
-      grid-template-columns: 56px minmax(0, 1fr) auto;
-      gap: 0.75rem;
+      grid-template-columns: 56px minmax(0, 1fr);
+      gap: 0.6rem 0.75rem;
       align-items: center;
       padding: 0.65rem 0.85rem;
       border: 1px solid #1f2937;
@@ -35,7 +35,16 @@
       border: 1px solid #1f2937;
     }
     .row-card .row-stats { line-height: 1.35; }
-    .row-card .row-actions { display: flex; gap: 0.4rem; }
+    .row-card .row-actions {
+      display: flex;
+      gap: 0.4rem;
+      grid-column: 1 / -1;
+      justify-self: end;
+    }
+    @media (min-width: 640px) {
+      .row-card { grid-template-columns: 56px minmax(0, 1fr) auto; }
+      .row-card .row-actions { grid-column: auto; justify-self: auto; }
+    }
     .summary-bar {
       position: sticky;
       top: 0;
