@@ -439,7 +439,6 @@
     function drawAll(c) {
       c.clearRect(0, 0, W, H);
       paintBackground(c);
-      paintAccentStripe(c);
       if (state.logoImg) paintLogo(c);
       paintText(c);
       if (state.domain.trim()) paintDomain(c);
@@ -461,11 +460,6 @@
         c.fillStyle = state.bgSolid;
       }
       c.fillRect(0, 0, W, H);
-    }
-
-    function paintAccentStripe(c) {
-      c.fillStyle = state.accentColor;
-      c.fillRect(0, 0, 8, H);
     }
 
     function paintLogo(c) {
