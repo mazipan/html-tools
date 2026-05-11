@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <include src="_partials/meta-base.html"></include>
+  <title>Image Cropper — HTML Tools</title>
+  <meta name="description" content="Crop any image to a region in your browser. Aspect-ratio presets (1:1, 4:3, 16:9, custom), numeric inputs, optional resize-on-export. No upload — runs locally.">
+  <link rel="canonical" href="https://tools.mazipan.space/image-cropper">
+  <meta property="og:title" content="Image Cropper — HTML Tools">
+  <meta property="og:description" content="Crop any image to a region in your browser. Aspect-ratio presets (1:1, 4:3, 16:9, custom), numeric inputs, optional resize-on-export. No upload — runs locally.">
+  <meta property="og:url" content="https://tools.mazipan.space/image-cropper">
+  <meta name="twitter:title" content="Image Cropper — HTML Tools">
+  <meta name="twitter:description" content="Crop any image to a region in your browser. Aspect-ratio presets (1:1, 4:3, 16:9, custom), numeric inputs, optional resize-on-export. No upload — runs locally.">
+  <include src="_partials/meta-social.html"></include>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%E2%9C%82%EF%B8%8F</text></svg>">
+  <include src="_partials/head-fonts.html"></include>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ── Crop-box component ──────────────────────────────────────
+       Vanilla DOM overlay positioned over a preview <img>. The preview is a
+       plain <img> sized to fit its container — the crop box stores its rect
+       in *source-pixel* coordinates and converts to/from preview pixels on
+       every layout. That keeps numeric inputs honest and the export
+       pixel-accurate even when the preview is heavily downscaled. */
+    .cropper-stage {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 320px;
+      max-height: 65vh;
+      background:
+        linear-gradient(45deg, #1f2937 25%, transparent 25%),
+        linear-gradient(-45deg, #1f2937 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #1f2937 75%),
+        linear-gradient(-45deg, transparent 75%, #1f2937 75%);
+      background-color: #0b1220;
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+      border: 1px solid #1f2937;
+      border-radius: 0.65rem;
+      overflow: hidden;
+      padding: 0.5rem;
+    }
+    .cropper-canvas {
+      position: relative;
+      display: inline-block;
+      /* image is contained inside; layout dimensions match the on-screen
+         pixels of the preview so the crop overlay can sit absolutely. */
+      line-height: 0;
+    }
+    .cropper-canvas img {
+      display: block;
+      max-width: 100%;
+      max-height: 60vh;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .crop-box {
+      position: absolute;
+      box-sizing: border-box;
+      border: 1px solid #fff;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
+      cursor: move;
+      outline: none;
+    }
+    .crop-box:focus-visible {
+      border-color: var(--accent-h);
+      box-shadow:
+        0 0 0 9999px rgba(0,0,0,0.55),
+        0 0 0 2px var(--accent);
+    }
+    /* Rule-of-thirds grid. Two horizontal + two vertical lines at 1/3 / 2/3. */
+    .crop-grid {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(to right, rgba(255,255,255,0.35) 1px, transparent 1px),
+        linear-gradient(to right, rgba(255,255,255,0.35) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.35) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.35) 1px, transparent 1px);
+      background-size: 1px 100%, 1px 100%, 100% 1px, 100% 1px;
+      background-position: 33.333% 0, 66.666% 0, 0 33.333%, 0 66.666%;
+      background-repeat: no-repeat;
+    }
+    .crop-grid.hidden { display: none; }
+    .crop-handle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #fff;
+      border: 1px solid #111827;
+      border-radius: 1px;
+    }
+    .crop-handle.n,  .crop-handle.s  { left: 50%; transform: translate(-50%, -50%); }
+    .crop-handle.e,  .crop-handle.w  { top: 50%; transform: translate(-50%, -50%); }
+    .crop-handle.nw, .crop-handle.ne, .crop-handle.sw, .crop-handle.se { transform: translate(-50%, -50%); }
+    .crop-handle.n  { top: 0; cursor: ns-resize; }
+    .crop-handle.s  { bottom: 0; top: auto; transform: translate(-50%, 50%); cursor: ns-resize; }
+    .crop-handle.e  { right: 0;  transform: translate(50%, -50%); cursor: ew-resize; }
+    .crop-handle.w  { left: 0;  cursor: ew-resize; }
+    .crop-handle.nw { top: 0;   left: 0;  cursor: nwse-resize; }
+    .crop-handle.ne { top: 0;   right: 0; transform: translate(50%, -50%); cursor: nesw-resize; }
+    .crop-handle.sw { bottom: 0; left: 0; transform: translate(-50%, 50%); cursor: nesw-resize; }
+    .crop-handle.se { bottom: 0; right: 0; transform: translate(50%, 50%); cursor: nwse-resize; }
+    /* When an aspect ratio is locked, the edge handles disappear (an edge
+       drag can't preserve the locked ratio cleanly — only corners can). */
+    .crop-box.ratio-locked .crop-handle.n,
+    .crop-box.ratio-locked .crop-handle.s,
+    .crop-box.ratio-locked .crop-handle.e,
+    .crop-box.ratio-locked .crop-handle.w { display: none; }
+    .crop-dims {
+      position: absolute;
+      top: -1.6rem;
+      left: 0;
+      background: rgba(17, 24, 39, 0.92);
+      color: #e5e7eb;
+      font-size: 0.7rem;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      padding: 0.15rem 0.45rem;
+      border-radius: 0.25rem;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    /* When the box hugs the top edge, the dims chip can't sit above — flip
+       it to sit just inside the top of the box instead. */
+    .crop-box.dims-inside .crop-dims { top: 4px; left: 4px; }
+
+    .warn-chip {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      border-radius: 0.4rem;
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      color: #fbbf24;
+      font-size: 0.7rem;
+      margin-top: 0.4rem;
+    }
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 2rem;
+      transform: translateX(-50%);
+      background: #1f2937;
+      color: #e5e7eb;
+      padding: 0.55rem 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid #374151;
+      font-size: 0.8rem;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.18s;
+      z-index: 50;
+    }
+    .toast.on { opacity: 1; }
+  </style>
+  <include src="_partials/head-theme.html"></include>
+</head>
+<body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+
+  <header class="border-b border-gray-800 px-6 py-4">
+    <nav aria-label="Breadcrumb" class="max-w-[1200px] mx-auto flex items-center gap-3">
+      <a href="index.html" class="no-underline text-white font-bold text-lg tracking-tight hover:text-blue-400 transition-colors">HTML Tools</a>
+      <span class="text-gray-700">/</span>
+      <span class="text-gray-400 text-sm flex items-center gap-1.5" aria-current="page">✂️ Image Cropper</span>
+    </nav>
+  </header>
+
+  <main class="max-w-[1200px] mx-auto w-full flex-1 py-8 px-6">
+
+    <header class="mb-7">
+      <h1 class="text-3xl font-bold text-white flex items-center gap-3">✂️ Image Cropper</h1>
+      <p class="mt-1.5 text-sm text-gray-500">Crop a region of any image, locally — no upload. Drag the crop box, lock an aspect ratio, export as PNG / JPEG / WebP.</p>
+    </header>
+
+    <!-- Drop zone -->
+    <div id="drop" class="drop-zone p-8 mb-5 text-center" tabindex="0" role="button" aria-label="Drop image here, or click to choose a file">
+      <div id="drop-empty">
+        <div class="text-3xl mb-2" aria-hidden="true">✂️</div>
+        <p class="text-sm text-gray-300 font-medium">Drop image here, click to choose, or paste with Ctrl/Cmd+V</p>
+        <p class="text-xs text-gray-500 mt-1.5">Accepts PNG, JPEG, WebP, AVIF, GIF, BMP — one image at a time</p>
+      </div>
+      <div id="drop-compact" class="hidden text-xs text-gray-500">+ Drop a new image · click · paste (replaces the current one)</div>
+    </div>
+    <input id="file-input" type="file" accept="image/*" class="hidden">
+
+    <div id="error-bar" class="hidden error-bar mb-4"></div>
+
+    <!-- Editor (revealed once an image is loaded) -->
+    <section id="editor" class="hidden">
+
+      <!-- Canvas / preview -->
+      <div class="cropper-stage mb-3" id="stage">
+        <div id="canvas" class="cropper-canvas">
+          <img id="preview" alt="" draggable="false">
+          <div id="crop-box" class="crop-box" tabindex="0" role="application" aria-label="Crop box — drag to move, arrow keys to nudge, Ctrl/Cmd+arrow to resize">
+            <div class="crop-grid"></div>
+            <div class="crop-dims" id="crop-dims">0 × 0</div>
+            <div class="crop-handle nw" data-handle="nw"></div>
+            <div class="crop-handle n"  data-handle="n"></div>
+            <div class="crop-handle ne" data-handle="ne"></div>
+            <div class="crop-handle e"  data-handle="e"></div>
+            <div class="crop-handle se" data-handle="se"></div>
+            <div class="crop-handle s"  data-handle="s"></div>
+            <div class="crop-handle sw" data-handle="sw"></div>
+            <div class="crop-handle w"  data-handle="w"></div>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-baseline justify-between gap-2 mb-5">
+        <p id="meta" class="stats text-gray-400"></p>
+        <div class="flex flex-wrap items-center gap-2">
+          <label class="switch"><input id="grid-toggle" type="checkbox" checked><span>Rule-of-thirds grid</span></label>
+        </div>
+      </div>
+      <div id="warn-chips" class="-mt-3 mb-5"></div>
+
+      <!-- Aspect ratio -->
+      <section class="border border-gray-800 rounded-xl bg-gray-900/40 p-5 mb-4">
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Aspect ratio</label>
+        <div role="radiogroup" aria-label="Aspect ratio" class="flex flex-wrap gap-1.5 items-center">
+          <button class="pill" data-ratio="free"     type="button" role="radio">Free</button>
+          <button class="pill" data-ratio="1:1"      type="button" role="radio">1:1</button>
+          <button class="pill" data-ratio="4:3"      type="button" role="radio">4:3</button>
+          <button class="pill" data-ratio="3:2"      type="button" role="radio">3:2</button>
+          <button class="pill" data-ratio="16:9"     type="button" role="radio">16:9</button>
+          <button class="pill" data-ratio="9:16"     type="button" role="radio">9:16</button>
+          <button class="pill" data-ratio="original" type="button" role="radio">Original</button>
+          <button class="pill" data-ratio="custom"   type="button" role="radio">Custom</button>
+          <span class="inline-flex items-center gap-1.5 text-sm text-gray-400 ml-1" id="custom-ratio-wrap" style="display:none;">
+            <input id="custom-w" type="number" min="1" max="999" value="185" step="1" class="num-input" aria-label="Custom ratio width">
+            <span>:</span>
+            <input id="custom-h" type="number" min="1" max="999" value="100" step="1" class="num-input" aria-label="Custom ratio height">
+          </span>
+        </div>
+      </section>
+
+      <!-- Numeric inputs -->
+      <section class="border border-gray-800 rounded-xl bg-gray-900/40 p-5 mb-4">
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Crop coordinates (source pixels)</label>
+        <div class="flex items-center gap-2 text-sm text-gray-400 flex-wrap">
+          X <input id="num-x" type="number" min="0" value="0" step="1" class="num-input" aria-label="Crop X in source pixels">
+          Y <input id="num-y" type="number" min="0" value="0" step="1" class="num-input" aria-label="Crop Y in source pixels">
+          W <input id="num-w" type="number" min="1" value="0" step="1" class="num-input" aria-label="Crop width in source pixels">
+          H <input id="num-h" type="number" min="1" value="0" step="1" class="num-input" aria-label="Crop height in source pixels">
+        </div>
+        <div class="flex flex-wrap gap-2 mt-3">
+          <button id="reset-btn"  class="btn btn-sm btn-secondary" type="button">↩️ Reset to full image</button>
+          <button id="center-btn" class="btn btn-sm btn-secondary" type="button">🎯 Center crop</button>
+        </div>
+      </section>
+
+      <!-- Output controls -->
+      <section class="border border-gray-800 rounded-xl bg-gray-900/40 p-5 mb-4">
+        <div class="grid gap-5 md:grid-cols-2">
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Output format</label>
+            <div class="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Output format">
+              <button class="pill" data-format="png"  type="button" role="radio">PNG</button>
+              <button class="pill" data-format="jpeg" type="button" role="radio">JPEG</button>
+              <button class="pill" data-format="webp" type="button" role="radio">WebP</button>
+            </div>
+            <p id="format-note" class="text-[0.7rem] text-gray-600 mt-1.5"></p>
+          </div>
+
+          <div id="quality-wrap">
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" for="quality">Quality</label>
+              <span id="quality-val" class="text-xs text-gray-400 font-mono">0.92</span>
+            </div>
+            <input id="quality" type="range" min="0.30" max="1.00" step="0.01" value="0.92" class="range" aria-label="Output quality">
+            <p class="text-[0.7rem] text-gray-600 mt-1.5">Lossy formats only — slider is hidden for PNG.</p>
+          </div>
+
+          <div>
+            <label class="switch"><input id="resize-toggle" type="checkbox"><span>Resize output</span></label>
+            <div class="flex items-center gap-2 text-sm text-gray-400 mt-2">
+              long edge <input id="resize-long" type="number" min="16" max="20000" value="512" step="1" class="num-input" disabled aria-label="Long edge in pixels">
+              <span>px</span>
+            </div>
+            <p class="text-[0.7rem] text-gray-600 mt-1.5">Shrink the cropped region so the longer side equals this — useful for avatars and OG-card exports.</p>
+          </div>
+
+          <div class="min-w-0">
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2" for="filename-pattern">Filename pattern</label>
+            <select id="filename-pattern" class="select w-full">
+              <option value="{name}-crop.{ext}">{name}-crop.{ext}</option>
+              <option value="{name}-{w}x{h}.{ext}">{name}-{w}x{h}.{ext}</option>
+              <option value="{name}-crop-{w}x{h}.{ext}">{name}-crop-{w}x{h}.{ext}</option>
+              <option value="{name}.{ext}">{name}.{ext}</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <div class="flex flex-wrap items-center gap-2 mb-8">
+        <button id="download-btn" class="btn btn-primary"   type="button">⬇️ Download cropped</button>
+        <button id="copy-btn"     class="btn btn-secondary" type="button">📋 Copy to clipboard</button>
+        <button id="clear-btn"    class="btn btn-danger"    type="button">🗑️ Clear</button>
+        <span id="status" class="ml-auto text-xs text-gray-600" aria-live="polite"></span>
+      </div>
+
+    </section>
+
+    <!-- About / how it works -->
+    <section class="border-t border-gray-800 pt-8 pb-2 mt-2">
+      <div class="grid gap-6 md:grid-cols-2">
+        <div>
+          <h2 class="text-xl font-bold text-white mb-4">About Image Cropper</h2>
+          <p class="text-gray-400 leading-relaxed">Drop an image, drag a crop box on the preview, and export the cropped region. The preview is a downscaled view of your image — the actual encode happens at full source resolution in a Web Worker, so the result is pixel-accurate even on 4K photos. Nothing leaves your browser.</p>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-white mb-4">How to use</h2>
+          <ol class="text-gray-400 leading-relaxed space-y-2 list-decimal list-inside">
+            <li>Drop or paste an image. The crop box starts at the full image.</li>
+            <li>Drag the box to move, drag a corner/edge handle to resize. Or set X/Y/W/H below the canvas exactly.</li>
+            <li>Pick an aspect ratio if you want to lock the shape (1:1 for avatars, 16:9 for video, etc.).</li>
+            <li>Choose the output format and quality, optionally resize the long edge, and hit <strong class="text-gray-300">Download</strong> or <strong class="text-gray-300">Copy to clipboard</strong>.</li>
+          </ol>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-white mb-4">Keyboard shortcuts</h2>
+          <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+            <li>Click the crop box to focus it, then use <strong class="text-gray-300">arrow keys</strong> to nudge by 1 px.</li>
+            <li><strong class="text-gray-300">Shift + arrow</strong> jumps 10 px.</li>
+            <li><strong class="text-gray-300">Ctrl/Cmd + arrow</strong> resizes from the bottom-right corner (+ shift for 10 px).</li>
+            <li><strong class="text-gray-300">Esc</strong> or double-click resets to the full image.</li>
+          </ul>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-white mb-4">Tips</h2>
+          <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+            <li>The crop is taken from the <em>original</em> source — the preview is just a downscaled view, so the export is always at full resolution.</li>
+            <li>iPhone photos with EXIF orientation are read with the correct rotation — no sideways crops.</li>
+            <li>For an avatar workflow: lock <strong class="text-gray-300">1:1</strong>, toggle <strong class="text-gray-300">Resize output</strong> to 512 px, pick <strong class="text-gray-300">WebP</strong>.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <script src="image-utils.js"></script>
+  <script type="module">
+    // ── DOM refs ───────────────────────────────────────────────────
+    const dropEl       = document.getElementById('drop');
+    const dropEmpty    = document.getElementById('drop-empty');
+    const dropCompact  = document.getElementById('drop-compact');
+    const fileInput    = document.getElementById('file-input');
+    const editorEl     = document.getElementById('editor');
+    const previewImg   = document.getElementById('preview');
+    const canvasEl     = document.getElementById('canvas');
+    const cropBoxEl    = document.getElementById('crop-box');
+    const cropDimsEl   = document.getElementById('crop-dims');
+    const cropGridEl   = cropBoxEl.querySelector('.crop-grid');
+    const gridToggle   = document.getElementById('grid-toggle');
+    const metaEl       = document.getElementById('meta');
+    const warnChips    = document.getElementById('warn-chips');
+    const errorBar     = document.getElementById('error-bar');
+    const customWrap   = document.getElementById('custom-ratio-wrap');
+    const customW      = document.getElementById('custom-w');
+    const customH      = document.getElementById('custom-h');
+    const numX         = document.getElementById('num-x');
+    const numY         = document.getElementById('num-y');
+    const numW         = document.getElementById('num-w');
+    const numH         = document.getElementById('num-h');
+    const resetBtn     = document.getElementById('reset-btn');
+    const centerBtn    = document.getElementById('center-btn');
+    const qualityEl    = document.getElementById('quality');
+    const qualityVal   = document.getElementById('quality-val');
+    const qualityWrap  = document.getElementById('quality-wrap');
+    const formatNote   = document.getElementById('format-note');
+    const resizeToggle = document.getElementById('resize-toggle');
+    const resizeLong   = document.getElementById('resize-long');
+    const filenameSel  = document.getElementById('filename-pattern');
+    const downloadBtn  = document.getElementById('download-btn');
+    const copyBtn      = document.getElementById('copy-btn');
+    const clearBtn     = document.getElementById('clear-btn');
+    const statusEl     = document.getElementById('status');
+    const toastEl      = document.getElementById('toast');
+
+    const support = {
+      png:  supportsMime('image/png'),
+      jpeg: supportsMime('image/jpeg'),
+      webp: supportsMime('image/webp'),
+    };
+
+    // ── State ──────────────────────────────────────────────────────
+    /** @type {File|null}      */ let file = null;
+    /** @type {string|null}    */ let srcUrl = null;
+    /** @type {number}         */ let srcW = 0;
+    /** @type {number}         */ let srcH = 0;
+    // The visible <img>'s on-screen dimensions in CSS pixels, captured after
+    // layout. Used to convert between source-pixel coordinates (authoritative)
+    // and preview-pixel coordinates (display only).
+    let viewW = 0;
+    let viewH = 0;
+    // Crop rect in *source* pixels — this is the source of truth.
+    let cropX = 0, cropY = 0, cropW = 0, cropH = 0;
+    let ratioMode = 'free';        // 'free' | '1:1' | '4:3' | '3:2' | '16:9' | '9:16' | 'original' | 'custom'
+    let ratio = 0;                 // computed W/H ratio when locked, 0 = free
+    let outFormat = 'png';
+    let quality = 0.92;
+    let resizeLongEnabled = false;
+    let resizeLongPx = 512;
+    let pattern = '{name}-crop.{ext}';
+
+    // Live region for screen-reader announcements (coarse, debounced).
+    const announceEl = document.createElement('div');
+    announceEl.setAttribute('aria-live', 'polite');
+    announceEl.className = 'sr-only';
+    announceEl.style.cssText = 'position:absolute;left:-9999px;width:1px;height:1px;';
+    document.body.appendChild(announceEl);
+    let announceTimer = null;
+    function announce(msg) {
+      clearTimeout(announceTimer);
+      announceTimer = setTimeout(() => { announceEl.textContent = msg; }, 250);
+    }
+
+    // ── Worker ─────────────────────────────────────────────────────
+    const worker = new Worker(new URL('./image-encode-worker.js', import.meta.url), { type: 'module' });
+    const pending = new Map();
+    let nextJobId = 1;
+    worker.onmessage = (e) => {
+      const job = pending.get(e.data.id);
+      if (!job) return;
+      pending.delete(e.data.id);
+      if (e.data.error) job.reject(new Error(e.data.error));
+      else job.resolve(e.data);
+    };
+    worker.onerror = (e) => showError(`Worker error: ${e.message || 'unknown'}`);
+    function workerCrop(opts) {
+      const id = `j${nextJobId++}`;
+      return new Promise((resolve, reject) => {
+        pending.set(id, { resolve, reject });
+        worker.postMessage({ id, type: 'crop', file, opts });
+      });
+    }
+
+    // ── Drop / paste / file input ──────────────────────────────────
+    ['dragenter', 'dragover'].forEach(evt => {
+      dropEl.addEventListener(evt, e => { e.preventDefault(); dropEl.classList.add('dragover'); });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+      dropEl.addEventListener(evt, e => {
+        e.preventDefault();
+        if (evt === 'dragleave' && dropEl.contains(e.relatedTarget)) return;
+        dropEl.classList.remove('dragover');
+      });
+    });
+    dropEl.addEventListener('drop', e => {
+      const files = [...(e.dataTransfer?.files || [])].filter(f => f.type.startsWith('image/'));
+      if (!files.length) return;
+      const replaced = !!file;
+      if (files.length > 1) toast('Multiple files dropped — used the first; cropper handles one at a time.');
+      loadFile(files[0], replaced);
+    });
+    dropEl.addEventListener('click', () => fileInput.click());
+    dropEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+    });
+    fileInput.addEventListener('change', () => {
+      const f = fileInput.files?.[0];
+      if (f) loadFile(f, !!file);
+      fileInput.value = '';
+    });
+    window.addEventListener('paste', e => {
+      const list = [...(e.clipboardData?.items || [])];
+      const pasted = list.filter(i => i.type.startsWith('image/')).map(i => i.getAsFile()).filter(Boolean);
+      if (pasted.length) loadFile(pasted[0], !!file);
+    });
+
+    async function loadFile(f, isReplacement) {
+      clearError();
+      let bm;
+      try {
+        bm = await createImageBitmap(f, { imageOrientation: 'from-image' });
+      } catch (err) {
+        showError(`Couldn't decode that image: ${err.message || err}`);
+        return;
+      }
+      // Browser canvas limits — Chrome and Safari roughly cap at 16384 px per
+      // side. Refuse early rather than ship a silently-bad export.
+      if (bm.width > 16384 || bm.height > 16384) {
+        bm.close?.();
+        showError(`Image is ${bm.width}×${bm.height} — larger than this browser can render reliably. Try a smaller source.`);
+        return;
+      }
+
+      // Tear down previous load.
+      if (srcUrl) URL.revokeObjectURL(srcUrl);
+
+      file = f;
+      srcW = bm.width;
+      srcH = bm.height;
+      bm.close?.();
+      srcUrl = URL.createObjectURL(f);
+      previewImg.src = srcUrl;
+      await new Promise(res => {
+        if (previewImg.complete && previewImg.naturalWidth) return res();
+        previewImg.onload = res;
+      });
+
+      // Reveal editor + compact the drop zone.
+      editorEl.classList.remove('hidden');
+      dropEmpty.classList.add('hidden');
+      dropCompact.classList.remove('hidden');
+      dropEl.classList.add('compact', 'p-3');
+      dropEl.classList.remove('p-8');
+
+      // Warning chips (first frame for animated input, etc.) — keep them
+      // independent of crop state so they don't get wiped on every move.
+      const warnings = [];
+      if (f.type === 'image/gif' || f.type === 'image/webp') {
+        warnings.push('Animation flattened — only frame 1 was cropped.');
+      }
+      warnChips.innerHTML = warnings.map(w => `<span class="warn-chip">${escapeHtml(w)}</span>`).join(' ');
+
+      // Reset to full-image crop on every load.
+      setCrop(0, 0, srcW, srcH, { fromUi: false });
+      syncAllUi();
+      measureView();
+      renderBox();
+      updateMeta();
+      if (isReplacement) toast('Replaced previous image — your crop box was reset.');
+    }
+
+    // ── Layout / measurement ───────────────────────────────────────
+    function measureView() {
+      // The displayed image is fit by CSS (max-width/max-height); read the
+      // actual on-screen size from getBoundingClientRect every time we need
+      // to translate between source pixels and screen pixels.
+      const r = previewImg.getBoundingClientRect();
+      viewW = r.width;
+      viewH = r.height;
+      // Make .cropper-canvas exactly the image's bounding box so the crop
+      // overlay can be positioned with `position: absolute` relative to it.
+      canvasEl.style.width = `${viewW}px`;
+      canvasEl.style.height = `${viewH}px`;
+    }
+    window.addEventListener('resize', () => {
+      if (!file) return;
+      measureView();
+      renderBox();
+    });
+
+    // ── Crop state mutation ────────────────────────────────────────
+    function clampCrop(x, y, w, h) {
+      // Enforce a minimum size of 1 px, source-bound clamping, and
+      // (when a ratio is locked) maintain the ratio by adjusting H to fit W.
+      w = Math.max(1, Math.round(w));
+      h = Math.max(1, Math.round(h));
+      x = Math.max(0, Math.min(srcW - 1, Math.round(x)));
+      y = Math.max(0, Math.min(srcH - 1, Math.round(y)));
+      if (x + w > srcW) w = srcW - x;
+      if (y + h > srcH) h = srcH - y;
+      return { x, y, w, h };
+    }
+    function setCrop(x, y, w, h, opts = {}) {
+      const c = clampCrop(x, y, w, h);
+      cropX = c.x; cropY = c.y; cropW = c.w; cropH = c.h;
+      if (!opts.skipNumeric) {
+        numX.value = cropX;
+        numY.value = cropY;
+        numW.value = cropW;
+        numH.value = cropH;
+      }
+      cropDimsEl.textContent = `${cropW} × ${cropH}`;
+      // Flip the dims chip inside the box when there's no headroom above.
+      if (viewH > 0) {
+        const yPx = (cropY / srcH) * viewH;
+        cropBoxEl.classList.toggle('dims-inside', yPx < 28);
+      }
+      renderBox();
+      updateMeta();
+      announce(`Crop box ${cropW} by ${cropH} pixels at ${cropX}, ${cropY}.`);
+    }
+
+    function renderBox() {
+      if (!srcW || !srcH) return;
+      const sx = (cropX / srcW) * viewW;
+      const sy = (cropY / srcH) * viewH;
+      const sw = (cropW / srcW) * viewW;
+      const sh = (cropH / srcH) * viewH;
+      cropBoxEl.style.left   = `${sx}px`;
+      cropBoxEl.style.top    = `${sy}px`;
+      cropBoxEl.style.width  = `${sw}px`;
+      cropBoxEl.style.height = `${sh}px`;
+    }
+    function updateMeta() {
+      metaEl.innerHTML = `
+        <span class="text-gray-500">Source</span> <span class="text-gray-300">${srcW} × ${srcH}</span>
+        <span class="text-gray-700"> · </span>
+        <span class="text-gray-500">Crop</span> <span class="text-gray-300">${cropW} × ${cropH}</span>
+        <span class="text-gray-700"> · </span>
+        <span class="text-gray-500">at</span> <span class="text-gray-300">${cropX}, ${cropY}</span>
+      `;
+    }
+
+    // ── Aspect ratio ───────────────────────────────────────────────
+    function syncRatioPills() {
+      document.querySelectorAll('.pill[data-ratio]').forEach(p => {
+        p.classList.toggle('on', p.dataset.ratio === ratioMode);
+        p.setAttribute('aria-checked', p.dataset.ratio === ratioMode ? 'true' : 'false');
+      });
+      customWrap.style.display = ratioMode === 'custom' ? 'inline-flex' : 'none';
+      cropBoxEl.classList.toggle('ratio-locked', ratio > 0);
+    }
+    function computeRatio() {
+      switch (ratioMode) {
+        case 'free':     return 0;
+        case '1:1':      return 1;
+        case '4:3':      return 4 / 3;
+        case '3:2':      return 3 / 2;
+        case '16:9':     return 16 / 9;
+        case '9:16':     return 9 / 16;
+        case 'original': return srcW && srcH ? srcW / srcH : 0;
+        case 'custom': {
+          const w = parseInt(customW.value, 10) || 1;
+          const h = parseInt(customH.value, 10) || 1;
+          return w / h;
+        }
+      }
+      return 0;
+    }
+    function reshapeToRatio() {
+      if (!ratio) return;
+      // Fit the locked ratio inside the current box's footprint, centered.
+      // If the current footprint is degenerate (e.g. fresh load), fall back
+      // to "largest box centered in source" so the user sees something useful.
+      const fw = cropW || srcW;
+      const fh = cropH || srcH;
+      let w = fw, h = fh;
+      if (fw / fh > ratio) w = fh * ratio;
+      else                  h = fw / ratio;
+      w = Math.round(w);
+      h = Math.round(h);
+      const cx = cropX + cropW / 2;
+      const cy = cropY + cropH / 2;
+      const x = Math.round(cx - w / 2);
+      const y = Math.round(cy - h / 2);
+      setCrop(x, y, w, h);
+    }
+    document.querySelectorAll('.pill[data-ratio]').forEach(p => {
+      p.addEventListener('click', () => {
+        ratioMode = p.dataset.ratio;
+        ratio = computeRatio();
+        syncRatioPills();
+        reshapeToRatio();
+      });
+    });
+    [customW, customH].forEach(el => {
+      el.addEventListener('input', () => {
+        if (ratioMode !== 'custom') return;
+        ratio = computeRatio();
+        reshapeToRatio();
+      });
+    });
+
+    // ── Numeric input bindings ─────────────────────────────────────
+    function readNum(el, fallback) {
+      const n = parseInt(el.value, 10);
+      return Number.isFinite(n) ? n : fallback;
+    }
+    function applyNumericEdit() {
+      let x = readNum(numX, cropX);
+      let y = readNum(numY, cropY);
+      let w = readNum(numW, cropW);
+      let h = readNum(numH, cropH);
+      // If a ratio is locked, snap H to match W (W wins).
+      if (ratio > 0) h = Math.max(1, Math.round(w / ratio));
+      setCrop(x, y, w, h, { skipNumeric: true });
+      // Reflect the clamped values back so the inputs don't drift.
+      numX.value = cropX; numY.value = cropY;
+      numW.value = cropW; numH.value = cropH;
+    }
+    [numX, numY, numW, numH].forEach(el => el.addEventListener('change', applyNumericEdit));
+
+    resetBtn.addEventListener('click', () => {
+      ratioMode = 'free';
+      ratio = 0;
+      syncRatioPills();
+      setCrop(0, 0, srcW, srcH);
+    });
+    centerBtn.addEventListener('click', () => {
+      // Center the current footprint inside the source, no resize.
+      const x = Math.round((srcW - cropW) / 2);
+      const y = Math.round((srcH - cropH) / 2);
+      setCrop(x, y, cropW, cropH);
+    });
+
+    // ── Crop-box mouse interaction ─────────────────────────────────
+    // We track drags in source-pixel space — every pointer move converts
+    // CSS-pixel deltas back to source pixels via the current viewW/viewH.
+    /** @type {null | { kind: 'move' | 'resize' | 'new', handle?: string, startCrop: {x:number,y:number,w:number,h:number}, startSrcX: number, startSrcY: number }} */
+    let drag = null;
+
+    function srcCoordFromEvent(ev) {
+      const r = previewImg.getBoundingClientRect();
+      const px = (ev.clientX - r.left) / r.width;  // 0..1 along width
+      const py = (ev.clientY - r.top) / r.height;  // 0..1 along height
+      return {
+        x: Math.max(0, Math.min(srcW, Math.round(px * srcW))),
+        y: Math.max(0, Math.min(srcH, Math.round(py * srcH))),
+      };
+    }
+
+    cropBoxEl.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      const handle = e.target.closest('.crop-handle')?.dataset.handle;
+      const pt = srcCoordFromEvent(e);
+      drag = {
+        kind: handle ? 'resize' : 'move',
+        handle,
+        startCrop: { x: cropX, y: cropY, w: cropW, h: cropH },
+        startSrcX: pt.x,
+        startSrcY: pt.y,
+      };
+      cropBoxEl.setPointerCapture(e.pointerId);
+      e.preventDefault();
+      cropBoxEl.focus({ preventScroll: true });
+    });
+
+    // Drag-to-define on the empty area (image but outside the crop box) —
+    // bind on the canvas wrapper so clicks on the dim mask reach it.
+    canvasEl.addEventListener('pointerdown', e => {
+      if (drag || e.button !== 0) return;
+      if (e.target === previewImg || e.target === canvasEl) {
+        const pt = srcCoordFromEvent(e);
+        drag = {
+          kind: 'new',
+          startCrop: { x: pt.x, y: pt.y, w: 1, h: 1 },
+          startSrcX: pt.x,
+          startSrcY: pt.y,
+        };
+        canvasEl.setPointerCapture(e.pointerId);
+        e.preventDefault();
+      }
+    });
+
+    function onPointerMove(e) {
+      if (!drag) return;
+      const pt = srcCoordFromEvent(e);
+      const dx = pt.x - drag.startSrcX;
+      const dy = pt.y - drag.startSrcY;
+      const s = drag.startCrop;
+
+      if (drag.kind === 'move') {
+        let nx = s.x + dx;
+        let ny = s.y + dy;
+        // Clamp so the whole box stays inside the source.
+        nx = Math.max(0, Math.min(srcW - s.w, nx));
+        ny = Math.max(0, Math.min(srcH - s.h, ny));
+        setCrop(nx, ny, s.w, s.h);
+        return;
+      }
+
+      if (drag.kind === 'new') {
+        const x = Math.min(s.x, pt.x);
+        const y = Math.min(s.y, pt.y);
+        let w = Math.abs(pt.x - s.x) || 1;
+        let h = Math.abs(pt.y - s.y) || 1;
+        if (ratio > 0) {
+          // For a locked-ratio drag-to-define, the *larger* delta wins —
+          // derive the other axis from the ratio.
+          if (w / h > ratio) h = w / ratio;
+          else                w = h * ratio;
+        }
+        setCrop(x, y, w, h);
+        return;
+      }
+
+      // resize
+      let x = s.x, y = s.y, w = s.w, h = s.h;
+      const handle = drag.handle;
+      const movingLeft   = handle.includes('w');
+      const movingRight  = handle.includes('e');
+      const movingTop    = handle.includes('n');
+      const movingBottom = handle.includes('s');
+
+      if (movingLeft)   { x = s.x + dx; w = s.w - dx; }
+      if (movingRight)  { w = s.w + dx; }
+      if (movingTop)    { y = s.y + dy; h = s.h - dy; }
+      if (movingBottom) { h = s.h + dy; }
+
+      // Flip handling: when the user drags past the opposite edge, mirror.
+      if (w < 1) { x = x + w - 1; w = 1; }
+      if (h < 1) { y = y + h - 1; h = 1; }
+
+      if (ratio > 0) {
+        // Corner-only when ratio locked (edge handles hidden via CSS).
+        // Use the larger drag magnitude as the principal axis.
+        const dwAbs = Math.abs(w - s.w);
+        const dhAbs = Math.abs(h - s.h);
+        if (dwAbs > dhAbs) {
+          h = w / ratio;
+        } else {
+          w = h * ratio;
+        }
+        // Re-anchor the box around the *opposite* corner so the pivot stays put.
+        if (movingLeft)  x = s.x + s.w - w;
+        if (movingTop)   y = s.y + s.h - h;
+      }
+      setCrop(x, y, w, h);
+    }
+    function onPointerUp(e) {
+      if (!drag) return;
+      drag = null;
+      try { cropBoxEl.releasePointerCapture?.(e.pointerId); } catch (_) {}
+      try { canvasEl.releasePointerCapture?.(e.pointerId); } catch (_) {}
+    }
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup',   onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
+
+    // Double-click inside the box → reset to full.
+    cropBoxEl.addEventListener('dblclick', e => {
+      if (e.target.closest('.crop-handle')) return;
+      ratioMode = 'free'; ratio = 0; syncRatioPills();
+      setCrop(0, 0, srcW, srcH);
+    });
+
+    // ── Keyboard navigation ────────────────────────────────────────
+    cropBoxEl.addEventListener('keydown', e => {
+      if (!file) return;
+      const big = e.shiftKey ? 10 : 1;
+      const resize = e.ctrlKey || e.metaKey;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        ratioMode = 'free'; ratio = 0; syncRatioPills();
+        setCrop(0, 0, srcW, srcH);
+        return;
+      }
+      let dx = 0, dy = 0;
+      if (e.key === 'ArrowLeft')  dx = -big;
+      else if (e.key === 'ArrowRight') dx = big;
+      else if (e.key === 'ArrowUp')    dy = -big;
+      else if (e.key === 'ArrowDown')  dy = big;
+      else return;
+      e.preventDefault();
+      if (resize) {
+        // Grow / shrink from the bottom-right; respect the locked ratio.
+        let w = cropW + dx;
+        let h = cropH + dy;
+        if (ratio > 0) {
+          // Use whichever axis the user pressed as the driver.
+          if (dx !== 0) h = Math.max(1, Math.round(w / ratio));
+          else          w = Math.max(1, Math.round(h * ratio));
+        }
+        setCrop(cropX, cropY, w, h);
+      } else {
+        setCrop(cropX + dx, cropY + dy, cropW, cropH);
+      }
+    });
+
+    // ── Output controls ────────────────────────────────────────────
+    function syncFormatPills() {
+      document.querySelectorAll('.pill[data-format]').forEach(p => {
+        const f = p.dataset.format;
+        const ok = !!support[f];
+        p.disabled = !ok;
+        p.classList.toggle('on', outFormat === f);
+        p.setAttribute('aria-checked', outFormat === f ? 'true' : 'false');
+        p.title = ok ? '' : `Your browser can't encode ${f.toUpperCase()}.`;
+      });
+      const lossless = outFormat === 'png';
+      qualityWrap.classList.toggle('hidden', lossless);
+      formatNote.textContent = lossless ? 'PNG is lossless — quality slider does not apply.' : '';
+    }
+    document.querySelectorAll('.pill[data-format]').forEach(p => {
+      p.addEventListener('click', () => {
+        if (p.disabled) return;
+        outFormat = p.dataset.format;
+        syncFormatPills();
+      });
+    });
+    qualityEl.addEventListener('input', () => {
+      quality = parseFloat(qualityEl.value);
+      qualityVal.textContent = quality.toFixed(2);
+    });
+    resizeToggle.addEventListener('change', () => {
+      resizeLongEnabled = resizeToggle.checked;
+      resizeLong.disabled = !resizeLongEnabled;
+    });
+    resizeLong.addEventListener('change', () => {
+      const n = parseInt(resizeLong.value, 10);
+      resizeLongPx = Number.isFinite(n) && n >= 16 ? n : 512;
+      resizeLong.value = resizeLongPx;
+    });
+    filenameSel.addEventListener('change', () => { pattern = filenameSel.value; });
+    gridToggle.addEventListener('change', () => { cropGridEl.classList.toggle('hidden', !gridToggle.checked); });
+
+    // ── Actions ────────────────────────────────────────────────────
+    downloadBtn.addEventListener('click', async () => {
+      if (!ensureCroppable()) return;
+      const result = await runCrop();
+      if (!result) return;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(result.blob);
+      a.download = result.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      statusEl.textContent = `Saved ${a.download} · ${formatBytes(result.blob.size)}`;
+    });
+    copyBtn.addEventListener('click', async () => {
+      if (!ensureCroppable()) return;
+      // Some browsers (Firefox at the time of writing) only let you write
+      // PNG via ClipboardItem. Fall back to PNG silently rather than failing.
+      let result;
+      const originalFormat = outFormat;
+      try {
+        result = await runCrop();
+        if (!result) return;
+        const item = new ClipboardItem({ [result.blob.type]: result.blob });
+        await navigator.clipboard.write([item]);
+        statusEl.textContent = `Copied to clipboard · ${formatBytes(result.blob.size)}`;
+        toast('Copied to clipboard.');
+      } catch (err) {
+        if (originalFormat !== 'png') {
+          try {
+            const pngResult = await runCrop({ formatOverride: 'png' });
+            if (pngResult) {
+              const item = new ClipboardItem({ 'image/png': pngResult.blob });
+              await navigator.clipboard.write([item]);
+              statusEl.textContent = `Copied as PNG · ${formatBytes(pngResult.blob.size)}`;
+              toast(`Copied as PNG — your browser doesn't accept ${originalFormat.toUpperCase()} on the clipboard.`);
+              return;
+            }
+          } catch (_) { /* fall through to error */ }
+        }
+        showError(`Copy failed — try Download instead. (${err.message || err})`);
+      }
+    });
+    clearBtn.addEventListener('click', () => {
+      if (srcUrl) URL.revokeObjectURL(srcUrl);
+      srcUrl = null;
+      file = null;
+      srcW = srcH = viewW = viewH = 0;
+      previewImg.removeAttribute('src');
+      editorEl.classList.add('hidden');
+      dropEmpty.classList.remove('hidden');
+      dropCompact.classList.add('hidden');
+      dropEl.classList.remove('compact', 'p-3');
+      dropEl.classList.add('p-8');
+      warnChips.innerHTML = '';
+      statusEl.textContent = '';
+      clearError();
+    });
+
+    function ensureCroppable() {
+      if (!file) { showError('Drop an image first.'); return false; }
+      if (cropW < 1 || cropH < 1) {
+        showError('Crop box has zero area.');
+        return false;
+      }
+      return true;
+    }
+
+    async function runCrop(overrides = {}) {
+      const fmt = overrides.formatOverride || outFormat;
+      const opts = {
+        sx: cropX, sy: cropY, sw: cropW, sh: cropH,
+        format: fmt,
+        quality,
+      };
+      if (resizeLongEnabled && resizeLongPx > 0) opts.resizeLongEdge = resizeLongPx;
+      statusEl.textContent = 'Encoding…';
+      try {
+        const result = await workerCrop(opts);
+        const name = renderFilename(fmt, result.w, result.h);
+        statusEl.textContent = '';
+        return { blob: result.blob, name, w: result.w, h: result.h };
+      } catch (err) {
+        showError(`Encode failed: ${err.message || err}`);
+        statusEl.textContent = '';
+        return null;
+      }
+    }
+
+    function renderFilename(format, w, h) {
+      const ext = format === 'jpeg' ? 'jpg' : format;
+      const dot = file.name.lastIndexOf('.');
+      const stem = dot >= 0 ? file.name.slice(0, dot) : file.name;
+      return pattern
+        .replace('{name}', stem)
+        .replace('{w}', String(w))
+        .replace('{h}', String(h))
+        .replace('{ext}', ext);
+    }
+
+    // ── Misc helpers ───────────────────────────────────────────────
+    function showError(msg) {
+      errorBar.textContent = msg;
+      errorBar.classList.remove('hidden');
+    }
+    function clearError() {
+      errorBar.textContent = '';
+      errorBar.classList.add('hidden');
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    let toastTimer = null;
+    function toast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add('on');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toastEl.classList.remove('on'), 2400);
+    }
+    function syncAllUi() {
+      syncRatioPills();
+      syncFormatPills();
+    }
+
+    // ── Initial UI sync ────────────────────────────────────────────
+    if (!support.webp && outFormat === 'webp') outFormat = 'png';
+    syncAllUi();
+    qualityVal.textContent = quality.toFixed(2);
+  </script>
+
+  <include src="_partials/footer-script.html"></include>
+
+  <footer class="max-w-[1200px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
+    &copy; <span id="year"></span> Irfan Maulana &amp; Claude<br><span id="deploy-time"></span>
+  </footer>
+
+</body>
+</html>

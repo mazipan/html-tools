@@ -355,6 +355,40 @@
       "maxWidth": "1200px"
     },
     {
+      "slug": "image-cropper",
+      "name": "Image Cropper",
+      "icon": "✂️",
+      "category": "Image",
+      "description": "Crop any image to a region by dragging a crop box. Aspect-ratio presets (1:1, 4:3, 16:9, custom), numeric inputs, optional resize-on-export. Runs entirely in your browser.",
+      "faqs": [
+        {
+          "q": "Does my image ever leave my computer?",
+          "a": "No. Cropping and encoding both happen locally in your browser via a Web Worker — nothing is uploaded."
+        },
+        {
+          "q": "Can I crop multiple images at once?",
+          "a": "No — cropping is per-image because you're picking a region by hand. For bulk pixel changes that don't need manual framing, see the resizer or compressor."
+        },
+        {
+          "q": "How do I lock to a square (or other) aspect ratio?",
+          "a": "Pick a ratio in the toolbar — 1:1, 4:3, 3:2, 16:9, 9:16, the original ratio of the source, or a custom W:H pair. Edge handles disappear when a ratio is locked; only corners are draggable."
+        },
+        {
+          "q": "Will the orientation of my iPhone photo be respected?",
+          "a": "Yes — we read the EXIF orientation flag when decoding so portrait photos don't crop sideways."
+        },
+        {
+          "q": "Can I crop and resize in one shot?",
+          "a": "Yes. Toggle \"Resize output\" and set a long-edge size; we crop first, then downscale to that size before encoding."
+        },
+        {
+          "q": "What about animated GIFs?",
+          "a": "We crop the first frame only. If you need to crop every frame, that's a different tool — we don't support it here."
+        }
+      ],
+      "maxWidth": "1200px"
+    },
+    {
       "slug": "image-converter",
       "name": "Image Format Converter",
       "icon": "🖼️",
