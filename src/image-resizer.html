@@ -181,34 +181,14 @@
 
       <!-- Exact mode panel -->
       <div class="mode-panel mt-4" data-panel="exact">
-        <div class="grid gap-4 md:grid-cols-2">
-          <div>
-            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Target size</label>
-            <div class="flex items-center gap-2 text-sm text-gray-400 flex-wrap">
-              W <input id="exact-w" type="number" min="1" max="20000" value="1200" class="num-input" aria-label="Target width in pixels">
-              <span>×</span>
-              H <input id="exact-h" type="number" min="1" max="20000" value="630"  class="num-input" aria-label="Target height in pixels">
-            </div>
-            <label class="switch mt-2.5"><input id="exact-lock-aspect" type="checkbox" checked><span>Lock aspect ratio</span></label>
-            <p class="text-[0.7rem] text-gray-600 mt-1">When on, editing one dimension auto-fills the other so the ratio captured at toggle-on stays constant.</p>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Fit</label>
-            <div role="radiogroup" aria-label="Fit" class="flex flex-wrap gap-1.5">
-              <button class="pill" data-fit="contain" type="button" role="radio">contain</button>
-              <button class="pill" data-fit="cover"   type="button" role="radio">cover</button>
-              <button class="pill" data-fit="stretch" type="button" role="radio">stretch</button>
-            </div>
-            <div id="bg-row" class="mt-2.5 flex flex-wrap items-center gap-2 text-xs text-gray-500">
-              <span>Background (contain):</span>
-              <button class="pill" data-bg="#ffffff"    type="button"><span class="swatch" style="background:#fff"></span>&nbsp;White</button>
-              <button class="pill" data-bg="#000000"    type="button"><span class="swatch" style="background:#000"></span>&nbsp;Black</button>
-              <button class="pill" data-bg="transparent" type="button">Transparent</button>
-              <input id="bg-custom" type="color" value="#ffffff" class="w-9 h-8 rounded border border-gray-700 bg-transparent cursor-pointer" title="Pick a custom background color">
-            </div>
-            <p class="text-[0.7rem] text-gray-600 mt-1.5">Transparent only applies to PNG / WebP output.</p>
-          </div>
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Target size</label>
+        <div class="flex items-center gap-2 text-sm text-gray-400 flex-wrap">
+          W <input id="exact-w" type="number" min="1" max="20000" value="1200" class="num-input" aria-label="Target width in pixels">
+          <span>×</span>
+          H <input id="exact-h" type="number" min="1" max="20000" value="630"  class="num-input" aria-label="Target height in pixels">
         </div>
+        <label class="switch mt-2.5"><input id="exact-lock-aspect" type="checkbox" checked><span>Lock aspect ratio</span></label>
+        <p class="text-[0.7rem] text-gray-600 mt-1">When on, editing one dimension auto-fills the other so the ratio captured at toggle-on stays constant. Source is always cropped from the center to fill the target.</p>
       </div>
 
       <!-- Max mode panel -->
@@ -291,8 +271,6 @@
     const exactLockAspect   = document.getElementById('exact-lock-aspect');
     const scaleEl           = document.getElementById('scale');
     const scaleVal          = document.getElementById('scale-val');
-    const bgCustom          = document.getElementById('bg-custom');
-    const bgRow             = document.getElementById('bg-row');
     const presetsSection    = document.getElementById('presets-section');
 
     const support = {
@@ -314,7 +292,7 @@
     const settings = {
       mode: 'percent',
       max:    { maxW: 1600, maxH: 1600, keepAspect: true },
-      exact:  { targetW: 1200, targetH: 630, fit: 'cover', background: '#ffffff', lockAspect: true, lockRatio: 1200 / 630 },
+      exact:  { targetW: 1200, targetH: 630, lockAspect: true, lockRatio: 1200 / 630 },
       percent:{ scale: 50 },
       format: 'same',
       quality: 0.92,
@@ -368,6 +346,7 @@
       const unlockedExact = settings.mode === 'exact' && !settings.exact.lockAspect;
       presetsSection.classList.toggle('hidden', !(unlockedMax || unlockedExact));
     }
+
     document.querySelectorAll('.pill[data-mode]').forEach(p => {
       p.addEventListener('click', () => {
         settings.mode = p.dataset.mode;
@@ -414,36 +393,12 @@
       }
       syncPresetsVisibility();
     });
-    function syncFitPills() {
-      document.querySelectorAll('.pill[data-fit]').forEach(p => {
-        p.classList.toggle('on', p.dataset.fit === settings.exact.fit);
-        p.setAttribute('aria-checked', p.dataset.fit === settings.exact.fit ? 'true' : 'false');
-      });
-      bgRow.style.display = settings.exact.fit === 'contain' ? '' : 'none';
-    }
-    document.querySelectorAll('.pill[data-fit]').forEach(p => {
-      p.addEventListener('click', () => {
-        settings.exact.fit = p.dataset.fit;
-        syncFitPills();
-        scheduleResize();
-      });
-    });
-
-    function syncBgPills() {
-      document.querySelectorAll('.pill[data-bg]').forEach(p => {
-        p.classList.toggle('on', settings.exact.background.toLowerCase() === p.dataset.bg.toLowerCase());
-      });
-      if (settings.exact.background !== 'transparent') bgCustom.value = settings.exact.background;
-    }
-    document.querySelectorAll('.pill[data-bg]').forEach(p => {
-      p.addEventListener('click', () => {
-        settings.exact.background = p.dataset.bg;
-        syncBgPills();
-        scheduleResize();
-      });
-    });
-    bgCustom.addEventListener('input',  () => { settings.exact.background = bgCustom.value; syncBgPills(); });
-    bgCustom.addEventListener('change', () => scheduleResize());
+    // Fit is hardcoded to `cover` — the encoder always crops from the
+    // center to fill the target. The contain / stretch / background-color
+    // controls were removed because they're not what people reach for in
+    // typical "resize to these dimensions" workflows. If letterbox-with-bg
+    // is genuinely needed, the converter still exposes background, and Max
+    // mode + Lock aspect ratio + a larger box approximates the contain case.
 
     // ── Percent mode controls ─────────────────────────────────────
     scaleEl.addEventListener('input', () => {
@@ -482,8 +437,6 @@
       }
       pushSettingsToUi();
       syncModePills();
-      syncFitPills();
-      syncBgPills();
       scheduleResize();
     }
 
@@ -570,10 +523,7 @@
         Object.assign(base, {
           targetW: settings.exact.targetW,
           targetH: settings.exact.targetH,
-          fit: settings.exact.fit,
-          background: (format === 'jpeg' && settings.exact.background === 'transparent')
-            ? '#ffffff'
-            : settings.exact.background,
+          fit: 'cover', // resizer always center-crops to the target; worker handles JPEG-on-alpha bg internally
         });
       } else {
         Object.assign(base, { scale: settings.percent.scale });
@@ -810,11 +760,7 @@
     function heroPreviewStyle(item) {
       if (settings.mode === 'exact'
         && settings.exact.targetW && settings.exact.targetH) {
-        const fit = settings.exact.fit;
-        const cssFit = fit === 'stretch' ? 'fill' : fit;
-        const bg = (fit === 'contain' && settings.exact.background && settings.exact.background !== 'transparent')
-          ? `;background:${settings.exact.background}` : '';
-        return `aspect-ratio:${settings.exact.targetW}/${settings.exact.targetH};object-fit:${cssFit}${bg}`;
+        return `aspect-ratio:${settings.exact.targetW}/${settings.exact.targetH};object-fit:cover`;
       }
       if (item.srcW && item.srcH) {
         return `aspect-ratio:${item.srcW}/${item.srcH};object-fit:cover`;
@@ -1097,8 +1043,6 @@
     // Initial UI sync
     pushSettingsToUi();
     syncModePills();
-    syncFitPills();
-    syncBgPills();
     syncFormatPills();
     qualityVal.textContent = parseFloat(qualityEl.value).toFixed(2);
     if (!support.webp && settings.format === 'webp') settings.format = 'png';
