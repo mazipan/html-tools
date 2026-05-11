@@ -116,10 +116,10 @@
       <p class="mt-1.5 text-sm text-gray-500">Paste a URL or raw HTML and see how it renders as a Google, Twitter, Facebook, LinkedIn, WhatsApp, and Telegram preview card.</p>
     </header>
 
-    <!-- Mode tabs -->
+    <!-- Mode toggle -->
     <div class="flex gap-2 mb-4">
-      <button id="tab-url" class="tab-btn" onclick="setMode('url')">🌐 URL</button>
-      <button id="tab-html" class="tab-btn" onclick="setMode('html')">📄 Raw HTML</button>
+      <button id="tab-url" class="chip" onclick="setMode('url')">🌐 URL</button>
+      <button id="tab-html" class="chip" onclick="setMode('html')">📄 Raw HTML</button>
     </div>
 
     <!-- URL input panel -->
@@ -256,8 +256,8 @@
       mode = m;
       document.getElementById('panel-url').classList.toggle('hidden', m !== 'url');
       document.getElementById('panel-html').classList.toggle('hidden', m !== 'html');
-      document.getElementById('tab-url').classList.toggle('btn-active', m === 'url');
-      document.getElementById('tab-html').classList.toggle('btn-active', m === 'html');
+      document.getElementById('tab-url').classList.toggle('on', m === 'url');
+      document.getElementById('tab-html').classList.toggle('on', m === 'html');
     }
 
     setMode('url');
