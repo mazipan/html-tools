@@ -242,6 +242,26 @@
           </div>
           <div id="bg-grad-panel">
             <div id="grad-grid" class="grad-grid"></div>
+            <details class="disclosure mt-2" id="custom-grad-disclosure">
+              <summary>🎨 Custom gradient</summary>
+              <div class="disclosure-content"><div class="disclosure-body">
+                <div class="toolbar" style="flex-wrap: nowrap; gap: 0.6rem;">
+                  <label class="flex items-center gap-1 text-xs text-gray-400">
+                    Start
+                    <input id="custom-grad-start" type="color" class="swatch-input" value="#1e3a8a">
+                  </label>
+                  <label class="flex items-center gap-1 text-xs text-gray-400">
+                    End
+                    <input id="custom-grad-end" type="color" class="swatch-input" value="#0f172a">
+                  </label>
+                  <label class="flex items-center gap-1 text-xs text-gray-400">
+                    Angle
+                    <input id="custom-grad-angle" type="range" class="range" min="0" max="360" value="90" step="15" style="width:60px;">
+                    <span id="custom-grad-angle-val" class="text-gray-500 tabular-nums" style="min-width:2.5em;">90°</span>
+                  </label>
+                </div>
+              </div></div>
+            </details>
           </div>
           <div id="bg-solid-panel" class="hidden">
             <div class="og-row">
@@ -444,6 +464,10 @@
       titleGap: 16,                // px between title baseline-bottom and subtitle
       bgMode: 'gradient',       // 'gradient' | 'solid'
       bgGradient: 0,             // index into GRADIENTS
+      bgCustom: false,           // when true, use custom stops/angle instead of GRADIENTS[bgGradient]
+      bgCustomStart: '#1e3a8a',
+      bgCustomEnd: '#0f172a',
+      bgCustomAngle: 90,
       bgSolid: '#0b1220',
       titleColor: '#ffffff',
       badgeColor: '#60a5fa',
@@ -482,7 +506,9 @@
 
     function paintBackground(c) {
       if (state.bgMode === 'gradient') {
-        const g = GRADIENTS[state.bgGradient];
+        const g = state.bgCustom
+          ? { angle: state.bgCustomAngle, stops: [state.bgCustomStart, state.bgCustomEnd] }
+          : GRADIENTS[state.bgGradient];
         // angle 90 = horizontal left→right; 0 = top→bottom
         const rad = (g.angle - 90) * Math.PI / 180;
         const cx = W / 2, cy = H / 2;
@@ -750,9 +776,10 @@
         tile.title = g.name;
         tile.setAttribute('aria-label', g.name);
         tile.style.background = `linear-gradient(90deg, ${g.stops.join(', ')})`;
-        if (i === state.bgGradient) tile.classList.add('on');
+        if (!state.bgCustom && i === state.bgGradient) tile.classList.add('on');
         tile.addEventListener('click', () => {
           state.bgGradient = i;
+          state.bgCustom = false;
           grid.querySelectorAll('.grad-tile').forEach(t => t.classList.remove('on'));
           tile.classList.add('on');
           scheduleRender();
@@ -831,7 +858,7 @@
         subtitle: 'A short, punchy description.',
         titleSize: 100, titleWeight: 700,
         subtitleSize: 32, titleGap: 16,
-        bgMode: 'gradient', bgGradient: 0, // Midnight
+        bgMode: 'gradient', bgGradient: 0, bgCustom: false, // Midnight
         titleColor: '#ffffff', badgeColor: '#60a5fa',
         textShadow: false,
         font: "'Bricolage Grotesque', system-ui, sans-serif",
@@ -895,6 +922,10 @@
       $('title-gap').value = state.titleGap;
       $('title-gap-val').textContent = state.titleGap;
       $('bg-color').value = state.bgSolid;
+      $('custom-grad-start').value = state.bgCustomStart;
+      $('custom-grad-end').value   = state.bgCustomEnd;
+      $('custom-grad-angle').value = state.bgCustomAngle;
+      $('custom-grad-angle-val').textContent = state.bgCustomAngle + '°';
       $('bg-color-text').value = state.bgSolid;
       $('title-color').value = state.titleColor;
       $('badge-color').value = state.badgeColor;
@@ -941,6 +972,18 @@
           document.getElementById('bg-color').value = v;
           scheduleRender();
         }
+      });
+
+      // Custom gradient — any change activates custom mode and deselects presets.
+      function activateCustom() {
+        state.bgCustom = true;
+        document.querySelectorAll('#grad-grid .grad-tile').forEach(t => t.classList.remove('on'));
+      }
+      bind('custom-grad-start', 'bgCustomStart', v => v, activateCustom);
+      bind('custom-grad-end',   'bgCustomEnd',   v => v, activateCustom);
+      bind('custom-grad-angle', 'bgCustomAngle', v => +v, () => {
+        document.getElementById('custom-grad-angle-val').textContent = state.bgCustomAngle + '°';
+        activateCustom();
       });
       bind('title-color', 'titleColor');
       bind('badge-color', 'badgeColor');
