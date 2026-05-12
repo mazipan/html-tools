@@ -66,7 +66,8 @@ if (mapFiles.length) log(`🗑️  removed ${mapFiles.length} source map file${m
 copyFileSync(resolve(root, 'src/robots.txt'), resolve(distDir, 'robots.txt'));
 copyFileSync(resolve(root, 'src/_headers'), resolve(distDir, '_headers'));
 copyFileSync(resolve(root, 'src/og-image.png'), resolve(distDir, 'og-image.png'));
-log('📥 copied static assets — robots.txt, _headers, og-image.png');
+copyFileSync(resolve(root, 'src/BingSiteAuth.xml'), resolve(distDir, 'BingSiteAuth.xml'));
+log('📥 copied static assets — robots.txt, _headers, og-image.png, BingSiteAuth.xml');
 
 // Inline js-yaml's UMD bundle into json-to-yaml.html. Parcel's bundler
 // can't split js-yaml's internal ES modules into a classic script and
