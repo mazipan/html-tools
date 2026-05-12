@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <include src="_partials/meta-base.html"></include>
+  <title>Code Snippet to Image — HTML Tools</title>
+  <meta name="description" content="Turn a code snippet into a sharable PNG card — paste code, pick a language and a VS Code theme, tweak window chrome and padding, export as PNG. Runs in your browser, no tracking.">
+  <link rel="canonical" href="https://tools.mazipan.space/snippet-to-image">
+  <meta property="og:title" content="Code Snippet to Image — HTML Tools">
+  <meta property="og:description" content="Turn a code snippet into a sharable PNG card — paste code, pick a language and a VS Code theme, tweak window chrome and padding, export as PNG. Runs in your browser, no tracking.">
+  <meta property="og:url" content="https://tools.mazipan.space/snippet-to-image">
+  <meta name="twitter:title" content="Code Snippet to Image — HTML Tools">
+  <meta name="twitter:description" content="Turn a code snippet into a sharable PNG card — paste code, pick a language and a VS Code theme, tweak window chrome and padding, export as PNG. Runs in your browser, no tracking.">
+  <include src="_partials/meta-social.html"></include>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-snippet-to-image.png">
+  <include src="_partials/head-fonts.html"></include>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Two-column layout — controls left, preview right; collapses on mobile. */
+    .snip-layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .snip-layout { grid-template-columns: 1fr; }
+    }
+
+    /* Sticky preview stage. */
+    .snip-stage {
+      position: sticky;
+      top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .snip-canvas-wrap {
+      width: 100%;
+      background: var(--bg-elevated, #0b1220);
+      border: 1px solid #1f2937;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 240px;
+    }
+    /* Checkerboard for transparent backgrounds — same idea as image-cropper. */
+    .snip-canvas-wrap.transparent {
+      background:
+        linear-gradient(45deg, #1f2937 25%, transparent 25%),
+        linear-gradient(-45deg, #1f2937 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #1f2937 75%),
+        linear-gradient(-45deg, transparent 75%, #1f2937 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+    }
+    .snip-canvas-wrap canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+    .snip-loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      background: rgba(11, 18, 32, 0.85);
+      color: #d1d5db;
+      font-size: 0.8rem;
+      backdrop-filter: blur(2px);
+      z-index: 1;
+    }
+    .snip-loading.hidden { display: none; }
+    .snip-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid #374151;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: snip-spin 0.6s linear infinite;
+    }
+    @keyframes snip-spin { to { transform: rotate(360deg); } }
+
+    /* Section labels on the controls column. */
+    .snip-section { margin-bottom: 1rem; }
+    .snip-section > .snip-section-label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.4rem;
+    }
+
+    /* Gradient picker — small swatches in a scrollable grid. */
+    .grad-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.4rem;
+      max-height: 10rem;
+      overflow-y: auto;
+      padding: 0.25rem;
+      border: 1px solid #1f2937;
+      border-radius: 0.5rem;
+      background: color-mix(in srgb, #111827 50%, transparent);
+    }
+    .grad-tile {
+      aspect-ratio: 16 / 9;
+      border-radius: 0.35rem;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.1s, border-color 0.1s;
+    }
+    .grad-tile:hover { transform: scale(1.05); }
+    .grad-tile.on { border-color: var(--accent); }
+
+    /* The code textarea uses a tighter / monospace look. */
+    .code-input {
+      width: 100%;
+      min-height: 220px;
+      max-height: 480px;
+      resize: vertical;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      padding: 0.6rem 0.75rem;
+      background: #0b1220;
+      color: #e5e7eb;
+      border: 1px solid #1f2937;
+      border-radius: 0.5rem;
+      tab-size: 2;
+    }
+    .code-input:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+      border-color: var(--accent);
+    }
+
+    /* Restyle native color input. */
+    input[type="color"].swatch-input {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 2rem;
+      height: 2rem;
+      padding: 0;
+      border: 1px solid #374151;
+      border-radius: 0.4rem;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="color"].swatch-input::-webkit-color-swatch-wrapper { padding: 2px; }
+    input[type="color"].swatch-input::-webkit-color-swatch { border: none; border-radius: 4px; }
+    input[type="color"].swatch-input::-moz-color-swatch { border: none; border-radius: 4px; }
+  </style>
+  <include src="_partials/head-theme.html"></include>
+  <!-- BEGIN:json-ld generated by scripts/generate-sections.mjs — re-run after editing tools.json -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Code Snippet to Image","url":"https://tools.mazipan.space/snippet-to-image","description":"Turn a code snippet into a sharable PNG card — paste code, pick a language and a VS Code theme, tweak window chrome and padding, export as PNG. Runs in your browser, no tracking.","applicationCategory":"DeveloperApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"isPartOf":{"@type":"WebSite","name":"HTML Tools","url":"https://tools.mazipan.space/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"HTML Tools","item":"https://tools.mazipan.space/"},{"@type":"ListItem","position":2,"name":"Code Snippet to Image","item":"https://tools.mazipan.space/snippet-to-image"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does my code ever leave my browser?","acceptedAnswer":{"@type":"Answer","text":"No. Tokenization (via Shiki and a JavaScript regex engine), canvas layout, and PNG encoding all run locally. There's no upload, no server, no third-party API."}},{"@type":"Question","name":"Why does my snippet look identical to VS Code?","acceptedAnswer":{"@type":"Answer","text":"We use Shiki, which uses the same TextMate grammars and theme JSON files that VS Code uses. The colors and tokenization match VS Code byte-for-byte."}},{"@type":"Question","name":"Why does switching to a new language or theme briefly show a spinner?","acceptedAnswer":{"@type":"Answer","text":"Each grammar and theme is a separate file loaded on demand to keep the initial page small. Once loaded they're cached in memory for the rest of the session."}},{"@type":"Question","name":"Why is my language not on the list?","acceptedAnswer":{"@type":"Answer","text":"We ship a curated set of grammars to keep the page light. Open an issue on GitHub and we'll add it."}},{"@type":"Question","name":"Can I export with a transparent background?","acceptedAnswer":{"@type":"Answer","text":"Yes — pick Transparent under Background. The PNG is saved with an alpha channel so the card sits on whatever surface you drop it on."}}]}</script>
+  <!-- END:json-ld -->
+
+</head>
+<body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+
+  <header class="border-b border-gray-800 px-6 py-4">
+    <nav aria-label="Breadcrumb" class="max-w-[1400px] mx-auto flex items-center gap-3">
+      <a href="index.html" class="no-underline text-white font-bold text-lg tracking-tight hover:text-blue-400 transition-colors">HTML Tools</a>
+      <span class="text-gray-700">/</span>
+      <span class="text-gray-400 text-sm flex items-center gap-1.5" aria-current="page">📸 Code Snippet to Image</span>
+    </nav>
+  </header>
+
+  <main class="max-w-[1400px] mx-auto w-full flex-1 py-8 px-6">
+
+    <header class="mb-7">
+      <h1 class="text-3xl font-bold text-white flex items-center gap-3">📸 Code Snippet to Image</h1>
+      <p class="mt-1.5 text-sm text-gray-500">Paste code, pick a language and a VS Code theme, tweak window chrome and padding, export as PNG. Highlighting is VS Code-grade via Shiki; nothing leaves your browser.</p>
+    </header>
+
+    <div class="snip-layout">
+
+      <!-- ── Controls column ────────────────────────────────────── -->
+      <div>
+
+        <!-- Code -->
+        <div class="snip-section">
+          <label for="code-input" class="snip-section-label">Code</label>
+          <textarea id="code-input" class="code-input" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+          <div class="toolbar mt-2" style="gap: 0.5rem;">
+            <button type="button" class="btn btn-secondary" id="btn-sample">🎲 Random sample</button>
+            <button type="button" class="btn btn-secondary" id="btn-reset">🗑️ Clear</button>
+          </div>
+        </div>
+
+        <!-- Source (collapsible) -->
+        <details class="disclosure mb-4">
+          <summary>📝 Source</summary>
+          <div class="disclosure-content"><div class="disclosure-body">
+            <div class="toolbar" style="gap: 0.5rem;">
+              <label class="flex items-center gap-1.5 text-xs text-gray-400" style="flex:1;">
+                Language
+                <select id="lang-select" class="select" style="flex:1; min-width:0;"></select>
+              </label>
+            </div>
+            <div class="toolbar mt-2" style="gap: 0.5rem;">
+              <label class="flex items-center gap-1.5 text-xs text-gray-400" style="flex:1;">
+                Theme
+                <select id="theme-select" class="select" style="flex:1; min-width:0;"></select>
+              </label>
+            </div>
+            <div class="toolbar mt-2" style="gap: 0.5rem;">
+              <label class="flex items-center gap-1.5 text-xs text-gray-400" style="flex:1;">
+                Font
+                <select id="font-family" class="select" style="flex:1; min-width:0;">
+                  <option value="ibm-plex-mono" selected>IBM Plex Mono</option>
+                  <option value="jetbrains-mono">JetBrains Mono</option>
+                  <option value="fira-code">Fira Code</option>
+                </select>
+              </label>
+            </div>
+          </div></div>
+        </details>
+
+        <!-- Window chrome (collapsible) -->
+        <details class="disclosure mb-4">
+          <summary>🪟 Window</summary>
+          <div class="disclosure-content"><div class="disclosure-body">
+            <div class="toolbar" style="gap: 0.5rem;">
+              <label class="flex items-center gap-1.5 text-xs text-gray-400">
+                Chrome
+                <select id="chrome-select" class="select">
+                  <option value="none">None</option>
+                  <option value="dots" selected>macOS dots</option>
+                  <option value="title">Title bar</option>
+                </select>
+              </label>
+            </div>
+            <div id="filename-row" class="toolbar mt-2 hidden">
+              <input id="filename-input" type="text" class="input input-mono" placeholder="example.ts" style="flex:1;">
+            </div>
+            <div class="toolbar mt-2" style="gap: 0.75rem;">
+              <label class="flex items-center gap-1.5 text-xs text-gray-400">
+                Radius
+                <select id="radius-select" class="select">
+                  <option value="0">0</option>
+                  <option value="8">8</option>
+                  <option value="12" selected>12</option>
+                  <option value="16">16</option>
+                </select>
+              </label>
+              <label class="switch text-xs">
+                <input type="checkbox" id="shadow-toggle" checked>
+                <span>Shadow</span>
+              </label>
+            </div>
+            <div id="shadow-row" class="toolbar mt-2">
+              <label class="flex items-center gap-1.5 text-xs text-gray-400" style="flex:1;">
+                Shadow intensity
+                <input id="shadow-range" type="range" class="range" min="0" max="100" value="55" style="flex:1;">
+                <span id="shadow-val" class="text-gray-500 tabular-nums" style="min-width:2.5em;">55</span>
+              </label>
+            </div>
+          </div></div>
+        </details>
+
+        <!-- Background (collapsible) -->
+        <details class="disclosure mb-4">
+          <summary>🎨 Background</summary>
+          <div class="disclosure-content"><div class="disclosure-body">
+            <div class="flex gap-1 mb-2 border-b border-gray-800">
+              <button type="button" id="tab-bg-grad" class="tab-btn tab-btn-active" data-bg="gradient">🎨 Gradient</button>
+              <button type="button" id="tab-bg-solid" class="tab-btn" data-bg="solid">⬛ Solid</button>
+              <button type="button" id="tab-bg-none"  class="tab-btn" data-bg="transparent">⬚ Transparent</button>
+            </div>
+            <div id="bg-grad-panel">
+              <div id="grad-grid" class="grad-grid"></div>
+            </div>
+            <div id="bg-solid-panel" class="hidden">
+              <div class="toolbar">
+                <input id="bg-solid-color" type="color" class="swatch-input" value="#0b1220">
+                <input id="bg-solid-text"  type="text"  class="input input-mono" value="#0b1220" style="flex:1;">
+              </div>
+            </div>
+          </div></div>
+        </details>
+
+        <!-- Layout (collapsible) -->
+        <details class="disclosure mb-4">
+          <summary>📐 Layout</summary>
+          <div class="disclosure-content"><div class="disclosure-body">
+            <div class="toolbar" style="gap: 0.75rem;">
+              <label class="flex items-center gap-1.5 text-xs text-gray-400">
+                Outer pad
+                <input id="pad-outer" type="range" class="range" min="0" max="120" value="14" style="width:70px;">
+                <span id="pad-outer-val" class="text-gray-500 tabular-nums" style="min-width:2em;">14</span>
+              </label>
+              <label class="flex items-center gap-1.5 text-xs text-gray-400">
+                Inner pad
+                <input id="pad-inner" type="range" class="range" min="8" max="48" value="14" style="width:70px;">
+                <span id="pad-inner-val" class="text-gray-500 tabular-nums" style="min-width:2em;">14</span>
+              </label>
+            </div>
+            <div class="toolbar mt-2" style="gap: 0.75rem;">
+              <label class="flex items-center gap-1.5 text-xs text-gray-400">
+                Font size
+                <input id="font-size" type="range" class="range" min="12" max="22" value="14" style="width:70px;">
+                <span id="font-size-val" class="text-gray-500 tabular-nums" style="min-width:2em;">14</span>
+              </label>
+              <label class="flex items-center gap-1.5 text-xs text-gray-400">
+                Line height
+                <select id="line-height" class="select">
+                  <option value="1.0">Tightest</option>
+                  <option value="1.2">Tighter</option>
+                  <option value="1.35">Tight</option>
+                  <option value="1.5" selected>Normal</option>
+                  <option value="1.7">Loose</option>
+                  <option value="1.9">Looser</option>
+                </select>
+              </label>
+            </div>
+            <div class="toolbar mt-2" style="gap: 0.75rem;">
+              <label class="switch text-xs">
+                <input type="checkbox" id="line-numbers">
+                <span>Line numbers</span>
+              </label>
+              <label class="flex items-center gap-1.5 text-xs text-gray-400">
+                Width
+                <select id="width-preset" class="select">
+                  <option value="auto" selected>Auto-fit</option>
+                  <option value="1600">Twitter 1600</option>
+                  <option value="1080">Square 1080</option>
+                </select>
+              </label>
+            </div>
+          </div></div>
+        </details>
+
+      </div>
+
+      <!-- ── Canvas + export ───────────────────────────────────── -->
+      <div class="snip-stage">
+        <div id="canvas-wrap" class="snip-canvas-wrap">
+          <canvas id="snip-canvas" aria-label="Code snippet preview"></canvas>
+          <div id="loading-overlay" class="snip-loading"><span class="snip-spinner" aria-hidden="true"></span><span>Loading highlighter…</span></div>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <button class="btn btn-primary" id="btn-copy">📋 Copy PNG</button>
+          <button class="btn btn-secondary" id="btn-download">⬇️ Download PNG</button>
+          <span id="export-status" class="text-xs text-gray-500" aria-live="polite"></span>
+          <span class="ml-auto text-xs text-gray-600 tabular-nums" id="size-readout">— × —</span>
+        </div>
+      </div>
+
+    </div>
+
+    <section class="mt-12 grid gap-6 md:grid-cols-2">
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">About Code Snippet to Image</h2>
+        <p class="text-gray-400 leading-relaxed">Paste a snippet, pick a language and theme, and get a sharable PNG card — the same idea as Carbon, ray.so, or CodeImage, but entirely in your browser. Highlighting goes through <a href="https://shiki.style/" rel="noreferrer noopener" target="_blank" class="text-blue-400 hover:underline">Shiki</a>, which uses the exact TextMate grammars and theme JSON files VS Code ships, so the result reads identically to what you see in your editor.</p>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">How to use</h2>
+        <ol class="text-gray-400 leading-relaxed space-y-2 list-decimal list-inside">
+          <li>Paste or type code in the editor — Tab inserts two spaces, like most code editors.</li>
+          <li>Pick the matching <strong class="text-gray-300">Language</strong> and a <strong class="text-gray-300">Theme</strong>; the canvas re-renders live.</li>
+          <li>Adjust <strong class="text-gray-300">Window</strong> chrome, <strong class="text-gray-300">Background</strong> (gradient, solid, or transparent), padding, and font size.</li>
+          <li>Hit <strong class="text-gray-300">Copy PNG</strong> for the clipboard, or <strong class="text-gray-300">Download PNG</strong> to save a file.</li>
+        </ol>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">Common use cases</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Screenshots for blog posts, slides, or release notes where you want syntax-aware highlighting.</li>
+          <li>Twitter / X / Bluesky cards showing a short function or config block.</li>
+          <li>Mock-up code samples for docs that need to look consistent across pages.</li>
+          <li>Pairing a code card with a <a href="og-image-builder.html" class="text-blue-400 hover:underline">title card</a> for a richer share image.</li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">Tips</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Keep snippets short — 30 lines or so. The card is most readable when each line is easy to scan at thumbnail size.</li>
+          <li>For dark social-card backgrounds, a Dracula / GitHub Dark theme reads better; for light cards, GitHub Light / Vitesse Light.</li>
+          <li>Switching the background to <em>Transparent</em> keeps the window chrome's shadow and exports a PNG with an alpha channel — drop it on any surface.</li>
+          <li>If your line wraps, drop the font size by one step or pick a wider preset.</li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+
+  <script type="module" src="snippet-to-image.js"></script>
+
+  <include src="_partials/footer-script.html"></include>
+
+  <!-- BEGIN:faq generated by scripts/generate-sections.mjs — re-run after editing tools.json -->
+  <section class="max-w-[1400px] mx-auto w-full px-6 py-8 border-t border-gray-800">
+    <h2 class="text-xl font-bold text-white mb-6">FAQ</h2>
+    <div class="space-y-2">
+      <details class="disclosure">
+        <summary>Does my code ever leave my browser?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">No. Tokenization (via Shiki and a JavaScript regex engine), canvas layout, and PNG encoding all run locally. There's no upload, no server, no third-party API.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>Why does my snippet look identical to VS Code?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">We use Shiki, which uses the same TextMate grammars and theme JSON files that VS Code uses. The colors and tokenization match VS Code byte-for-byte.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>Why does switching to a new language or theme briefly show a spinner?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">Each grammar and theme is a separate file loaded on demand to keep the initial page small. Once loaded they're cached in memory for the rest of the session.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>Why is my language not on the list?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">We ship a curated set of grammars to keep the page light. Open an issue on GitHub and we'll add it.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>Can I export with a transparent background?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">Yes — pick Transparent under Background. The PNG is saved with an alpha channel so the card sits on whatever surface you drop it on.</div></div>
+      </details>
+    </div>
+  </section>
+  <!-- END:faq -->
+
+  <!-- BEGIN:more-tools generated by scripts/generate-sections.mjs — re-run after editing tools.json -->
+  <section class="max-w-[1400px] mx-auto w-full px-6 py-8 border-t border-gray-800">
+    <h2 class="text-xl font-bold text-white mb-6">More tools</h2>
+    <div class="space-y-4">
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">JSON</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/json-formatter" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🗂️ JSON Formatter</a>
+          <a href="/json-to-ts" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔷 JSON to TypeScript</a>
+          <a href="/json-diff" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔍 JSON Diff</a>
+          <a href="/json-sort" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔤 JSON Sort</a>
+          <a href="/csv-to-json" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📊 JSON ↔ CSV</a>
+          <a href="/json-to-yaml" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📝 JSON ↔ YAML</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Code</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/regex-tester" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🧪 Regex Tester</a>
+          <a href="/svg-to-jsx" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">⚛️ SVG to JSX</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Visual</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/gradients" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🎨 Gradients</a>
+          <a href="/blob" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🫧 Blob Generator</a>
+          <a href="/waves" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">〰️ Wave Generator</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Image</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/image-compressor" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🗜️ Image Compressor</a>
+          <a href="/image-resizer" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📐 Image Resizer</a>
+          <a href="/image-cropper" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">✂️ Image Cropper</a>
+          <a href="/image-converter" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🖼️ Image Format Converter</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Web / SEO</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/meta-tag-preview" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔍 Meta Tag Preview</a>
+          <a href="/user-agent-parser" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🕵️ User Agent Parser</a>
+          <a href="/og-image-builder" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🖼️ OG Image Builder</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Time / Dates</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/cron-decoder" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">⏱️ Cron Decoder</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- END:more-tools -->
+
+  <footer class="max-w-[1400px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
+    <div>&copy; <span id="year"></span> <a href="https://mazipan.space" rel="noreferrer noopener" target="_blank" class="text-blue-400 transition-colors">Irfan Maulana</a> &amp; Claude</div>
+    <div><span id="deploy-time"></span></div>
+    <div><span id="commit-sha"></span><a href="https://github.com/mazipan/html-tools" rel="noreferrer noopener" target="_blank" class="text-blue-400 transition-colors">Source</a></div>
+  </footer>
+
+</body>
+</html>
