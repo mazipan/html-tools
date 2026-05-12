@@ -144,7 +144,7 @@ const state = {
   bgSolid: '#0b1220',
   padOuter: 14,
   padInner: 14,
-  fontSize: 15,
+  fontSize: 14,
   lineHeight: 1.5,
   fontFamily: 'ibm-plex-mono',  // key into FONT_STACK
   lineNumbers: false,
