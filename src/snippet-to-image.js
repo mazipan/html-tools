@@ -143,7 +143,7 @@ const state = {
   bgGradient: 10,          // Sunset (orange → pink) — index into GRADIENTS
   bgSolid: '#0b1220',
   padOuter: 14,
-  padInner: 20,
+  padInner: 14,
   fontSize: 15,
   lineHeight: 1.5,
   fontFamily: 'ibm-plex-mono',  // key into FONT_STACK
