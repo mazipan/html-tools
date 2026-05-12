@@ -266,24 +266,26 @@
           </div></div>
         </details>
 
-        <!-- Background -->
-        <div class="snip-section">
-          <label class="snip-section-label">Background</label>
-          <div class="flex gap-1 mb-2 border-b border-gray-800">
-            <button type="button" id="tab-bg-grad" class="tab-btn tab-btn-active" data-bg="gradient">🎨 Gradient</button>
-            <button type="button" id="tab-bg-solid" class="tab-btn" data-bg="solid">⬛ Solid</button>
-            <button type="button" id="tab-bg-none"  class="tab-btn" data-bg="transparent">⬚ Transparent</button>
-          </div>
-          <div id="bg-grad-panel">
-            <div id="grad-grid" class="grad-grid"></div>
-          </div>
-          <div id="bg-solid-panel" class="hidden">
-            <div class="toolbar">
-              <input id="bg-solid-color" type="color" class="swatch-input" value="#0b1220">
-              <input id="bg-solid-text"  type="text"  class="input input-mono" value="#0b1220" style="flex:1;">
+        <!-- Background (collapsible) -->
+        <details class="disclosure mb-4">
+          <summary>🎨 Background</summary>
+          <div class="disclosure-content"><div class="disclosure-body">
+            <div class="flex gap-1 mb-2 border-b border-gray-800">
+              <button type="button" id="tab-bg-grad" class="tab-btn tab-btn-active" data-bg="gradient">🎨 Gradient</button>
+              <button type="button" id="tab-bg-solid" class="tab-btn" data-bg="solid">⬛ Solid</button>
+              <button type="button" id="tab-bg-none"  class="tab-btn" data-bg="transparent">⬚ Transparent</button>
             </div>
-          </div>
-        </div>
+            <div id="bg-grad-panel">
+              <div id="grad-grid" class="grad-grid"></div>
+            </div>
+            <div id="bg-solid-panel" class="hidden">
+              <div class="toolbar">
+                <input id="bg-solid-color" type="color" class="swatch-input" value="#0b1220">
+                <input id="bg-solid-text"  type="text"  class="input input-mono" value="#0b1220" style="flex:1;">
+              </div>
+            </div>
+          </div></div>
+        </details>
 
         <!-- Layout (collapsible) -->
         <details class="disclosure mb-4">
