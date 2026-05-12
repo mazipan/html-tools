@@ -565,6 +565,36 @@
       "maxWidth": "1400px"
     },
     {
+      "slug": "snippet-to-image",
+      "name": "Code Snippet to Image",
+      "icon": "📸",
+      "category": "Code",
+      "description": "Turn a code snippet into a sharable PNG card — paste code, pick a language and a VS Code theme, tweak window chrome and padding, export as PNG. Runs in your browser, no tracking.",
+      "faqs": [
+        {
+          "q": "Does my code ever leave my browser?",
+          "a": "No. Tokenization (via Shiki and a JavaScript regex engine), canvas layout, and PNG encoding all run locally. There's no upload, no server, no third-party API."
+        },
+        {
+          "q": "Why does my snippet look identical to VS Code?",
+          "a": "We use Shiki, which uses the same TextMate grammars and theme JSON files that VS Code uses. The colors and tokenization match VS Code byte-for-byte."
+        },
+        {
+          "q": "Why does switching to a new language or theme briefly show a spinner?",
+          "a": "Each grammar and theme is a separate file loaded on demand to keep the initial page small. Once loaded they're cached in memory for the rest of the session."
+        },
+        {
+          "q": "Why is my language not on the list?",
+          "a": "We ship a curated set of grammars to keep the page light. Open an issue on GitHub and we'll add it."
+        },
+        {
+          "q": "Can I export with a transparent background?",
+          "a": "Yes — pick Transparent under Background. The PNG is saved with an alpha channel so the card sits on whatever surface you drop it on."
+        }
+      ],
+      "maxWidth": "1400px"
+    },
+    {
       "slug": "design-system",
       "name": "Design System",
       "icon": "🎛️",
