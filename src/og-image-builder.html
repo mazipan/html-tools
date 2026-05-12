@@ -407,26 +407,31 @@
     // that read well behind large text. Each entry: [name, angle, stops].
     // angle is canvas-space (0deg = top→bottom, 90deg = left→right).
     const GRADIENTS = [
-      { name: 'Midnight',    angle:  90, stops: ['#1e3a8a', '#1e293b'] },
-      { name: 'Sunset',      angle:  90, stops: ['#f97316', '#db2777'] },
-      { name: 'Ocean',       angle:  90, stops: ['#06b6d4', '#1e3a8a'] },
-      { name: 'Forest',      angle:  90, stops: ['#065f46', '#0f172a'] },
-      { name: 'Plum',        angle:  90, stops: ['#7e22ce', '#1e1b4b'] },
-      { name: 'Cosmic',      angle:  90, stops: ['#7c3aed', '#ec4899'] },
-      { name: 'Lime Punch',  angle:  90, stops: ['#84cc16', '#16a34a'] },
-      { name: 'Volcano',     angle:  90, stops: ['#7f1d1d', '#f59e0b'] },
-      { name: 'Pacific',     angle:  90, stops: ['#0ea5e9', '#22d3ee'] },
-      { name: 'Sakura',      angle:  90, stops: ['#fb7185', '#f9a8d4'] },
-      { name: 'Slate',       angle:  90, stops: ['#334155', '#0f172a'] },
-      { name: 'Carbon',      angle:  90, stops: ['#1f2937', '#111827'] },
-      { name: 'Tangerine',   angle:  90, stops: ['#f97316', '#fbbf24'] },
-      { name: 'Mint',        angle:  90, stops: ['#10b981', '#34d399'] },
-      { name: 'Royal',       angle:  90, stops: ['#1e40af', '#3b82f6'] },
-      { name: 'Berry',       angle:  90, stops: ['#9d174d', '#4c1d95'] },
-      { name: 'Aurora',      angle:  90, stops: ['#10b981', '#3b82f6'] },
-      { name: 'Coral Glow',  angle:  90, stops: ['#fb923c', '#f43f5e'] },
-      { name: 'Twilight',    angle:  90, stops: ['#1e3a8a', '#7c3aed'] },
-      { name: 'Charcoal',    angle:  90, stops: ['#0f172a', '#111827'] },
+      // Darks — one per hue family, well-separated.
+      { name: 'Midnight',  angle: 90, stops: ['#1e3a8a', '#0f172a'] },           // deep blue
+      { name: 'Charcoal',  angle: 90, stops: ['#374151', '#030712'] },           // neutral dark
+      { name: 'Plum',      angle: 90, stops: ['#7e22ce', '#1e1b4b'] },           // dark purple
+      { name: 'Forest',    angle: 90, stops: ['#065f46', '#042f2e'] },           // dark green
+      { name: 'Wine',      angle: 90, stops: ['#831843', '#18181b'] },           // dark burgundy
+      // Cool mid-tones — clear hue progressions.
+      { name: 'Ocean',     angle: 90, stops: ['#06b6d4', '#1e40af'] },           // cyan → blue
+      { name: 'Twilight',  angle: 90, stops: ['#1e40af', '#7c3aed'] },           // blue → violet
+      { name: 'Aurora',    angle: 90, stops: ['#10b981', '#3b82f6'] },           // green → blue
+      { name: 'Cosmic',    angle: 90, stops: ['#7c3aed', '#ec4899'] },           // violet → pink
+      { name: 'Magenta',   angle: 90, stops: ['#d946ef', '#7e22ce'] },           // fuchsia
+      // Warm mid-tones.
+      { name: 'Sunset',    angle: 90, stops: ['#f97316', '#db2777'] },           // orange → pink
+      { name: 'Volcano',   angle: 90, stops: ['#7f1d1d', '#f59e0b'] },           // maroon → amber
+      { name: 'Hyper',     angle: 90, stops: ['#ec4899', '#ef4444', '#facc15'] }, // 3-stop hot
+      { name: 'Cherry',    angle: 90, stops: ['#f43f5e', '#b91c1c'] },           // red
+      // Single-hue brights.
+      { name: 'Tangerine', angle: 90, stops: ['#f97316', '#fde047'] },           // orange → yellow
+      { name: 'Lime',      angle: 90, stops: ['#84cc16', '#059669'] },           // lime → emerald
+      { name: 'Tropic',    angle: 90, stops: ['#0d9488', '#a3e635'] },           // teal → lime
+      { name: 'Pacific',   angle: 90, stops: ['#0ea5e9', '#22d3ee'] },           // bright cyan
+      // Lights (good for dark text).
+      { name: 'Sakura',    angle: 90, stops: ['#fb7185', '#f9a8d4'] },           // soft pink
+      { name: 'Cream',     angle: 90, stops: ['#fed7aa', '#fef3c7'] },           // peach → cream
     ];
 
     // ── State ──────────────────────────────────────────────────────
