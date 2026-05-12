@@ -169,17 +169,26 @@ async function ensureFont(key) {
   if (!stack) return;
   const family = stack.match(/'([^']+)'/)?.[1] ?? 'monospace';
   const href = FONT_HREF[key];
+  // Wait for the stylesheet to actually parse — without this,
+  // document.fonts.load resolves immediately against an unknown family
+  // and canvas keeps rendering the monospace fallback.
   if (href && !loadedFontLinks.has(href)) {
     loadedFontLinks.add(href);
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    document.head.appendChild(link);
+    await new Promise(resolve => {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      link.onload = () => resolve();
+      link.onerror = () => resolve();
+      document.head.appendChild(link);
+    });
   }
   try {
-    await document.fonts.load(`${state.fontSize}px '${family}'`);
-    await document.fonts.load(`bold ${state.fontSize}px '${family}'`);
-    await document.fonts.load(`italic ${state.fontSize}px '${family}'`);
+    await Promise.all([
+      document.fonts.load(`${state.fontSize}px '${family}'`),
+      document.fonts.load(`bold ${state.fontSize}px '${family}'`),
+      document.fonts.load(`italic ${state.fontSize}px '${family}'`),
+    ]);
   } catch { /* fonts.load throws on garbage; let the canvas fall back */ }
 }
 
@@ -421,8 +430,13 @@ function renderPreview() {
   const dpr = window.devicePixelRatio || 1;
   canvas.width = Math.round(wCss * dpr);
   canvas.height = Math.round(hCss * dpr);
+  // `aspect-ratio` (paired with `max-width: 100%; height: auto` in CSS) lets the
+  // canvas shrink proportionally on narrow viewports — without it a px-valued
+  // style.height stays fixed while max-width clamps the width, stretching the
+  // image vertically.
   canvas.style.width = wCss + 'px';
-  canvas.style.height = hCss + 'px';
+  canvas.style.height = '';
+  canvas.style.aspectRatio = `${wCss} / ${hCss}`;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.scale(dpr, dpr);
   drawAll(ctx, { tokens: tokenized });
