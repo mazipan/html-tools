@@ -140,7 +140,7 @@ const state = {
   shadow: true,
   shadowIntensity: 55,
   bgMode: 'gradient',      // 'gradient' | 'solid' | 'transparent'
-  bgGradient: 0,
+  bgGradient: 10,          // Sunset (orange → pink) — index into GRADIENTS
   bgSolid: '#0b1220',
   padOuter: 20,
   padInner: 20,
