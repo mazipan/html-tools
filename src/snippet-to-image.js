@@ -142,12 +142,12 @@ const state = {
   bgMode: 'gradient',      // 'gradient' | 'solid' | 'transparent'
   bgGradient: 0,
   bgSolid: '#0b1220',
-  padOuter: 56,
+  padOuter: 20,
   padInner: 20,
   fontSize: 15,
   lineHeight: 1.5,
   fontFamily: 'ibm-plex-mono',  // key into FONT_STACK
-  lineNumbers: true,
+  lineNumbers: false,
   widthPreset: 'auto',     // 'auto' | '1600' | '1080'
 };
 
