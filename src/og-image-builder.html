@@ -186,7 +186,7 @@
             </label>
             <label class="switch text-xs">
               <input type="checkbox" id="text-shadow" checked>
-              <span>Drop shadow</span>
+              <span>Text shadow</span>
             </label>
           </div>
         </div>
@@ -267,7 +267,7 @@
         <details class="disclosure mb-4" id="pattern-disclosure">
           <summary>✨ Pattern (decoration)</summary>
           <div class="disclosure-content"><div class="disclosure-body">
-            <div class="toolbar">
+            <div class="toolbar" style="flex-wrap: nowrap; gap: 0.75rem;">
               <label class="flex items-center gap-1.5 text-xs text-gray-400">
                 Shape
                 <select id="pattern-type" class="select">
@@ -282,12 +282,11 @@
               </label>
               <label class="flex items-center gap-1.5 text-xs text-gray-400">
                 Density
-                <input id="pattern-density" type="range" class="range" min="10" max="600" value="60" style="width:80px;">
+                <input id="pattern-density" type="range" class="range" min="10" max="600" value="60" style="width:60px;">
                 <span id="pattern-density-val" class="text-gray-500 tabular-nums" style="min-width:2.5em;">60</span>
               </label>
-              <button type="button" class="btn btn-secondary" onclick="shufflePattern()" title="Re-seed the random layout">🔀 Shuffle</button>
             </div>
-            <p class="text-[0.7rem] text-gray-600 leading-snug mt-1.5">Drawn in the badge color at low opacity, behind the text.</p>
+            <button type="button" class="btn btn-secondary mt-2" onclick="shufflePattern()" title="Re-seed the random layout">🔀 Shuffle</button>
           </div></div>
         </details>
 
@@ -309,15 +308,15 @@
             </div>
             <input id="logo-file" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="hidden">
             <div class="toolbar mt-2">
-              <label class="flex items-center gap-1.5 text-xs text-gray-400">
+              <span class="flex items-center gap-1 text-xs text-gray-400">
                 Position
-                <select id="logo-pos" class="select">
-                  <option value="tl">Top left</option>
-                  <option value="tr" selected>Top right</option>
-                  <option value="bl">Bottom left</option>
-                  <option value="br">Bottom right</option>
-                </select>
-              </label>
+                <span id="logo-pos" class="flex gap-1 ml-1" role="radiogroup" aria-label="Logo position">
+                  <button type="button" class="chip" data-pos="tl" title="Top left">↖</button>
+                  <button type="button" class="chip on" data-pos="tr" title="Top right">↗</button>
+                  <button type="button" class="chip" data-pos="bl" title="Bottom left">↙</button>
+                  <button type="button" class="chip" data-pos="br" title="Bottom right">↘</button>
+                </span>
+              </span>
               <label class="flex items-center gap-1.5 text-xs text-gray-400">
                 Size
                 <input id="logo-size" type="range" class="range" min="40" max="160" value="96" style="width:80px;">
@@ -895,7 +894,9 @@
       $('title-color').value = state.titleColor;
       $('badge-color').value = state.badgeColor;
       $('text-shadow').checked = state.textShadow;
-      $('logo-pos').value = state.logoPos;
+      document.querySelectorAll('#logo-pos .chip').forEach(b => {
+        b.classList.toggle('on', b.dataset.pos === state.logoPos);
+      });
       $('logo-size').value = state.logoSize;
       $('logo-size-val').textContent = state.logoSize;
       $('domain-input').value = state.domain;
@@ -940,7 +941,15 @@
       bind('badge-color', 'badgeColor');
       const ts = document.getElementById('text-shadow');
       ts.addEventListener('change', () => { state.textShadow = ts.checked; scheduleRender(); });
-      bind('logo-pos', 'logoPos');
+      document.querySelectorAll('#logo-pos .chip').forEach(b => {
+        b.addEventListener('click', () => {
+          state.logoPos = b.dataset.pos;
+          document.querySelectorAll('#logo-pos .chip').forEach(x => {
+            x.classList.toggle('on', x === b);
+          });
+          scheduleRender();
+        });
+      });
       bind('logo-size', 'logoSize', v => +v, () => {
         document.getElementById('logo-size-val').textContent = state.logoSize;
       });
