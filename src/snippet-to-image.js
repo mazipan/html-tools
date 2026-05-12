@@ -752,15 +752,10 @@ $('btn-sample').addEventListener('click', async () => {
 });
 
 $('btn-reset').addEventListener('click', () => {
-  state.code = SAMPLE;
-  state.lang = 'typescript';
-  state.theme = 'github-dark';
-  codeInput.value = SAMPLE;
-  langSelect.value = 'typescript';
-  themeSelect.value = 'github-dark';
-  state.filename = 'example.ts';
-  filenameInput.value = state.filename;
-  changeLangOrTheme();
+  state.code = '';
+  codeInput.value = '';
+  codeInput.focus();
+  scheduleRetokenize();
 });
 
 // ── Export ───────────────────────────────────────────────────
