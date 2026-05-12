@@ -197,32 +197,34 @@
           </div>
         </div>
 
-        <!-- Source -->
-        <div class="snip-section">
-          <label class="snip-section-label">Source</label>
-          <div class="toolbar" style="gap: 0.5rem;">
-            <label class="flex items-center gap-1.5 text-xs text-gray-400" style="flex:1;">
-              Language
-              <select id="lang-select" class="select" style="flex:1; min-width:0;"></select>
-            </label>
-          </div>
-          <div class="toolbar mt-2" style="gap: 0.5rem;">
-            <label class="flex items-center gap-1.5 text-xs text-gray-400" style="flex:1;">
-              Theme
-              <select id="theme-select" class="select" style="flex:1; min-width:0;"></select>
-            </label>
-          </div>
-          <div class="toolbar mt-2" style="gap: 0.5rem;">
-            <label class="flex items-center gap-1.5 text-xs text-gray-400" style="flex:1;">
-              Font
-              <select id="font-family" class="select" style="flex:1; min-width:0;">
-                <option value="ibm-plex-mono" selected>IBM Plex Mono</option>
-                <option value="jetbrains-mono">JetBrains Mono</option>
-                <option value="fira-code">Fira Code</option>
-              </select>
-            </label>
-          </div>
-        </div>
+        <!-- Source (collapsible) -->
+        <details class="disclosure mb-4">
+          <summary>📝 Source</summary>
+          <div class="disclosure-content"><div class="disclosure-body">
+            <div class="toolbar" style="gap: 0.5rem;">
+              <label class="flex items-center gap-1.5 text-xs text-gray-400" style="flex:1;">
+                Language
+                <select id="lang-select" class="select" style="flex:1; min-width:0;"></select>
+              </label>
+            </div>
+            <div class="toolbar mt-2" style="gap: 0.5rem;">
+              <label class="flex items-center gap-1.5 text-xs text-gray-400" style="flex:1;">
+                Theme
+                <select id="theme-select" class="select" style="flex:1; min-width:0;"></select>
+              </label>
+            </div>
+            <div class="toolbar mt-2" style="gap: 0.5rem;">
+              <label class="flex items-center gap-1.5 text-xs text-gray-400" style="flex:1;">
+                Font
+                <select id="font-family" class="select" style="flex:1; min-width:0;">
+                  <option value="ibm-plex-mono" selected>IBM Plex Mono</option>
+                  <option value="jetbrains-mono">JetBrains Mono</option>
+                  <option value="fira-code">Fira Code</option>
+                </select>
+              </label>
+            </div>
+          </div></div>
+        </details>
 
         <!-- Window chrome (collapsible) -->
         <details class="disclosure mb-4">
