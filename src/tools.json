@@ -479,6 +479,36 @@
       "maxWidth": "1100px"
     },
     {
+      "slug": "user-agent-parser",
+      "name": "User Agent Parser",
+      "icon": "🕵️",
+      "category": "Web / SEO",
+      "description": "Paste a user-agent string and instantly see the browser, engine, OS, device type, and CPU architecture. Runs in your browser — no installs, no tracking.",
+      "faqs": [
+        {
+          "q": "Where does the pre-filled UA string come from?",
+          "a": "It's your own browser's navigator.userAgent — the exact value any website you visit would see. Edit it to test other UAs."
+        },
+        {
+          "q": "Why does Chrome on iOS show up as CriOS / 'Chrome (iOS)'?",
+          "a": "Apple requires every browser on iOS to use WebKit. CriOS / FxiOS / EdgiOS are the tokens Chrome / Firefox / Edge add on iOS so servers can still distinguish them, even though the engine is WebKit underneath."
+        },
+        {
+          "q": "Can it tell Windows 10 apart from Windows 11?",
+          "a": "Not reliably — Microsoft kept the UA at \"Windows NT 10.0\" for both. The tool shows \"Windows 10/11\" for that NT version. UA Client Hints (Sec-CH-UA-Platform-Version) can distinguish them, but those aren't present in a plain UA string."
+        },
+        {
+          "q": "Is the parser 100% accurate?",
+          "a": "UA strings are best-effort by design — browsers spoof each other for compatibility (Chrome includes 'Safari', Edge includes 'Chrome', etc.). The parser uses the priority order most servers do, but for high-stakes detection prefer UA Client Hints or feature detection."
+        },
+        {
+          "q": "Does my UA string leave my computer?",
+          "a": "No. Parsing happens entirely in your browser — the page is a single static HTML file with no network requests."
+        }
+      ],
+      "maxWidth": "1100px"
+    },
+    {
       "slug": "og-image-builder",
       "name": "OG Image Builder",
       "icon": "🖼️",
