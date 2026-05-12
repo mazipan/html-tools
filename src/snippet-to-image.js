@@ -142,7 +142,7 @@ const state = {
   bgMode: 'gradient',      // 'gradient' | 'solid' | 'transparent'
   bgGradient: 10,          // Sunset (orange → pink) — index into GRADIENTS
   bgSolid: '#0b1220',
-  padOuter: 20,
+  padOuter: 14,
   padInner: 20,
   fontSize: 15,
   lineHeight: 1.5,
