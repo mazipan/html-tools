@@ -212,47 +212,59 @@
               <select id="theme-select" class="select" style="flex:1; min-width:0;"></select>
             </label>
           </div>
+          <div class="toolbar mt-2" style="gap: 0.5rem;">
+            <label class="flex items-center gap-1.5 text-xs text-gray-400" style="flex:1;">
+              Font
+              <select id="font-family" class="select" style="flex:1; min-width:0;">
+                <option value="ibm-plex-mono" selected>IBM Plex Mono</option>
+                <option value="jetbrains-mono">JetBrains Mono</option>
+                <option value="fira-code">Fira Code</option>
+              </select>
+            </label>
+          </div>
         </div>
 
-        <!-- Window chrome -->
-        <div class="snip-section">
-          <label class="snip-section-label">Window</label>
-          <div class="toolbar" style="gap: 0.5rem;">
-            <label class="flex items-center gap-1.5 text-xs text-gray-400">
-              Chrome
-              <select id="chrome-select" class="select">
-                <option value="none">None</option>
-                <option value="dots" selected>macOS dots</option>
-                <option value="title">Title bar</option>
-              </select>
-            </label>
-          </div>
-          <div id="filename-row" class="toolbar mt-2 hidden">
-            <input id="filename-input" type="text" class="input input-mono" placeholder="example.ts" style="flex:1;">
-          </div>
-          <div class="toolbar mt-2" style="gap: 0.75rem;">
-            <label class="flex items-center gap-1.5 text-xs text-gray-400">
-              Radius
-              <select id="radius-select" class="select">
-                <option value="0">0</option>
-                <option value="8">8</option>
-                <option value="12" selected>12</option>
-                <option value="16">16</option>
-              </select>
-            </label>
-            <label class="switch text-xs">
-              <input type="checkbox" id="shadow-toggle" checked>
-              <span>Shadow</span>
-            </label>
-          </div>
-          <div id="shadow-row" class="toolbar mt-2">
-            <label class="flex items-center gap-1.5 text-xs text-gray-400" style="flex:1;">
-              Shadow intensity
-              <input id="shadow-range" type="range" class="range" min="0" max="100" value="55" style="flex:1;">
-              <span id="shadow-val" class="text-gray-500 tabular-nums" style="min-width:2.5em;">55</span>
-            </label>
-          </div>
-        </div>
+        <!-- Window chrome (collapsible) -->
+        <details class="disclosure mb-4">
+          <summary>🪟 Window</summary>
+          <div class="disclosure-content"><div class="disclosure-body">
+            <div class="toolbar" style="gap: 0.5rem;">
+              <label class="flex items-center gap-1.5 text-xs text-gray-400">
+                Chrome
+                <select id="chrome-select" class="select">
+                  <option value="none">None</option>
+                  <option value="dots" selected>macOS dots</option>
+                  <option value="title">Title bar</option>
+                </select>
+              </label>
+            </div>
+            <div id="filename-row" class="toolbar mt-2 hidden">
+              <input id="filename-input" type="text" class="input input-mono" placeholder="example.ts" style="flex:1;">
+            </div>
+            <div class="toolbar mt-2" style="gap: 0.75rem;">
+              <label class="flex items-center gap-1.5 text-xs text-gray-400">
+                Radius
+                <select id="radius-select" class="select">
+                  <option value="0">0</option>
+                  <option value="8">8</option>
+                  <option value="12" selected>12</option>
+                  <option value="16">16</option>
+                </select>
+              </label>
+              <label class="switch text-xs">
+                <input type="checkbox" id="shadow-toggle" checked>
+                <span>Shadow</span>
+              </label>
+            </div>
+            <div id="shadow-row" class="toolbar mt-2">
+              <label class="flex items-center gap-1.5 text-xs text-gray-400" style="flex:1;">
+                Shadow intensity
+                <input id="shadow-range" type="range" class="range" min="0" max="100" value="55" style="flex:1;">
+                <span id="shadow-val" class="text-gray-500 tabular-nums" style="min-width:2.5em;">55</span>
+              </label>
+            </div>
+          </div></div>
+        </details>
 
         <!-- Background -->
         <div class="snip-section">
@@ -273,64 +285,56 @@
           </div>
         </div>
 
-        <!-- Layout -->
-        <div class="snip-section">
-          <label class="snip-section-label">Layout</label>
-          <div class="toolbar" style="gap: 0.75rem;">
-            <label class="flex items-center gap-1.5 text-xs text-gray-400">
-              Outer pad
-              <input id="pad-outer" type="range" class="range" min="0" max="120" value="20" style="width:70px;">
-              <span id="pad-outer-val" class="text-gray-500 tabular-nums" style="min-width:2em;">20</span>
-            </label>
-            <label class="flex items-center gap-1.5 text-xs text-gray-400">
-              Inner pad
-              <input id="pad-inner" type="range" class="range" min="8" max="48" value="20" style="width:70px;">
-              <span id="pad-inner-val" class="text-gray-500 tabular-nums" style="min-width:2em;">20</span>
-            </label>
-          </div>
-          <div class="toolbar mt-2" style="gap: 0.75rem;">
-            <label class="flex items-center gap-1.5 text-xs text-gray-400">
-              Font size
-              <input id="font-size" type="range" class="range" min="12" max="22" value="15" style="width:70px;">
-              <span id="font-size-val" class="text-gray-500 tabular-nums" style="min-width:2em;">15</span>
-            </label>
-            <label class="flex items-center gap-1.5 text-xs text-gray-400">
-              Line height
-              <select id="line-height" class="select">
-                <option value="1.0">Tightest</option>
-                <option value="1.2">Tighter</option>
-                <option value="1.35">Tight</option>
-                <option value="1.5" selected>Normal</option>
-                <option value="1.7">Loose</option>
-                <option value="1.9">Looser</option>
-              </select>
-            </label>
-          </div>
-          <div class="toolbar mt-2" style="gap: 0.5rem;">
-            <label class="flex items-center gap-1.5 text-xs text-gray-400" style="flex:1;">
-              Font
-              <select id="font-family" class="select" style="flex:1; min-width:0;">
-                <option value="ibm-plex-mono" selected>IBM Plex Mono</option>
-                <option value="jetbrains-mono">JetBrains Mono</option>
-                <option value="fira-code">Fira Code</option>
-              </select>
-            </label>
-          </div>
-          <div class="toolbar mt-2" style="gap: 0.75rem;">
-            <label class="switch text-xs">
-              <input type="checkbox" id="line-numbers">
-              <span>Line numbers</span>
-            </label>
-            <label class="flex items-center gap-1.5 text-xs text-gray-400">
-              Width
-              <select id="width-preset" class="select">
-                <option value="auto" selected>Auto-fit</option>
-                <option value="1600">Twitter 1600</option>
-                <option value="1080">Square 1080</option>
-              </select>
-            </label>
-          </div>
-        </div>
+        <!-- Layout (collapsible) -->
+        <details class="disclosure mb-4">
+          <summary>📐 Layout</summary>
+          <div class="disclosure-content"><div class="disclosure-body">
+            <div class="toolbar" style="gap: 0.75rem;">
+              <label class="flex items-center gap-1.5 text-xs text-gray-400">
+                Outer pad
+                <input id="pad-outer" type="range" class="range" min="0" max="120" value="20" style="width:70px;">
+                <span id="pad-outer-val" class="text-gray-500 tabular-nums" style="min-width:2em;">20</span>
+              </label>
+              <label class="flex items-center gap-1.5 text-xs text-gray-400">
+                Inner pad
+                <input id="pad-inner" type="range" class="range" min="8" max="48" value="20" style="width:70px;">
+                <span id="pad-inner-val" class="text-gray-500 tabular-nums" style="min-width:2em;">20</span>
+              </label>
+            </div>
+            <div class="toolbar mt-2" style="gap: 0.75rem;">
+              <label class="flex items-center gap-1.5 text-xs text-gray-400">
+                Font size
+                <input id="font-size" type="range" class="range" min="12" max="22" value="15" style="width:70px;">
+                <span id="font-size-val" class="text-gray-500 tabular-nums" style="min-width:2em;">15</span>
+              </label>
+              <label class="flex items-center gap-1.5 text-xs text-gray-400">
+                Line height
+                <select id="line-height" class="select">
+                  <option value="1.0">Tightest</option>
+                  <option value="1.2">Tighter</option>
+                  <option value="1.35">Tight</option>
+                  <option value="1.5" selected>Normal</option>
+                  <option value="1.7">Loose</option>
+                  <option value="1.9">Looser</option>
+                </select>
+              </label>
+            </div>
+            <div class="toolbar mt-2" style="gap: 0.75rem;">
+              <label class="switch text-xs">
+                <input type="checkbox" id="line-numbers">
+                <span>Line numbers</span>
+              </label>
+              <label class="flex items-center gap-1.5 text-xs text-gray-400">
+                Width
+                <select id="width-preset" class="select">
+                  <option value="auto" selected>Auto-fit</option>
+                  <option value="1600">Twitter 1600</option>
+                  <option value="1080">Square 1080</option>
+                </select>
+              </label>
+            </div>
+          </div></div>
+        </details>
 
       </div>
 
