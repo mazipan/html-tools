@@ -303,6 +303,12 @@ function drawAll(c, opts = {}) {
     }
     winH = winInnerH;
     hCss = winH + outerPad * 2;
+    // For the square preset, lock the canvas to 1:1 even when the content
+    // would only fill part of the height. The window box stays its natural
+    // size; winY centers it inside the taller canvas.
+    if (state.widthPreset === '1080') {
+      hCss = Math.max(hCss, wCss);
+    }
   }
 
   // ── Paint outer background ─────────────────────────────────
