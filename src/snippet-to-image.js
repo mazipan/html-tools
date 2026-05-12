@@ -732,9 +732,15 @@ fn main() {
 }
 `],
 ];
-let sampleIdx = 0;
+let sampleIdx = -1;
 $('btn-sample').addEventListener('click', async () => {
-  sampleIdx = (sampleIdx + 1) % SAMPLES.length;
+  // Pick a different sample than the one currently loaded so each click
+  // visibly changes the preview.
+  let next = sampleIdx;
+  while (next === sampleIdx) {
+    next = Math.floor(Math.random() * SAMPLES.length);
+  }
+  sampleIdx = next;
   const [lang, src] = SAMPLES[sampleIdx];
   state.code = src;
   state.lang = lang;
