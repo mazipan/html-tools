@@ -1,0 +1,1710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <include src="_partials/meta-base.html"></include>
+  <title>QR Code Generator — HTML Tools</title>
+  <meta name="description" content="Turn any text, URL, WiFi config, or vCard into a QR code. Customize colors and error-correction level, then download as SVG or PNG. Runs in your browser — no installs, no tracking.">
+  <link rel="canonical" href="https://tools.mazipan.space/qr-code-generator">
+  <meta property="og:title" content="QR Code Generator — HTML Tools">
+  <meta property="og:description" content="Turn any text, URL, WiFi config, or vCard into a QR code. Customize colors and error-correction level, then download as SVG or PNG. Runs in your browser — no installs, no tracking.">
+  <meta property="og:url" content="https://tools.mazipan.space/qr-code-generator">
+  <meta name="twitter:title" content="QR Code Generator — HTML Tools">
+  <meta name="twitter:description" content="Turn any text, URL, WiFi config, or vCard into a QR code. Customize colors and error-correction level, then download as SVG or PNG. Runs in your browser — no installs, no tracking.">
+  <include src="_partials/meta-social.html"></include>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-qr-code-generator.png">
+  <include src="_partials/head-fonts.html"></include>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Two-column layout — controls left, preview right; collapses on mobile. */
+    .qr-layout {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .qr-layout { grid-template-columns: 1fr; }
+    }
+
+    /* Preview stage — sticky on desktop, scales with width. */
+    .qr-stage {
+      position: sticky;
+      top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .qr-preview {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border: 1px solid #1f2937;
+      border-radius: 0.75rem;
+      background:
+        linear-gradient(45deg, #1f2937 25%, transparent 25%),
+        linear-gradient(-45deg, #1f2937 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #1f2937 75%),
+        linear-gradient(-45deg, transparent 75%, #1f2937 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem;
+    }
+    .qr-preview > svg,
+    .qr-preview > img {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .qr-preview.empty {
+      background: #0b1220;
+      color: #4b5563;
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 1.5rem;
+    }
+
+    /* Sections in the controls column */
+    .qr-section { margin-bottom: 1rem; }
+    .qr-section-label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.4rem;
+    }
+
+    /* Color row — swatch input + label */
+    .qr-color-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .qr-color-row label.swatch-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      color: #d1d5db;
+      cursor: pointer;
+    }
+    input[type="color"].swatch-input {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 1.6rem;
+      height: 1.6rem;
+      border: 1px solid #374151;
+      border-radius: 0.35rem;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="color"].swatch-input::-webkit-color-swatch-wrapper { padding: 0; }
+    input[type="color"].swatch-input::-webkit-color-swatch { border: none; border-radius: 0.25rem; }
+    input[type="color"].swatch-input::-moz-color-swatch { border: none; border-radius: 0.25rem; }
+    input[type="color"].swatch-input:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Logo tile (after a file is loaded) */
+    .qr-logo-tile {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.4rem 0.6rem;
+      background: #0b1220;
+      border: 1px solid #374151;
+      border-radius: 0.4rem;
+      font-size: 0.7rem;
+      color: #d1d5db;
+    }
+    .qr-logo-tile img {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+      background: #fff;
+      border-radius: 0.2rem;
+    }
+    .qr-logo-tile button {
+      background: transparent;
+      border: none;
+      color: #9ca3af;
+      cursor: pointer;
+      padding: 0 0.2rem;
+      font-size: 0.85rem;
+    }
+    .qr-logo-tile button:hover { color: #fca5a5; }
+
+    /* Logo preset tile (grid of brand marks) */
+    .qr-preset-tile {
+      aspect-ratio: 1 / 1;
+      border-radius: 0.4rem;
+      cursor: pointer;
+      border: 2px solid transparent;
+      background: #0b1220;
+      transition: transform 0.1s, border-color 0.1s;
+      padding: 0;
+      overflow: hidden;
+      display: block;
+    }
+    .qr-preset-tile:hover { transform: scale(1.05); border-color: #4b5563; }
+    .qr-preset-tile.on { border-color: var(--accent); }
+    .qr-preset-tile img,
+    .qr-preset-tile svg { width: 100%; height: 100%; display: block; }
+
+    /* Capacity stat */
+    .qr-stat {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 0.72rem;
+      color: #9ca3af;
+    }
+    .qr-stat .good { color: #4ade80; }
+    .qr-stat .warn { color: #facc15; }
+    .qr-stat .bad  { color: #f87171; }
+  </style>
+  <include src="_partials/head-theme.html"></include>
+  <!-- BEGIN:json-ld generated by scripts/generate-sections.mjs — re-run after editing tools.json -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"QR Code Generator","url":"https://tools.mazipan.space/qr-code-generator","description":"Turn any text, URL, WiFi config, or vCard into a QR code. Customize colors and error-correction level, then download as SVG or PNG.","applicationCategory":"DeveloperApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"isPartOf":{"@type":"WebSite","name":"HTML Tools","url":"https://tools.mazipan.space/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"HTML Tools","item":"https://tools.mazipan.space/"},{"@type":"ListItem","position":2,"name":"QR Code Generator","item":"https://tools.mazipan.space/qr-code-generator"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does my data ever leave my browser?","acceptedAnswer":{"@type":"Answer","text":"No. Encoding, SVG rendering, and PNG export all happen locally in your browser via an inlined version of Project Nayuki's QR encoder (MIT). No upload, no server, no CDN call."}},{"@type":"Question","name":"What does the error-correction level (L/M/Q/H) actually do?","acceptedAnswer":{"@type":"Answer","text":"QR codes carry redundant data so they still scan when partially damaged or obscured. L tolerates ~7% damage, M ~15%, Q ~25%, H ~30%. Higher levels need more space, so the same payload fits less easily — pick L for the densest code, H if you're overlaying a logo or printing on glossy material."}},{"@type":"Question","name":"Why do I get \"content exceeds capacity\" on long input?","acceptedAnswer":{"@type":"Answer","text":"The chosen error-correction level reserves a percentage of the code for recovery data. Lower it (H → L) to fit more, shorten the payload, or remember that URLs encode much smaller than free-form text because the alphanumeric mode is restricted to 0-9 A-Z space $ % * + - . / :."}},{"@type":"Question","name":"Will a centered logo still scan?","acceptedAnswer":{"@type":"Answer","text":"Usually yes if the logo covers under ~20% of the code area and you've used error-correction H (which is auto-selected when you add a logo). Test on a real phone before printing — the tool warns when a logo gets large enough to risk readability."}},{"@type":"Question","name":"Should I export as SVG or PNG?","acceptedAnswer":{"@type":"Answer","text":"SVG for anything that will be resized, printed, or embedded in a webpage — it scales infinitely and stays crisp. PNG when you need a flat raster file (e.g. attaching to a chat message); pick 1024 px if you're printing, 256/512 px for screen use."}}]}</script>
+  <!-- END:json-ld -->
+
+</head>
+<body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+
+  <header class="border-b border-gray-800 px-6 py-4">
+    <nav aria-label="Breadcrumb" class="max-w-[1100px] mx-auto flex items-center gap-3">
+      <a href="index.html" class="no-underline text-white font-bold text-lg tracking-tight hover:text-blue-400 transition-colors">HTML Tools</a>
+      <span class="text-gray-700">/</span>
+      <span class="text-gray-400 text-sm flex items-center gap-1.5" aria-current="page">📱 QR Code Generator</span>
+    </nav>
+  </header>
+
+  <main class="max-w-[1100px] mx-auto w-full flex-1 py-8 px-6">
+
+    <header class="mb-7">
+      <h1 class="text-3xl font-bold text-white flex items-center gap-3">📱 QR Code Generator</h1>
+      <p class="mt-1.5 text-sm text-gray-500">Turn any text, URL, WiFi config, or vCard into a QR code. Live SVG preview, downloadable as SVG or PNG.</p>
+    </header>
+
+    <div class="qr-layout">
+      <!-- ── Controls column ───────────────────────────────────── -->
+      <div>
+        <!-- Quick-fill sample chips -->
+        <div class="qr-section">
+          <span class="qr-section-label">Quick fill</span>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button type="button" class="chip" data-sample="url"   onclick="loadSample('url')">🌐 URL</button>
+            <button type="button" class="chip" data-sample="email" onclick="loadSample('email')">📧 Email</button>
+            <button type="button" class="chip" data-sample="sms"   onclick="loadSample('sms')">📱 SMS</button>
+            <button type="button" class="chip" data-sample="wifi"  onclick="loadSample('wifi')">📶 WiFi</button>
+            <button type="button" class="chip" data-sample="vcard" onclick="loadSample('vcard')">👤 vCard</button>
+            <button type="button" class="chip" data-sample="geo"   onclick="loadSample('geo')">📍 Geo</button>
+          </div>
+        </div>
+
+        <!-- Input -->
+        <div class="qr-section">
+          <label for="qr-input" class="qr-section-label">Content to encode</label>
+          <textarea id="qr-input" class="textarea input-mono w-full" rows="6"
+                    placeholder="Paste a URL, text, WiFi config, vCard, …"
+                    spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+          <div class="flex flex-wrap items-center justify-between gap-2 mt-1.5">
+            <div class="qr-stat" id="qr-char-count">0 characters</div>
+            <div class="qr-stat" id="qr-capacity"></div>
+          </div>
+        </div>
+
+        <!-- Options toolbar -->
+        <div class="qr-section">
+          <div class="flex items-center gap-1.5 mb-1.5">
+            <span class="qr-section-label" style="margin-bottom: 0">Error correction</span>
+            <span class="tooltip" tabindex="0">
+              <span class="tooltip-trigger" aria-hidden="true">i</span>
+              <span class="tooltip-text" role="tooltip">How much of the code is reserved for redundancy. L: ~7% recovery · M: ~15% · Q: ~25% · H: ~30%. Higher levels survive more damage (printed, smudged, partially obscured, logo overlay) but fit less data in the same code.</span>
+            </span>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5" id="qr-ecc">
+            <button type="button" class="pill" data-ecc="L" onclick="setEcc('L')" title="~7% recovery">L</button>
+            <button type="button" class="pill" data-ecc="M" onclick="setEcc('M')" title="~15% recovery">M</button>
+            <button type="button" class="pill" data-ecc="Q" onclick="setEcc('Q')" title="~25% recovery">Q</button>
+            <button type="button" class="pill" data-ecc="H" onclick="setEcc('H')" title="~30% recovery">H</button>
+            <span class="qr-stat ml-1" id="qr-ecc-note"></span>
+          </div>
+        </div>
+
+        <div class="qr-section">
+          <div class="flex items-center gap-1.5 mb-1.5">
+            <span class="qr-section-label" style="margin-bottom: 0">Corner style</span>
+            <span class="tooltip" tabindex="0">
+              <span class="tooltip-trigger" aria-hidden="true">i</span>
+              <span class="tooltip-text" role="tooltip">Visual style for the three large position-detection patterns at top-left, top-right, and bottom-left. The structure (a 7×7 ring around a 3×3 center) stays the same — only the shape of the corners and dot change, so the code still scans.</span>
+            </span>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5" id="qr-corner">
+            <button type="button" class="pill" data-corner="square"  onclick="setCornerStyle('square')">Square</button>
+            <button type="button" class="pill" data-corner="rounded" onclick="setCornerStyle('rounded')">Rounded</button>
+            <button type="button" class="pill" data-corner="circle"  onclick="setCornerStyle('circle')">Circle</button>
+            <button type="button" class="pill" data-corner="eye"     onclick="setCornerStyle('eye')">Eye</button>
+          </div>
+        </div>
+
+        <div class="qr-section">
+          <span class="qr-section-label">Colors</span>
+          <div class="qr-color-row">
+            <label class="swatch-label">
+              <input type="color" id="qr-fg" class="swatch-input" value="#000000">
+              Foreground
+            </label>
+            <label class="swatch-label">
+              <input type="color" id="qr-bg" class="swatch-input" value="#ffffff">
+              Background
+            </label>
+            <label class="switch">
+              <input type="checkbox" id="qr-transparent">
+              <span>Transparent background</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="qr-section">
+          <span class="qr-section-label">Layout</span>
+          <div class="flex flex-wrap items-center gap-3">
+            <label class="switch">
+              <input type="checkbox" id="qr-quiet" checked>
+              <span>Quiet zone (light border)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Center logo (collapsible) -->
+        <details class="disclosure qr-section">
+          <summary>🖼️ Center logo (optional)</summary>
+          <div class="disclosure-content"><div class="disclosure-body">
+            <p class="text-xs text-gray-500 mb-3">Adding a logo automatically locks error correction to H so the code stays scannable. Keep the logo under ~20% of the code area.</p>
+
+            <!-- Presets -->
+            <div class="mb-3">
+              <span class="qr-section-label">Presets</span>
+              <div id="qr-logo-presets" class="grid grid-cols-5 gap-1.5"></div>
+            </div>
+
+            <!-- Custom upload -->
+            <span class="qr-section-label">Or upload your own</span>
+            <div id="qr-logo-zone" class="drop-zone compact" tabindex="0" role="button" aria-label="Drop a logo image, or click to select">
+              <div id="qr-logo-empty" class="text-center text-sm text-gray-400 py-2">
+                <div>Drop or click to add a custom logo</div>
+                <div class="text-xs text-gray-500 mt-0.5">PNG, JPEG, or SVG</div>
+              </div>
+              <div id="qr-logo-loaded" class="hidden items-center justify-between gap-2 px-1 py-1">
+                <div class="qr-logo-tile">
+                  <img id="qr-logo-preview" alt="">
+                  <span id="qr-logo-name" class="truncate max-w-[14rem]"></span>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="clearLogo(event)" title="Remove logo">🗑️ Remove</button>
+              </div>
+              <input type="file" id="qr-logo-input" accept="image/*" class="hidden">
+            </div>
+            <div id="qr-logo-warn" class="warn-bar mt-2 hidden"></div>
+          </div></div>
+        </details>
+      </div>
+
+      <!-- ── Preview column ───────────────────────────────────── -->
+      <div class="qr-stage">
+        <div id="qr-preview" class="qr-preview empty">Encoded QR code will appear here.</div>
+
+        <div id="qr-meta" class="qr-stat text-center"></div>
+
+        <div id="qr-error" class="error-bar hidden"></div>
+
+        <!-- Export row -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" class="btn btn-primary" id="qr-download-svg" onclick="downloadSVG()" disabled>⬇️ SVG</button>
+          <div class="flex items-center gap-1">
+            <button type="button" class="btn btn-secondary" id="qr-download-png" onclick="downloadPNG()" disabled>⬇️ PNG</button>
+            <select id="qr-png-size" class="select" aria-label="PNG size">
+              <option value="512">512 px</option>
+              <option value="1024" selected>1024 px</option>
+              <option value="2048">2048 px</option>
+            </select>
+          </div>
+          <button type="button" class="btn btn-secondary" id="qr-copy-png" onclick="copyPNG()" disabled>📋 Copy</button>
+        </div>
+        <div id="qr-status" class="qr-stat text-center"></div>
+      </div>
+    </div>
+
+    <!-- ── Reference content ───────────────────────────────────── -->
+    <section class="mt-12 grid gap-6 md:grid-cols-2">
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">About QR codes</h2>
+        <p class="text-gray-400 leading-relaxed">A QR (Quick Response) code is a 2-D barcode standardized as ISO/IEC 18004. It encodes data in a square grid of light and dark modules, with redundancy baked in so partial damage or obstruction (a logo, a smudge, a curve over fabric) still scans. This tool uses an inlined version of Project Nayuki's QR encoder (MIT) — no server, no upload, no CDN.</p>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">Payload formats</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li><strong class="text-gray-300">URL:</strong> just paste it — most readers open the link directly.</li>
+          <li><strong class="text-gray-300">Email:</strong> <code>mailto:hi@example.com?subject=…&body=…</code></li>
+          <li><strong class="text-gray-300">SMS:</strong> <code>SMSTO:+15551234567:Hello</code></li>
+          <li><strong class="text-gray-300">WiFi:</strong> <code>WIFI:T:WPA;S:NetName;P:Password;;</code></li>
+          <li><strong class="text-gray-300">vCard:</strong> <code>BEGIN:VCARD…END:VCARD</code></li>
+          <li><strong class="text-gray-300">Geo:</strong> <code>geo:37.7749,-122.4194</code></li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">Error-correction trade-off</h2>
+        <p class="text-gray-400 leading-relaxed">The encoder reserves a percentage of the code for redundancy. Lower levels fit more data in less space; higher levels survive more damage. For a logo overlay or printed material, prefer H. For maximum data density (or a tiny code), use L.</p>
+        <table class="cheat-table mt-3">
+          <thead><tr><th>Level</th><th>Recovery</th></tr></thead>
+          <tbody>
+            <tr><td>L</td><td>~7%</td></tr>
+            <tr><td>M</td><td>~15%</td></tr>
+            <tr><td>Q</td><td>~25%</td></tr>
+            <tr><td>H</td><td>~30%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4">Tips &amp; caveats</h2>
+        <ul class="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
+          <li>Test the code on a real phone before printing or shipping — readability can vary with contrast, lighting, and lens.</li>
+          <li>Keep the quiet zone on (4-module border). Some scanners refuse codes pasted right against another element.</li>
+          <li>Foreground darker than background. Many scanners can't recover from inverted codes.</li>
+          <li>A center logo should stay under ~20% of the code's area. The tool surfaces a warning above that.</li>
+          <li>SVG output scales infinitely; PNG is for environments that can't render SVG.</li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Inlined QR encoder (Project Nayuki, MIT) ─────────────────
+       https://www.nayuki.io/page/qr-code-generator-library
+       Vendored at build time so nothing leaves the browser at runtime. -->
+  <script>
+    /*
+     * QR Code generator library (TypeScript)
+     *
+     * Copyright (c) Project Nayuki. (MIT License)
+     * https://www.nayuki.io/page/qr-code-generator-library
+     *
+     * Permission is hereby granted, free of charge, to any person obtaining a copy of
+     * this software and associated documentation files (the "Software"), to deal in
+     * the Software without restriction, including without limitation the rights to
+     * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+     * the Software, and to permit persons to whom the Software is furnished to do so,
+     * subject to the following conditions:
+     * - The above copyright notice and this permission notice shall be included in
+     *   all copies or substantial portions of the Software.
+     * - The Software is provided "as is", without warranty of any kind, express or
+     *   implied, including but not limited to the warranties of merchantability,
+     *   fitness for a particular purpose and noninfringement. In no event shall the
+     *   authors or copyright holders be liable for any claim, damages or other
+     *   liability, whether in an action of contract, tort or otherwise, arising from,
+     *   out of or in connection with the Software or the use or other dealings in the
+     *   Software.
+     */
+    "use strict";
+    var qrcodegen;
+    (function (qrcodegen) {
+        class QrCode {
+            constructor(version, errorCorrectionLevel, dataCodewords, msk) {
+                this.version = version;
+                this.errorCorrectionLevel = errorCorrectionLevel;
+                this.modules = [];
+                this.isFunction = [];
+                if (version < QrCode.MIN_VERSION || version > QrCode.MAX_VERSION)
+                    throw new RangeError("Version value out of range");
+                if (msk < -1 || msk > 7)
+                    throw new RangeError("Mask value out of range");
+                this.size = version * 4 + 17;
+                let row = [];
+                for (let i = 0; i < this.size; i++)
+                    row.push(false);
+                for (let i = 0; i < this.size; i++) {
+                    this.modules.push(row.slice());
+                    this.isFunction.push(row.slice());
+                }
+                this.drawFunctionPatterns();
+                const allCodewords = this.addEccAndInterleave(dataCodewords);
+                this.drawCodewords(allCodewords);
+                if (msk == -1) {
+                    let minPenalty = 1000000000;
+                    for (let i = 0; i < 8; i++) {
+                        this.applyMask(i);
+                        this.drawFormatBits(i);
+                        const penalty = this.getPenaltyScore();
+                        if (penalty < minPenalty) {
+                            msk = i;
+                            minPenalty = penalty;
+                        }
+                        this.applyMask(i);
+                    }
+                }
+                assert(0 <= msk && msk <= 7);
+                this.mask = msk;
+                this.applyMask(msk);
+                this.drawFormatBits(msk);
+                this.isFunction = [];
+            }
+            static encodeText(text, ecl) {
+                const segs = qrcodegen.QrSegment.makeSegments(text);
+                return QrCode.encodeSegments(segs, ecl);
+            }
+            static encodeBinary(data, ecl) {
+                const seg = qrcodegen.QrSegment.makeBytes(data);
+                return QrCode.encodeSegments([seg], ecl);
+            }
+            static encodeSegments(segs, ecl, minVersion = 1, maxVersion = 40, mask = -1, boostEcl = true) {
+                if (!(QrCode.MIN_VERSION <= minVersion && minVersion <= maxVersion && maxVersion <= QrCode.MAX_VERSION)
+                    || mask < -1 || mask > 7)
+                    throw new RangeError("Invalid value");
+                let version;
+                let dataUsedBits;
+                for (version = minVersion;; version++) {
+                    const dataCapacityBits = QrCode.getNumDataCodewords(version, ecl) * 8;
+                    const usedBits = QrSegment.getTotalBits(segs, version);
+                    if (usedBits <= dataCapacityBits) {
+                        dataUsedBits = usedBits;
+                        break;
+                    }
+                    if (version >= maxVersion)
+                        throw new RangeError("Data too long");
+                }
+                for (const newEcl of [QrCode.Ecc.MEDIUM, QrCode.Ecc.QUARTILE, QrCode.Ecc.HIGH]) {
+                    if (boostEcl && dataUsedBits <= QrCode.getNumDataCodewords(version, newEcl) * 8)
+                        ecl = newEcl;
+                }
+                let bb = [];
+                for (const seg of segs) {
+                    appendBits(seg.mode.modeBits, 4, bb);
+                    appendBits(seg.numChars, seg.mode.numCharCountBits(version), bb);
+                    for (const b of seg.getData())
+                        bb.push(b);
+                }
+                assert(bb.length == dataUsedBits);
+                const dataCapacityBits = QrCode.getNumDataCodewords(version, ecl) * 8;
+                assert(bb.length <= dataCapacityBits);
+                appendBits(0, Math.min(4, dataCapacityBits - bb.length), bb);
+                appendBits(0, (8 - bb.length % 8) % 8, bb);
+                assert(bb.length % 8 == 0);
+                for (let padByte = 0xEC; bb.length < dataCapacityBits; padByte ^= 0xEC ^ 0x11)
+                    appendBits(padByte, 8, bb);
+                let dataCodewords = [];
+                while (dataCodewords.length * 8 < bb.length)
+                    dataCodewords.push(0);
+                bb.forEach((b, i) => dataCodewords[i >>> 3] |= b << (7 - (i & 7)));
+                return new QrCode(version, ecl, dataCodewords, mask);
+            }
+            getModule(x, y) {
+                return 0 <= x && x < this.size && 0 <= y && y < this.size && this.modules[y][x];
+            }
+            drawFunctionPatterns() {
+                for (let i = 0; i < this.size; i++) {
+                    this.setFunctionModule(6, i, i % 2 == 0);
+                    this.setFunctionModule(i, 6, i % 2 == 0);
+                }
+                this.drawFinderPattern(3, 3);
+                this.drawFinderPattern(this.size - 4, 3);
+                this.drawFinderPattern(3, this.size - 4);
+                const alignPatPos = this.getAlignmentPatternPositions();
+                const numAlign = alignPatPos.length;
+                for (let i = 0; i < numAlign; i++) {
+                    for (let j = 0; j < numAlign; j++) {
+                        if (!(i == 0 && j == 0 || i == 0 && j == numAlign - 1 || i == numAlign - 1 && j == 0))
+                            this.drawAlignmentPattern(alignPatPos[i], alignPatPos[j]);
+                    }
+                }
+                this.drawFormatBits(0);
+                this.drawVersion();
+            }
+            drawFormatBits(mask) {
+                const data = this.errorCorrectionLevel.formatBits << 3 | mask;
+                let rem = data;
+                for (let i = 0; i < 10; i++)
+                    rem = (rem << 1) ^ ((rem >>> 9) * 0x537);
+                const bits = (data << 10 | rem) ^ 0x5412;
+                assert(bits >>> 15 == 0);
+                for (let i = 0; i <= 5; i++)
+                    this.setFunctionModule(8, i, getBit(bits, i));
+                this.setFunctionModule(8, 7, getBit(bits, 6));
+                this.setFunctionModule(8, 8, getBit(bits, 7));
+                this.setFunctionModule(7, 8, getBit(bits, 8));
+                for (let i = 9; i < 15; i++)
+                    this.setFunctionModule(14 - i, 8, getBit(bits, i));
+                for (let i = 0; i < 8; i++)
+                    this.setFunctionModule(this.size - 1 - i, 8, getBit(bits, i));
+                for (let i = 8; i < 15; i++)
+                    this.setFunctionModule(8, this.size - 15 + i, getBit(bits, i));
+                this.setFunctionModule(8, this.size - 8, true);
+            }
+            drawVersion() {
+                if (this.version < 7)
+                    return;
+                let rem = this.version;
+                for (let i = 0; i < 12; i++)
+                    rem = (rem << 1) ^ ((rem >>> 11) * 0x1F25);
+                const bits = this.version << 12 | rem;
+                assert(bits >>> 18 == 0);
+                for (let i = 0; i < 18; i++) {
+                    const color = getBit(bits, i);
+                    const a = this.size - 11 + i % 3;
+                    const b = Math.floor(i / 3);
+                    this.setFunctionModule(a, b, color);
+                    this.setFunctionModule(b, a, color);
+                }
+            }
+            drawFinderPattern(x, y) {
+                for (let dy = -4; dy <= 4; dy++) {
+                    for (let dx = -4; dx <= 4; dx++) {
+                        const dist = Math.max(Math.abs(dx), Math.abs(dy));
+                        const xx = x + dx;
+                        const yy = y + dy;
+                        if (0 <= xx && xx < this.size && 0 <= yy && yy < this.size)
+                            this.setFunctionModule(xx, yy, dist != 2 && dist != 4);
+                    }
+                }
+            }
+            drawAlignmentPattern(x, y) {
+                for (let dy = -2; dy <= 2; dy++) {
+                    for (let dx = -2; dx <= 2; dx++)
+                        this.setFunctionModule(x + dx, y + dy, Math.max(Math.abs(dx), Math.abs(dy)) != 1);
+                }
+            }
+            setFunctionModule(x, y, isDark) {
+                this.modules[y][x] = isDark;
+                this.isFunction[y][x] = true;
+            }
+            addEccAndInterleave(data) {
+                const ver = this.version;
+                const ecl = this.errorCorrectionLevel;
+                if (data.length != QrCode.getNumDataCodewords(ver, ecl))
+                    throw new RangeError("Invalid argument");
+                const numBlocks = QrCode.NUM_ERROR_CORRECTION_BLOCKS[ecl.ordinal][ver];
+                const blockEccLen = QrCode.ECC_CODEWORDS_PER_BLOCK[ecl.ordinal][ver];
+                const rawCodewords = Math.floor(QrCode.getNumRawDataModules(ver) / 8);
+                const numShortBlocks = numBlocks - rawCodewords % numBlocks;
+                const shortBlockLen = Math.floor(rawCodewords / numBlocks);
+                let blocks = [];
+                const rsDiv = QrCode.reedSolomonComputeDivisor(blockEccLen);
+                for (let i = 0, k = 0; i < numBlocks; i++) {
+                    let dat = data.slice(k, k + shortBlockLen - blockEccLen + (i < numShortBlocks ? 0 : 1));
+                    k += dat.length;
+                    const ecc = QrCode.reedSolomonComputeRemainder(dat, rsDiv);
+                    if (i < numShortBlocks)
+                        dat.push(0);
+                    blocks.push(dat.concat(ecc));
+                }
+                let result = [];
+                for (let i = 0; i < blocks[0].length; i++) {
+                    blocks.forEach((block, j) => {
+                        if (i != shortBlockLen - blockEccLen || j >= numShortBlocks)
+                            result.push(block[i]);
+                    });
+                }
+                assert(result.length == rawCodewords);
+                return result;
+            }
+            drawCodewords(data) {
+                if (data.length != Math.floor(QrCode.getNumRawDataModules(this.version) / 8))
+                    throw new RangeError("Invalid argument");
+                let i = 0;
+                for (let right = this.size - 1; right >= 1; right -= 2) {
+                    if (right == 6)
+                        right = 5;
+                    for (let vert = 0; vert < this.size; vert++) {
+                        for (let j = 0; j < 2; j++) {
+                            const x = right - j;
+                            const upward = ((right + 1) & 2) == 0;
+                            const y = upward ? this.size - 1 - vert : vert;
+                            if (!this.isFunction[y][x] && i < data.length * 8) {
+                                this.modules[y][x] = getBit(data[i >>> 3], 7 - (i & 7));
+                                i++;
+                            }
+                        }
+                    }
+                }
+                assert(i == data.length * 8);
+            }
+            applyMask(mask) {
+                if (mask < 0 || mask > 7)
+                    throw new RangeError("Mask value out of range");
+                for (let y = 0; y < this.size; y++) {
+                    for (let x = 0; x < this.size; x++) {
+                        let invert;
+                        switch (mask) {
+                            case 0: invert = (x + y) % 2 == 0; break;
+                            case 1: invert = y % 2 == 0; break;
+                            case 2: invert = x % 3 == 0; break;
+                            case 3: invert = (x + y) % 3 == 0; break;
+                            case 4: invert = (Math.floor(x / 3) + Math.floor(y / 2)) % 2 == 0; break;
+                            case 5: invert = x * y % 2 + x * y % 3 == 0; break;
+                            case 6: invert = (x * y % 2 + x * y % 3) % 2 == 0; break;
+                            case 7: invert = ((x + y) % 2 + x * y % 3) % 2 == 0; break;
+                            default: throw new Error("Unreachable");
+                        }
+                        if (!this.isFunction[y][x] && invert)
+                            this.modules[y][x] = !this.modules[y][x];
+                    }
+                }
+            }
+            getPenaltyScore() {
+                let result = 0;
+                for (let y = 0; y < this.size; y++) {
+                    let runColor = false;
+                    let runX = 0;
+                    let runHistory = [0, 0, 0, 0, 0, 0, 0];
+                    for (let x = 0; x < this.size; x++) {
+                        if (this.modules[y][x] == runColor) {
+                            runX++;
+                            if (runX == 5) result += QrCode.PENALTY_N1;
+                            else if (runX > 5) result++;
+                        } else {
+                            this.finderPenaltyAddHistory(runX, runHistory);
+                            if (!runColor)
+                                result += this.finderPenaltyCountPatterns(runHistory) * QrCode.PENALTY_N3;
+                            runColor = this.modules[y][x];
+                            runX = 1;
+                        }
+                    }
+                    result += this.finderPenaltyTerminateAndCount(runColor, runX, runHistory) * QrCode.PENALTY_N3;
+                }
+                for (let x = 0; x < this.size; x++) {
+                    let runColor = false;
+                    let runY = 0;
+                    let runHistory = [0, 0, 0, 0, 0, 0, 0];
+                    for (let y = 0; y < this.size; y++) {
+                        if (this.modules[y][x] == runColor) {
+                            runY++;
+                            if (runY == 5) result += QrCode.PENALTY_N1;
+                            else if (runY > 5) result++;
+                        } else {
+                            this.finderPenaltyAddHistory(runY, runHistory);
+                            if (!runColor)
+                                result += this.finderPenaltyCountPatterns(runHistory) * QrCode.PENALTY_N3;
+                            runColor = this.modules[y][x];
+                            runY = 1;
+                        }
+                    }
+                    result += this.finderPenaltyTerminateAndCount(runColor, runY, runHistory) * QrCode.PENALTY_N3;
+                }
+                for (let y = 0; y < this.size - 1; y++) {
+                    for (let x = 0; x < this.size - 1; x++) {
+                        const color = this.modules[y][x];
+                        if (color == this.modules[y][x + 1] &&
+                            color == this.modules[y + 1][x] &&
+                            color == this.modules[y + 1][x + 1])
+                            result += QrCode.PENALTY_N2;
+                    }
+                }
+                let dark = 0;
+                for (const row of this.modules)
+                    dark = row.reduce((sum, color) => sum + (color ? 1 : 0), dark);
+                const total = this.size * this.size;
+                const k = Math.ceil(Math.abs(dark * 20 - total * 10) / total) - 1;
+                assert(0 <= k && k <= 9);
+                result += k * QrCode.PENALTY_N4;
+                assert(0 <= result && result <= 2568888);
+                return result;
+            }
+            getAlignmentPatternPositions() {
+                if (this.version == 1)
+                    return [];
+                else {
+                    const numAlign = Math.floor(this.version / 7) + 2;
+                    const step = (this.version == 32) ? 26 :
+                        Math.ceil((this.version * 4 + 4) / (numAlign * 2 - 2)) * 2;
+                    let result = [6];
+                    for (let pos = this.size - 7; result.length < numAlign; pos -= step)
+                        result.splice(1, 0, pos);
+                    return result;
+                }
+            }
+            static getNumRawDataModules(ver) {
+                if (ver < QrCode.MIN_VERSION || ver > QrCode.MAX_VERSION)
+                    throw new RangeError("Version number out of range");
+                let result = (16 * ver + 128) * ver + 64;
+                if (ver >= 2) {
+                    const numAlign = Math.floor(ver / 7) + 2;
+                    result -= (25 * numAlign - 10) * numAlign - 55;
+                    if (ver >= 7)
+                        result -= 36;
+                }
+                assert(208 <= result && result <= 29648);
+                return result;
+            }
+            static getNumDataCodewords(ver, ecl) {
+                return Math.floor(QrCode.getNumRawDataModules(ver) / 8) -
+                    QrCode.ECC_CODEWORDS_PER_BLOCK[ecl.ordinal][ver] *
+                        QrCode.NUM_ERROR_CORRECTION_BLOCKS[ecl.ordinal][ver];
+            }
+            static reedSolomonComputeDivisor(degree) {
+                if (degree < 1 || degree > 255)
+                    throw new RangeError("Degree out of range");
+                let result = [];
+                for (let i = 0; i < degree - 1; i++)
+                    result.push(0);
+                result.push(1);
+                let root = 1;
+                for (let i = 0; i < degree; i++) {
+                    for (let j = 0; j < result.length; j++) {
+                        result[j] = QrCode.reedSolomonMultiply(result[j], root);
+                        if (j + 1 < result.length)
+                            result[j] ^= result[j + 1];
+                    }
+                    root = QrCode.reedSolomonMultiply(root, 0x02);
+                }
+                return result;
+            }
+            static reedSolomonComputeRemainder(data, divisor) {
+                let result = divisor.map(_ => 0);
+                for (const b of data) {
+                    const factor = b ^ result.shift();
+                    result.push(0);
+                    divisor.forEach((coef, i) => result[i] ^= QrCode.reedSolomonMultiply(coef, factor));
+                }
+                return result;
+            }
+            static reedSolomonMultiply(x, y) {
+                if (x >>> 8 != 0 || y >>> 8 != 0)
+                    throw new RangeError("Byte out of range");
+                let z = 0;
+                for (let i = 7; i >= 0; i--) {
+                    z = (z << 1) ^ ((z >>> 7) * 0x11D);
+                    z ^= ((y >>> i) & 1) * x;
+                }
+                assert(z >>> 8 == 0);
+                return z;
+            }
+            finderPenaltyCountPatterns(runHistory) {
+                const n = runHistory[1];
+                assert(n <= this.size * 3);
+                const core = n > 0 && runHistory[2] == n && runHistory[3] == n * 3 && runHistory[4] == n && runHistory[5] == n;
+                return (core && runHistory[0] >= n * 4 && runHistory[6] >= n ? 1 : 0)
+                    + (core && runHistory[6] >= n * 4 && runHistory[0] >= n ? 1 : 0);
+            }
+            finderPenaltyTerminateAndCount(currentRunColor, currentRunLength, runHistory) {
+                if (currentRunColor) {
+                    this.finderPenaltyAddHistory(currentRunLength, runHistory);
+                    currentRunLength = 0;
+                }
+                currentRunLength += this.size;
+                this.finderPenaltyAddHistory(currentRunLength, runHistory);
+                return this.finderPenaltyCountPatterns(runHistory);
+            }
+            finderPenaltyAddHistory(currentRunLength, runHistory) {
+                if (runHistory[0] == 0)
+                    currentRunLength += this.size;
+                runHistory.pop();
+                runHistory.unshift(currentRunLength);
+            }
+        }
+        QrCode.MIN_VERSION = 1;
+        QrCode.MAX_VERSION = 40;
+        QrCode.PENALTY_N1 = 3;
+        QrCode.PENALTY_N2 = 3;
+        QrCode.PENALTY_N3 = 40;
+        QrCode.PENALTY_N4 = 10;
+        QrCode.ECC_CODEWORDS_PER_BLOCK = [
+            [-1, 7, 10, 15, 20, 26, 18, 20, 24, 30, 18, 20, 24, 26, 30, 22, 24, 28, 30, 28, 28, 28, 28, 30, 30, 26, 28, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30],
+            [-1, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26, 30, 22, 22, 24, 24, 28, 28, 26, 26, 26, 26, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28],
+            [-1, 13, 22, 18, 26, 18, 24, 18, 22, 20, 24, 28, 26, 24, 20, 30, 24, 28, 28, 26, 30, 28, 30, 30, 30, 30, 28, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30],
+            [-1, 17, 28, 22, 16, 22, 28, 26, 26, 24, 28, 24, 28, 22, 24, 24, 30, 28, 28, 26, 28, 30, 24, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30],
+        ];
+        QrCode.NUM_ERROR_CORRECTION_BLOCKS = [
+            [-1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 4, 6, 6, 6, 6, 7, 8, 8, 9, 9, 10, 12, 12, 12, 13, 14, 15, 16, 17, 18, 19, 19, 20, 21, 22, 24, 25],
+            [-1, 1, 1, 1, 2, 2, 4, 4, 4, 5, 5, 5, 8, 9, 9, 10, 10, 11, 13, 14, 16, 17, 17, 18, 20, 21, 23, 25, 26, 28, 29, 31, 33, 35, 37, 38, 40, 43, 45, 47, 49],
+            [-1, 1, 1, 2, 2, 4, 4, 6, 6, 8, 8, 8, 10, 12, 16, 12, 17, 16, 18, 21, 20, 23, 23, 25, 27, 29, 34, 34, 35, 38, 40, 43, 45, 48, 51, 53, 56, 59, 62, 65, 68],
+            [-1, 1, 1, 2, 4, 4, 4, 5, 6, 8, 8, 11, 11, 16, 16, 18, 16, 19, 21, 25, 25, 25, 34, 30, 32, 35, 37, 40, 42, 45, 48, 51, 54, 57, 60, 63, 66, 70, 74, 77, 81],
+        ];
+        qrcodegen.QrCode = QrCode;
+        function appendBits(val, len, bb) {
+            if (len < 0 || len > 31 || val >>> len != 0)
+                throw new RangeError("Value out of range");
+            for (let i = len - 1; i >= 0; i--)
+                bb.push((val >>> i) & 1);
+        }
+        function getBit(x, i) {
+            return ((x >>> i) & 1) != 0;
+        }
+        function assert(cond) {
+            if (!cond)
+                throw new Error("Assertion error");
+        }
+        class QrSegment {
+            constructor(mode, numChars, bitData) {
+                this.mode = mode;
+                this.numChars = numChars;
+                this.bitData = bitData;
+                if (numChars < 0)
+                    throw new RangeError("Invalid argument");
+                this.bitData = bitData.slice();
+            }
+            static makeBytes(data) {
+                let bb = [];
+                for (const b of data)
+                    appendBits(b, 8, bb);
+                return new QrSegment(QrSegment.Mode.BYTE, data.length, bb);
+            }
+            static makeNumeric(digits) {
+                if (!QrSegment.isNumeric(digits))
+                    throw new RangeError("String contains non-numeric characters");
+                let bb = [];
+                for (let i = 0; i < digits.length;) {
+                    const n = Math.min(digits.length - i, 3);
+                    appendBits(parseInt(digits.substr(i, n), 10), n * 3 + 1, bb);
+                    i += n;
+                }
+                return new QrSegment(QrSegment.Mode.NUMERIC, digits.length, bb);
+            }
+            static makeAlphanumeric(text) {
+                if (!QrSegment.isAlphanumeric(text))
+                    throw new RangeError("String contains unencodable characters in alphanumeric mode");
+                let bb = [];
+                let i;
+                for (i = 0; i + 2 <= text.length; i += 2) {
+                    let temp = QrSegment.ALPHANUMERIC_CHARSET.indexOf(text.charAt(i)) * 45;
+                    temp += QrSegment.ALPHANUMERIC_CHARSET.indexOf(text.charAt(i + 1));
+                    appendBits(temp, 11, bb);
+                }
+                if (i < text.length)
+                    appendBits(QrSegment.ALPHANUMERIC_CHARSET.indexOf(text.charAt(i)), 6, bb);
+                return new QrSegment(QrSegment.Mode.ALPHANUMERIC, text.length, bb);
+            }
+            static makeSegments(text) {
+                if (text == "")
+                    return [];
+                else if (QrSegment.isNumeric(text))
+                    return [QrSegment.makeNumeric(text)];
+                else if (QrSegment.isAlphanumeric(text))
+                    return [QrSegment.makeAlphanumeric(text)];
+                else
+                    return [QrSegment.makeBytes(QrSegment.toUtf8ByteArray(text))];
+            }
+            static makeEci(assignVal) {
+                let bb = [];
+                if (assignVal < 0)
+                    throw new RangeError("ECI assignment value out of range");
+                else if (assignVal < (1 << 7))
+                    appendBits(assignVal, 8, bb);
+                else if (assignVal < (1 << 14)) {
+                    appendBits(0b10, 2, bb);
+                    appendBits(assignVal, 14, bb);
+                }
+                else if (assignVal < 1000000) {
+                    appendBits(0b110, 3, bb);
+                    appendBits(assignVal, 21, bb);
+                }
+                else
+                    throw new RangeError("ECI assignment value out of range");
+                return new QrSegment(QrSegment.Mode.ECI, 0, bb);
+            }
+            static isNumeric(text) {
+                return QrSegment.NUMERIC_REGEX.test(text);
+            }
+            static isAlphanumeric(text) {
+                return QrSegment.ALPHANUMERIC_REGEX.test(text);
+            }
+            getData() {
+                return this.bitData.slice();
+            }
+            static getTotalBits(segs, version) {
+                let result = 0;
+                for (const seg of segs) {
+                    const ccbits = seg.mode.numCharCountBits(version);
+                    if (seg.numChars >= (1 << ccbits))
+                        return Infinity;
+                    result += 4 + ccbits + seg.bitData.length;
+                }
+                return result;
+            }
+            static toUtf8ByteArray(str) {
+                str = encodeURI(str);
+                let result = [];
+                for (let i = 0; i < str.length; i++) {
+                    if (str.charAt(i) != "%")
+                        result.push(str.charCodeAt(i));
+                    else {
+                        result.push(parseInt(str.substr(i + 1, 2), 16));
+                        i += 2;
+                    }
+                }
+                return result;
+            }
+        }
+        QrSegment.NUMERIC_REGEX = /^[0-9]*$/;
+        QrSegment.ALPHANUMERIC_REGEX = /^[A-Z0-9 $%*+.\/:-]*$/;
+        QrSegment.ALPHANUMERIC_CHARSET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:";
+        qrcodegen.QrSegment = QrSegment;
+    })(qrcodegen || (qrcodegen = {}));
+    (function (qrcodegen) {
+        var QrCode;
+        (function (QrCode) {
+            class Ecc {
+                constructor(ordinal, formatBits) {
+                    this.ordinal = ordinal;
+                    this.formatBits = formatBits;
+                }
+            }
+            Ecc.LOW = new Ecc(0, 1);
+            Ecc.MEDIUM = new Ecc(1, 0);
+            Ecc.QUARTILE = new Ecc(2, 3);
+            Ecc.HIGH = new Ecc(3, 2);
+            QrCode.Ecc = Ecc;
+        })(QrCode = qrcodegen.QrCode || (qrcodegen.QrCode = {}));
+    })(qrcodegen || (qrcodegen = {}));
+    (function (qrcodegen) {
+        var QrSegment;
+        (function (QrSegment) {
+            class Mode {
+                constructor(modeBits, numBitsCharCount) {
+                    this.modeBits = modeBits;
+                    this.numBitsCharCount = numBitsCharCount;
+                }
+                numCharCountBits(ver) {
+                    return this.numBitsCharCount[Math.floor((ver + 7) / 17)];
+                }
+            }
+            Mode.NUMERIC = new Mode(0x1, [10, 12, 14]);
+            Mode.ALPHANUMERIC = new Mode(0x2, [9, 11, 13]);
+            Mode.BYTE = new Mode(0x4, [8, 16, 16]);
+            Mode.KANJI = new Mode(0x8, [8, 10, 12]);
+            Mode.ECI = new Mode(0x7, [0, 0, 0]);
+            QrSegment.Mode = Mode;
+        })(QrSegment = qrcodegen.QrSegment || (qrcodegen.QrSegment = {}));
+    })(qrcodegen || (qrcodegen = {}));
+  </script>
+
+  <!-- ── Tool logic ────────────────────────────────────────────── -->
+  <script>
+    const $ = id => document.getElementById(id);
+
+    const SAMPLES = {
+      url:   'https://tools.mazipan.space/',
+      email: 'mailto:hello@example.com?subject=Hello&body=Just%20saying%20hi',
+      sms:   'SMSTO:+15551234567:See you at 7pm',
+      wifi:  'WIFI:T:WPA;S:CoffeeShop;P:beanjuice2024;;',
+      vcard: 'BEGIN:VCARD\nVERSION:3.0\nFN:Ada Lovelace\nORG:Analytical Engine Co.\nTITLE:Mathematician\nTEL:+15551234567\nEMAIL:ada@example.com\nURL:https://example.com\nEND:VCARD',
+      geo:   'geo:37.7749,-122.4194',
+    };
+
+    const ECC_MAP = {
+      L: { obj: () => qrcodegen.QrCode.Ecc.LOW,      pct: 7  },
+      M: { obj: () => qrcodegen.QrCode.Ecc.MEDIUM,   pct: 15 },
+      Q: { obj: () => qrcodegen.QrCode.Ecc.QUARTILE, pct: 25 },
+      H: { obj: () => qrcodegen.QrCode.Ecc.HIGH,     pct: 30 },
+    };
+
+    const state = {
+      ecc: 'M',
+      cornerStyle: 'square', // 'square' | 'rounded' | 'circle' | 'eye'
+      fg: '#000000',
+      bg: '#ffffff',
+      transparent: false,
+      quietZone: true,
+      logo: null,           // { name, dataUri, presetId? } — dataUri is what's embedded in SVG
+      lockedEccToH: false,  // true while a logo is loaded
+      last: null,           // last successful encode result
+    };
+
+    // ── Brand-logo presets ──────────────────────────────────────
+    // Each preset is a 64×64 SVG: a rounded-rect background in the brand's
+    // canonical hex + the brand's official monochrome mark scaled into a
+    // centered 40×40 area (translate 12, scale ≈ 1.667 from 24×24).
+    // Brand paths are vendored from Simple Icons (simpleicons.org), CC0-1.0.
+    // WiFi / SMS aren't brands; those two stay as hand-drawn generic glyphs.
+    const _brand = (hex, d) =>
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#${hex}"/><g transform="translate(12 12) scale(1.6667)"><path fill="#fff" d="${d}"/></g></svg>`;
+    const LOGO_PRESETS = [
+      { id: 'gmail',     name: 'Gmail',     svg: _brand('EA4335', 'M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z') },
+      { id: 'wifi',      name: 'WiFi',      svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0ea5e9"/><path d="M14 28a25 25 0 0 1 36 0" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M20 36a16 16 0 0 1 24 0" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="32" cy="46" r="3.5" fill="#fff"/></svg>` },
+      { id: 'sms',       name: 'SMS',       svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#06b6d4"/><path d="M14 22a3 3 0 0 1 3-3h30a3 3 0 0 1 3 3v18a3 3 0 0 1-3 3H28l-10 8V22z" fill="#fff"/></svg>` },
+      { id: 'maps',      name: 'Maps',      svg: _brand('4285F4', 'M19.527 4.799c1.212 2.608.937 5.678-.405 8.173-1.101 2.047-2.744 3.74-4.098 5.614-.619.858-1.244 1.75-1.669 2.727-.141.325-.263.658-.383.992-.121.333-.224.673-.34 1.008-.109.314-.236.684-.627.687h-.007c-.466-.001-.579-.53-.695-.887-.284-.874-.581-1.713-1.019-2.525-.51-.944-1.145-1.817-1.79-2.671L19.527 4.799zM8.545 7.705l-3.959 4.707c.724 1.54 1.821 2.863 2.871 4.18.247.31.494.622.737.936l4.984-5.925-.029.01c-1.741.601-3.691-.291-4.392-1.987a3.377 3.377 0 0 1-.209-.716c-.063-.437-.077-.761-.004-1.198l.001-.007zM5.492 3.149l-.003.004c-1.947 2.466-2.281 5.88-1.117 8.77l4.785-5.689-.058-.05-3.607-3.035zM14.661.436l-3.838 4.563a.295.295 0 0 1 .027-.01c1.6-.551 3.403.15 4.22 1.626.176.319.323.683.377 1.045.068.446.085.773.012 1.22l-.003.016 3.836-4.561A8.382 8.382 0 0 0 14.67.439l-.009-.003zM9.466 5.868L14.162.285l-.047-.012A8.31 8.31 0 0 0 11.986 0a8.439 8.439 0 0 0-6.169 2.766l-.016.018 3.665 3.084z') },
+      { id: 'whatsapp',  name: 'WhatsApp',  svg: _brand('25D366', 'M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z') },
+      { id: 'youtube',   name: 'YouTube',   svg: _brand('FF0000', 'M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z') },
+      { id: 'instagram', name: 'Instagram', svg: _brand('FF0069', 'M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077') },
+      { id: 'x',         name: 'X',         svg: _brand('000000', 'M14.234 10.162 22.977 0h-2.072l-7.591 8.824L7.251 0H.258l9.168 13.343L.258 24H2.33l8.016-9.318L16.749 24h6.993zm-2.837 3.299-.929-1.329L3.076 1.56h3.182l5.965 8.532.929 1.329 7.754 11.09h-3.182z') },
+      { id: 'facebook',  name: 'Facebook',  svg: _brand('0866FF', 'M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z') },
+      { id: 'telegram',  name: 'Telegram',  svg: _brand('26A5E4', 'M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z') },
+    ];
+
+    function svgToDataUri(svg) {
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    // ── Encoder ─────────────────────────────────────────────────
+    // Encodes text and returns { qr, modules, size } or throws.
+    function encode(text) {
+      const ecl = ECC_MAP[state.ecc].obj();
+      // Build segments manually so we can throw a clean "Data too long" error
+      // before the library does — keeps the call site simple.
+      const segs = qrcodegen.QrSegment.makeSegments(text);
+      const qr = qrcodegen.QrCode.encodeSegments(segs, ecl, 1, 40, -1, false);
+      const size = qr.size;
+      const modules = [];
+      for (let y = 0; y < size; y++) {
+        const row = [];
+        for (let x = 0; x < size; x++) row.push(qr.getModule(x, y));
+        modules.push(row);
+      }
+      return { qr, modules, size };
+    }
+
+    // ── SVG renderer ────────────────────────────────────────────
+    // Builds the full output SVG: background, body modules (skipping the
+    // three finder corners), styled finder patterns, optional white pad +
+    // embedded logo, and a floating watermark overlay. Same SVG drives both
+    // the live preview and the PNG export — keeps every variant pixel-
+    // identical.
+    function buildSvgString({ modules, size }, opts) {
+      // Quiet zone width: spec minimum is 4 modules but most modern scanners
+      // happily read codes with just 1. We use 1 for the tightest preview
+      // possible — if you're printing for older scanners, prefer the SVG
+      // download and wrap it in your own margin.
+      const border = opts.quietZone ? 1 : 0;
+      const total = size + 2 * border;
+      const fg = escAttr(opts.fg);
+
+      // Mask off the three finder regions so the body path doesn't double-
+      // draw modules that the styled finder will replace.
+      const inFinder = (x, y) =>
+        (x < 7 && y < 7) ||
+        (x >= size - 7 && y < 7) ||
+        (x < 7 && y >= size - 7);
+
+      let bodyParts = [];
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          if (modules[y][x] && !inFinder(x, y)) {
+            bodyParts.push(`M${x + border},${y + border}h1v1h-1z`);
+          }
+        }
+      }
+      const bodyPath = `<path d="${bodyParts.join('')}" fill="${fg}" shape-rendering="crispEdges"/>`;
+
+      // 3 finder centers (in module coords, with quiet-zone offset). Each
+      // gets a sharp-corner index for eye style — the corner that points
+      // *toward* the QR center is sharp; the other three are rounded.
+      // sharp index: 0=tl, 1=tr, 2=br, 3=bl
+      const finders = [
+        { cx: border + 3.5,        cy: border + 3.5,        sharp: 2 }, // top-left → br points inward
+        { cx: border + size - 3.5, cy: border + 3.5,        sharp: 3 }, // top-right → bl
+        { cx: border + 3.5,        cy: border + size - 3.5, sharp: 1 }, // bottom-left → tr
+      ];
+      const finderD = finders.map(f => finderPath(f.cx, f.cy, opts.cornerStyle, f.sharp)).join(' ');
+      const finderShapeRendering = opts.cornerStyle === 'square' ? 'crispEdges' : 'geometricPrecision';
+      const finderTag = `<path d="${finderD}" fill="${fg}" fill-rule="evenodd" shape-rendering="${finderShapeRendering}"/>`;
+
+      // Background — covers the whole viewBox when not transparent.
+      const bgRect = opts.transparent
+        ? ''
+        : `<rect width="${total}" height="${total}" fill="${escAttr(opts.bg)}"/>`;
+
+      // Logo + rounded white pad. Logo is intentionally tiny (~11% edge,
+      // ~1.2% area) — well under the H-level 30% error-correction budget.
+      // Most generators use ~22%, which crowds the modules unnecessarily.
+      let logoBlock = '';
+      if (opts.logoDataUri) {
+        const padW = total * 0.135;
+        const padX = (total - padW) / 2;
+        const padR = padW * 0.22;
+        const logoW = total * 0.11;
+        const logoX = (total - logoW) / 2;
+        logoBlock =
+          `<rect x="${padX}" y="${padX}" width="${padW}" height="${padW}" rx="${padR}" fill="#ffffff"/>` +
+          `<image href="${escAttr(opts.logoDataUri)}" x="${logoX}" y="${logoX}" width="${logoW}" height="${logoW}" preserveAspectRatio="xMidYMid meet"/>`;
+      }
+
+      // Floating watermark — does NOT extend the viewBox. Sits inside the
+      // bottom border so it never overlaps the QR modules. Active only when
+      // the quiet zone is ON (we need that border to host the text) AND the
+      // bg is not transparent (so we don't print onto an unknown surface).
+      let watermarkBlock = '';
+      if (opts.quietZone && !opts.transparent) {
+        const tx = total / 2;
+        const ty = total - 0.25; // baseline tucked into the 1-module bottom border
+        const fontSize = 0.6;
+        watermarkBlock = `<text x="${tx}" y="${ty}" font-size="${fontSize}" text-anchor="middle" fill="${fg}" fill-opacity="0.5" font-family="ui-sans-serif,system-ui,sans-serif">tools.mazipan.space</text>`;
+      }
+
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${total}" role="img" aria-label="QR code">${bgRect}${bodyPath}${finderTag}${logoBlock}${watermarkBlock}</svg>`;
+    }
+
+    // Finder pattern path. Returns one combined "d" with three subpaths
+    // (outer ring → inner light hole → center dot) for evenodd filling.
+    // sharpCorner is only consulted for the 'eye' style.
+    function finderPath(cx, cy, style, sharpCorner) {
+      if (style === 'circle') {
+        return circlePath(cx, cy, 3.5, false)
+             + circlePath(cx, cy, 2.5, true)
+             + circlePath(cx, cy, 1.5, false);
+      }
+      if (style === 'rounded') {
+        return roundedRectPath(cx - 3.5, cy - 3.5, 7, 7, 2,   false)
+             + roundedRectPath(cx - 2.5, cy - 2.5, 5, 5, 1.5, true)
+             + roundedRectPath(cx - 1.5, cy - 1.5, 3, 3, 0.8, false);
+      }
+      if (style === 'eye') {
+        // Max-rounded 3 corners (quarter circles), one sharp corner facing
+        // the QR center. Outer / hole / dot all share the same orientation.
+        const eyeRadii = (full) => {
+          const r = [full, full, full, full];
+          r[sharpCorner] = 0;
+          return r;
+        };
+        return rectWithCorners(cx - 3.5, cy - 3.5, 7, 7, eyeRadii(3.5), false)
+             + rectWithCorners(cx - 2.5, cy - 2.5, 5, 5, eyeRadii(2.5), true)
+             + rectWithCorners(cx - 1.5, cy - 1.5, 3, 3, eyeRadii(1.5), false);
+      }
+      // Square (default) — outer ring drawn as a 7×7 dark square with a
+      // 5×5 counterclockwise hole, then a 3×3 center.
+      return `M${cx - 3.5},${cy - 3.5}h7v7h-7z`
+           + `M${cx - 2.5},${cy - 2.5}v5h5v-5z`
+           + `M${cx - 1.5},${cy - 1.5}h3v3h-3z`;
+    }
+
+    function roundedRectPath(x, y, w, h, r, reverse) {
+      const ix = w - 2 * r;
+      const iy = h - 2 * r;
+      if (!reverse) {
+        return `M${x + r},${y}h${ix}a${r},${r} 0 0 1 ${r},${r}v${iy}a${r},${r} 0 0 1 ${-r},${r}h${-ix}a${r},${r} 0 0 1 ${-r},${-r}v${-iy}a${r},${r} 0 0 1 ${r},${-r}z`;
+      }
+      return `M${x + r},${y}a${r},${r} 0 0 0 ${-r},${r}v${iy}a${r},${r} 0 0 0 ${r},${r}h${ix}a${r},${r} 0 0 0 ${r},${-r}v${-iy}a${r},${r} 0 0 0 ${-r},${-r}z`;
+    }
+
+    // Per-corner rounded rect. `radii` is [topLeft, topRight, bottomRight,
+    // bottomLeft]. A radius of 0 emits a sharp 90° corner. Used by the eye
+    // style — three corners get max radius (= half edge), one stays at 0.
+    function rectWithCorners(x, y, w, h, radii, reverse) {
+      const [rtl, rtr, rbr, rbl] = radii;
+      if (!reverse) {
+        let d = `M${x + rtl},${y}`;
+        d += `h${w - rtl - rtr}`;
+        if (rtr > 0) d += `a${rtr},${rtr} 0 0 1 ${rtr},${rtr}`;
+        d += `v${h - rtr - rbr}`;
+        if (rbr > 0) d += `a${rbr},${rbr} 0 0 1 ${-rbr},${rbr}`;
+        d += `h${-(w - rbr - rbl)}`;
+        if (rbl > 0) d += `a${rbl},${rbl} 0 0 1 ${-rbl},${-rbl}`;
+        d += `v${-(h - rbl - rtl)}`;
+        if (rtl > 0) d += `a${rtl},${rtl} 0 0 1 ${rtl},${-rtl}`;
+        return d + 'z';
+      }
+      let d = `M${x + rtl},${y}`;
+      if (rtl > 0) d += `a${rtl},${rtl} 0 0 0 ${-rtl},${rtl}`;
+      d += `v${h - rtl - rbl}`;
+      if (rbl > 0) d += `a${rbl},${rbl} 0 0 0 ${rbl},${rbl}`;
+      d += `h${w - rbl - rbr}`;
+      if (rbr > 0) d += `a${rbr},${rbr} 0 0 0 ${rbr},${-rbr}`;
+      d += `v${-(h - rbr - rtr)}`;
+      if (rtr > 0) d += `a${rtr},${rtr} 0 0 0 ${-rtr},${-rtr}`;
+      return d + 'z';
+    }
+
+    function circlePath(cx, cy, r, ccw) {
+      const dir = ccw ? 0 : 1;
+      return `M${cx - r},${cy}a${r},${r} 0 1 ${dir} ${2 * r},0a${r},${r} 0 1 ${dir} ${-2 * r},0z`;
+    }
+
+    function escAttr(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    }
+
+    // ── Render pipeline ─────────────────────────────────────────
+    let renderTimer = null;
+    function scheduleRender() {
+      clearTimeout(renderTimer);
+      renderTimer = setTimeout(render, 80);
+    }
+
+    function render() {
+      const text = $('qr-input').value;
+      const preview = $('qr-preview');
+      const errEl = $('qr-error');
+      const meta = $('qr-meta');
+      const dlSvg = $('qr-download-svg');
+      const dlPng = $('qr-download-png');
+      const cpPng = $('qr-copy-png');
+      const charCount = $('qr-char-count');
+      const capacity = $('qr-capacity');
+
+      errEl.classList.add('hidden');
+      errEl.textContent = '';
+
+      const len = text.length;
+      charCount.textContent = `${len.toLocaleString()} character${len === 1 ? '' : 's'}`;
+
+      if (!text) {
+        preview.classList.add('empty');
+        preview.innerHTML = 'Encoded QR code will appear here.';
+        meta.textContent = '';
+        capacity.textContent = '';
+        dlSvg.disabled = dlPng.disabled = cpPng.disabled = true;
+        state.last = null;
+        return;
+      }
+
+      let result;
+      try {
+        result = encode(text);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const friendly = /data too long/i.test(msg)
+          ? `Content exceeds QR capacity at error-correction ${state.ecc}. Lower the level (H → L) or shorten the input.`
+          : `Encoding failed: ${msg}`;
+        errEl.textContent = '✕ ' + friendly;
+        errEl.classList.remove('hidden');
+        preview.classList.add('empty');
+        preview.innerHTML = '⚠️';
+        meta.textContent = '';
+        capacity.textContent = '';
+        dlSvg.disabled = dlPng.disabled = cpPng.disabled = true;
+        state.last = null;
+        return;
+      }
+
+      const opts = {
+        fg: state.fg,
+        bg: state.bg,
+        transparent: state.transparent,
+        quietZone: state.quietZone,
+        cornerStyle: state.cornerStyle,
+        logoDataUri: state.logo?.dataUri || null,
+      };
+      const svg = buildSvgString(result, opts);
+
+      preview.classList.remove('empty');
+      preview.innerHTML = svg;
+
+      // Capacity hint: bytes used vs max for current version + ECC.
+      const ver = result.qr.version;
+      const eclObj = result.qr.errorCorrectionLevel;
+      const maxBytes = qrcodegen.QrCode.getNumDataCodewords(ver, eclObj);
+      // The boost-ECL flag was disabled, so eclObj === requested ECC level.
+      // Approximate "bytes used" as ceil of input bytes; we use UTF-8 length.
+      const usedBytes = new TextEncoder().encode(text).length;
+      const pct = Math.min(100, Math.round((usedBytes / maxBytes) * 100));
+      capacity.innerHTML = `Version ${ver} · <span class="${pct > 90 ? 'warn' : 'good'}">${usedBytes}/${maxBytes} B</span>`;
+      meta.textContent = `${result.size}×${result.size} modules · ECC ${state.ecc} (~${ECC_MAP[state.ecc].pct}%)`;
+
+      dlSvg.disabled = dlPng.disabled = cpPng.disabled = false;
+      state.last = { ...result, svg, opts };
+
+      // Logo overlay warning if logo covers > 30% by area.
+      if (state.logo) {
+        const safe = approxLogoArea(result.size, opts.quietZone) * 0.20;
+        // We render the logo at 22% of the inner code edge by default; warn
+        // anyway if the user picked a small QR version where the logo will
+        // dominate readability.
+        const logoEdgePct = 0.22;
+        const areaPct = logoEdgePct * logoEdgePct;
+        const warn = $('qr-logo-warn');
+        if (areaPct > 0.10 && result.size < 25) {
+          warn.textContent = `⚠ Logo covers ~${Math.round(areaPct * 100)}% of a ${result.size}-module code — readability may suffer. Use error-correction H (auto) or test on a phone before printing.`;
+          warn.classList.remove('hidden');
+        } else if (areaPct > 0.30) {
+          warn.textContent = `⚠ Logo covers ~${Math.round(areaPct * 100)}% — too large; the code likely won't scan.`;
+          warn.classList.remove('hidden');
+        } else {
+          warn.classList.add('hidden');
+        }
+      }
+    }
+
+    function approxLogoArea(size, quiet) {
+      const border = quiet ? 4 : 0;
+      const total = size + 2 * border;
+      return total * total;
+    }
+
+    // ── PNG export ──────────────────────────────────────────────
+    // The unified SVG already contains the logo and watermark, so rasterizing
+    // it is the whole pipeline — no separate logo/watermark draw steps.
+    // The output viewBox may be taller than wide (when the footer badge is
+    // on), so we size the canvas to preserve aspect.
+    async function exportPng(targetPx) {
+      if (!state.last) return null;
+      const { svg } = state.last;
+      const vb = parseViewBox(svg);
+      const aspect = vb.h / vb.w;
+      const canvasW = targetPx;
+      const canvasH = Math.round(targetPx * aspect);
+      const blob = new Blob([svg], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      try {
+        const img = await loadImage(url);
+        const canvas = document.createElement('canvas');
+        canvas.width = canvasW;
+        canvas.height = canvasH;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvasW, canvasH);
+        return await new Promise(res => canvas.toBlob(b => res(b), 'image/png'));
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    function parseViewBox(svg) {
+      const m = svg.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/);
+      return m ? { w: parseFloat(m[1]), h: parseFloat(m[2]) } : { w: 1, h: 1 };
+    }
+
+    function loadImage(url) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Image load failed'));
+        img.src = url;
+      });
+    }
+
+    async function downloadPNG() {
+      const size = parseInt($('qr-png-size').value, 10) || 1024;
+      try {
+        const blob = await exportPng(size);
+        if (!blob) return;
+        triggerDownload(blob, `qr-code-${size}.png`);
+        setStatus(`Downloaded qr-code-${size}.png`);
+      } catch (err) {
+        setStatus('Download failed: ' + (err.message || err), 'error');
+      }
+    }
+
+    async function copyPNG() {
+      if (!navigator.clipboard || !window.ClipboardItem) {
+        setStatus('Clipboard image API not available — use Download', 'error');
+        return;
+      }
+      const size = parseInt($('qr-png-size').value, 10) || 1024;
+      try {
+        const blob = await exportPng(size);
+        if (!blob) return;
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        setStatus('Copied PNG to clipboard');
+      } catch (err) {
+        setStatus('Copy failed: ' + (err.message || err.name), 'error');
+      }
+    }
+
+    function downloadSVG() {
+      if (!state.last) return;
+      const blob = new Blob([state.last.svg], { type: 'image/svg+xml' });
+      triggerDownload(blob, 'qr-code.svg');
+      setStatus('Downloaded qr-code.svg');
+    }
+
+    function triggerDownload(blob, name) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    let statusTimer;
+    function setStatus(msg, kind) {
+      const el = $('qr-status');
+      el.textContent = msg;
+      el.style.color = kind === 'error' ? '#fca5a5' : '#86efac';
+      clearTimeout(statusTimer);
+      statusTimer = setTimeout(() => { el.textContent = ''; }, 3000);
+    }
+
+    // ── Wiring ──────────────────────────────────────────────────
+    function setEcc(level) {
+      if (state.lockedEccToH && level !== 'H') {
+        setStatus('Logo overlay needs ECC H — remove the logo to lower it', 'error');
+        return;
+      }
+      state.ecc = level;
+      syncEccPills();
+      scheduleRender();
+    }
+
+    function syncEccPills() {
+      document.querySelectorAll('#qr-ecc [data-ecc]').forEach(b => {
+        b.classList.toggle('on', b.dataset.ecc === state.ecc);
+        b.disabled = state.lockedEccToH && b.dataset.ecc !== 'H';
+      });
+      $('qr-ecc-note').textContent = state.lockedEccToH ? 'Locked to H by logo overlay' : '';
+    }
+
+    function setCornerStyle(style) {
+      state.cornerStyle = style;
+      document.querySelectorAll('#qr-corner [data-corner]').forEach(b => {
+        b.classList.toggle('on', b.dataset.corner === style);
+      });
+      scheduleRender();
+    }
+
+    function loadSample(key) {
+      const v = SAMPLES[key];
+      if (!v) return;
+      document.querySelectorAll('.chip[data-sample]').forEach(el => {
+        el.classList.toggle('on', el.dataset.sample === key);
+      });
+      $('qr-input').value = v;
+      scheduleRender();
+    }
+
+    function clearLogo(ev) {
+      if (ev) ev.stopPropagation();
+      state.logo = null;
+      state.lockedEccToH = false;
+      $('qr-logo-empty').classList.remove('hidden');
+      $('qr-logo-loaded').classList.add('hidden');
+      $('qr-logo-loaded').classList.remove('flex');
+      $('qr-logo-warn').classList.add('hidden');
+      // The "None" tile (data-preset="") is the active one when no logo is set.
+      document.querySelectorAll('#qr-logo-presets [data-preset]').forEach(b => {
+        b.classList.toggle('on', b.dataset.preset === '');
+      });
+      syncEccPills();
+      scheduleRender();
+    }
+
+    function setLogo(logo) {
+      state.logo = logo;
+      state.lockedEccToH = true;
+      state.ecc = 'H';
+      // Highlight only the matching preset tile. For a custom upload no
+      // preset is highlighted (the loaded-tile in the drop-zone is the
+      // visual cue instead).
+      document.querySelectorAll('#qr-logo-presets [data-preset]').forEach(b => {
+        const wanted = logo.presetId || null;
+        b.classList.toggle('on', wanted !== null && b.dataset.preset === wanted);
+      });
+      // The custom-upload zone reverts to its empty state when a preset is picked,
+      // so users can swap freely between presets and uploads.
+      if (logo.presetId) {
+        $('qr-logo-empty').classList.remove('hidden');
+        $('qr-logo-loaded').classList.add('hidden');
+        $('qr-logo-loaded').classList.remove('flex');
+      } else {
+        $('qr-logo-empty').classList.add('hidden');
+        $('qr-logo-loaded').classList.remove('hidden');
+        $('qr-logo-loaded').classList.add('flex');
+        $('qr-logo-preview').src = logo.dataUri;
+        $('qr-logo-name').textContent = logo.name;
+      }
+      syncEccPills();
+      scheduleRender();
+    }
+
+    function pickPreset(id) {
+      const preset = LOGO_PRESETS.find(p => p.id === id);
+      if (!preset) return;
+      setLogo({
+        name: preset.name,
+        dataUri: svgToDataUri(preset.svg),
+        presetId: preset.id,
+      });
+    }
+
+    function handleLogoFile(file) {
+      if (!file || !file.type.startsWith('image/')) {
+        setStatus('Pick an image file for the logo', 'error');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        // FileReader gives us a data URI directly — perfect for embedding in
+        // the output SVG without a second base64 round-trip.
+        const url = reader.result;
+        const img = new Image();
+        img.onload = () => {
+          setLogo({ name: file.name, dataUri: url });
+        };
+        img.onerror = () => setStatus('That file isn’t a usable image', 'error');
+        img.src = url;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function buildPresetGrid() {
+      const grid = $('qr-logo-presets');
+      grid.innerHTML = '';
+
+      // "None" tile — clears the logo back to no-overlay style. Marked as
+      // selected by default since the page starts with no logo.
+      const none = document.createElement('button');
+      none.type = 'button';
+      none.className = 'qr-preset-tile qr-preset-none on';
+      none.dataset.preset = '';
+      none.title = 'No logo';
+      none.setAttribute('aria-label', 'No logo');
+      none.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#1f2937"/><circle cx="32" cy="32" r="18" fill="none" stroke="#9ca3af" stroke-width="3"/><line x1="20" y1="44" x2="44" y2="20" stroke="#9ca3af" stroke-width="3"/></svg>`;
+      none.addEventListener('click', () => clearLogo());
+      grid.appendChild(none);
+
+      for (const preset of LOGO_PRESETS) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'qr-preset-tile';
+        btn.dataset.preset = preset.id;
+        btn.title = preset.name;
+        btn.setAttribute('aria-label', preset.name);
+        btn.innerHTML = preset.svg;
+        btn.addEventListener('click', () => pickPreset(preset.id));
+        grid.appendChild(btn);
+      }
+    }
+
+    function wireLogoZone() {
+      const zone = $('qr-logo-zone');
+      const input = $('qr-logo-input');
+      zone.addEventListener('click', e => {
+        // Don't reopen the picker when interacting with the loaded-tile UI.
+        if (e.target.closest('#qr-logo-loaded')) return;
+        input.click();
+      });
+      zone.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          input.click();
+        }
+      });
+      zone.addEventListener('dragover', e => {
+        e.preventDefault();
+        zone.classList.add('dragover');
+      });
+      zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('dragover');
+        const file = e.dataTransfer.files?.[0];
+        if (file) handleLogoFile(file);
+      });
+      input.addEventListener('change', e => {
+        const file = e.target.files?.[0];
+        if (file) handleLogoFile(file);
+      });
+    }
+
+    function wireColors() {
+      $('qr-fg').addEventListener('input', e => { state.fg = e.target.value; scheduleRender(); });
+      $('qr-bg').addEventListener('input', e => { state.bg = e.target.value; scheduleRender(); });
+      $('qr-transparent').addEventListener('change', e => {
+        state.transparent = e.target.checked;
+        $('qr-bg').disabled = state.transparent;
+        scheduleRender();
+      });
+      $('qr-quiet').addEventListener('change', e => {
+        state.quietZone = e.target.checked;
+        scheduleRender();
+      });
+    }
+
+    // ── Init ────────────────────────────────────────────────────
+    buildPresetGrid();
+    wireLogoZone();
+    wireColors();
+    syncEccPills();
+    setCornerStyle(state.cornerStyle);
+    $('qr-input').addEventListener('input', scheduleRender);
+    // Seed with the sample URL so the page is immediately useful.
+    loadSample('url');
+  </script>
+
+  <include src="_partials/footer-script.html"></include>
+
+  <!-- BEGIN:faq generated by scripts/generate-sections.mjs — re-run after editing tools.json -->
+  <section class="max-w-[1100px] mx-auto w-full px-6 py-8 border-t border-gray-800">
+    <h2 class="text-xl font-bold text-white mb-6">FAQ</h2>
+    <div class="space-y-2">
+      <details class="disclosure">
+        <summary>Does my data ever leave my browser?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">No. Encoding, SVG rendering, and PNG export all happen locally in your browser via an inlined version of Project Nayuki's QR encoder (MIT). No upload, no server, no CDN call.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>What does the error-correction level (L/M/Q/H) actually do?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">QR codes carry redundant data so they still scan when partially damaged or obscured. L tolerates ~7% damage, M ~15%, Q ~25%, H ~30%. Higher levels need more space, so the same payload fits less easily — pick L for the densest code, H if you're overlaying a logo or printing on glossy material.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>Why do I get &quot;content exceeds capacity&quot; on long input?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">The chosen error-correction level reserves a percentage of the code for recovery data. Lower it (H → L) to fit more, shorten the payload, or remember that URLs encode much smaller than free-form text because the alphanumeric mode is restricted to 0-9 A-Z space $ % * + - . / :.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>Will a centered logo still scan?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">Usually yes if the logo covers under ~20% of the code area and you've used error-correction H (which is auto-selected when you add a logo). Test on a real phone before printing — the tool warns when a logo gets large enough to risk readability.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>Should I export as SVG or PNG?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">SVG for anything that will be resized, printed, or embedded in a webpage — it scales infinitely and stays crisp. PNG when you need a flat raster file (e.g. attaching to a chat message); pick 1024 px if you're printing, 256/512 px for screen use.</div></div>
+      </details>
+    </div>
+  </section>
+  <!-- END:faq -->
+
+  <!-- BEGIN:more-tools generated by scripts/generate-sections.mjs — re-run after editing tools.json -->
+  <section class="max-w-[1100px] mx-auto w-full px-6 py-8 border-t border-gray-800">
+    <h2 class="text-xl font-bold text-white mb-6">More tools</h2>
+    <div class="space-y-4">
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">JSON</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/json-formatter" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🗂️ JSON Formatter</a>
+          <a href="/json-to-ts" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔷 JSON to TypeScript</a>
+          <a href="/json-diff" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔍 JSON Diff</a>
+          <a href="/json-sort" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔤 JSON Sort</a>
+          <a href="/csv-to-json" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📊 JSON ↔ CSV</a>
+          <a href="/json-to-yaml" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📝 JSON ↔ YAML</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Code</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/regex-tester" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🧪 Regex Tester</a>
+          <a href="/svg-to-jsx" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">⚛️ SVG to JSX</a>
+          <a href="/snippet-to-image" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📸 Code Snippet to Image</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Visual</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/gradients" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🎨 Gradients</a>
+          <a href="/blob" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🫧 Blob Generator</a>
+          <a href="/waves" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">〰️ Wave Generator</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Image</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/image-compressor" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🗜️ Image Compressor</a>
+          <a href="/image-resizer" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📐 Image Resizer</a>
+          <a href="/image-cropper" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">✂️ Image Cropper</a>
+          <a href="/image-converter" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🖼️ Image Format Converter</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Web / SEO</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/meta-tag-preview" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔍 Meta Tag Preview</a>
+          <a href="/user-agent-parser" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🕵️ User Agent Parser</a>
+          <a href="/og-image-builder" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🖼️ OG Image Builder</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Time / Dates</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/cron-decoder" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">⏱️ Cron Decoder</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- END:more-tools -->
+
+  <footer class="max-w-[1100px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
+    <div>&copy; <span id="year"></span> <a href="https://mazipan.space" rel="noreferrer noopener" target="_blank" class="text-blue-400 transition-colors">Irfan Maulana</a> &amp; Claude</div>
+      <div><span id="deploy-time"></span></div>
+      <div><span id="commit-sha"></span><a href="https://github.com/mazipan/html-tools" rel="noreferrer noopener" target="_blank" class="text-blue-400 transition-colors">Source</a></div>
+  </footer>
+
+</body>
+</html>

@@ -595,6 +595,36 @@
       "maxWidth": "1400px"
     },
     {
+      "slug": "qr-code-generator",
+      "name": "QR Code Generator",
+      "icon": "📱",
+      "category": "Generators",
+      "description": "Turn any text, URL, WiFi config, or vCard into a QR code. Customize colors and error-correction level, then download as SVG or PNG.",
+      "faqs": [
+        {
+          "q": "Does my data ever leave my browser?",
+          "a": "No. Encoding, SVG rendering, and PNG export all happen locally in your browser via an inlined version of Project Nayuki's QR encoder (MIT). No upload, no server, no CDN call."
+        },
+        {
+          "q": "What does the error-correction level (L/M/Q/H) actually do?",
+          "a": "QR codes carry redundant data so they still scan when partially damaged or obscured. L tolerates ~7% damage, M ~15%, Q ~25%, H ~30%. Higher levels need more space, so the same payload fits less easily — pick L for the densest code, H if you're overlaying a logo or printing on glossy material."
+        },
+        {
+          "q": "Why do I get \"content exceeds capacity\" on long input?",
+          "a": "The chosen error-correction level reserves a percentage of the code for recovery data. Lower it (H → L) to fit more, shorten the payload, or remember that URLs encode much smaller than free-form text because the alphanumeric mode is restricted to 0-9 A-Z space $ % * + - . / :."
+        },
+        {
+          "q": "Will a centered logo still scan?",
+          "a": "Usually yes if the logo covers under ~20% of the code area and you've used error-correction H (which is auto-selected when you add a logo). Test on a real phone before printing — the tool warns when a logo gets large enough to risk readability."
+        },
+        {
+          "q": "Should I export as SVG or PNG?",
+          "a": "SVG for anything that will be resized, printed, or embedded in a webpage — it scales infinitely and stays crisp. PNG when you need a flat raster file (e.g. attaching to a chat message); pick 1024 px if you're printing, 256/512 px for screen use."
+        }
+      ],
+      "maxWidth": "1100px"
+    },
+    {
       "slug": "design-system",
       "name": "Design System",
       "icon": "🎛️",
