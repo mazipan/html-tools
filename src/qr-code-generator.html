@@ -275,7 +275,7 @@
           <div class="flex flex-wrap items-center gap-3">
             <label class="switch">
               <input type="checkbox" id="qr-quiet" checked>
-              <span>Quiet zone (4-module border)</span>
+              <span>Quiet zone (light border)</span>
             </label>
           </div>
         </div>
@@ -1057,7 +1057,11 @@
     // the live preview and the PNG export — keeps every variant pixel-
     // identical.
     function buildSvgString({ modules, size }, opts) {
-      const border = opts.quietZone ? 4 : 0;
+      // Quiet zone width: spec minimum is 4 modules but most modern scanners
+      // happily read codes with just 1. We use 1 for the tightest preview
+      // possible — if you're printing for older scanners, prefer the SVG
+      // download and wrap it in your own margin.
+      const border = opts.quietZone ? 1 : 0;
       const total = size + 2 * border;
       const fg = escAttr(opts.fg);
 
@@ -1112,16 +1116,15 @@
       }
 
       // Floating watermark — does NOT extend the viewBox. Sits inside the
-      // bottom 4-module quiet zone so it never overlaps the QR modules.
-      // Active only when the quiet zone is ON (we need that border to host
-      // the text) AND the bg is not transparent (so we don't print onto an
-      // unknown surface).
+      // bottom border so it never overlaps the QR modules. Active only when
+      // the quiet zone is ON (we need that border to host the text) AND the
+      // bg is not transparent (so we don't print onto an unknown surface).
       let watermarkBlock = '';
       if (opts.quietZone && !opts.transparent) {
         const tx = total / 2;
-        const ty = total - 1.2; // sits in the lower portion of the bottom quiet zone
-        const fontSize = 1.3;
-        watermarkBlock = `<text x="${tx}" y="${ty}" font-size="${fontSize}" text-anchor="middle" fill="${fg}" fill-opacity="0.42" font-family="ui-sans-serif,system-ui,sans-serif">tools.mazipan.space</text>`;
+        const ty = total - 0.25; // baseline tucked into the 1-module bottom border
+        const fontSize = 0.6;
+        watermarkBlock = `<text x="${tx}" y="${ty}" font-size="${fontSize}" text-anchor="middle" fill="${fg}" fill-opacity="0.5" font-family="ui-sans-serif,system-ui,sans-serif">tools.mazipan.space</text>`;
       }
 
       return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${total}" role="img" aria-label="QR code">${bgRect}${bodyPath}${finderTag}${logoBlock}${watermarkBlock}</svg>`;
