@@ -452,7 +452,7 @@
       "slug": "cron-decoder",
       "name": "Cron Decoder",
       "icon": "⏱️",
-      "category": "Time / Dates",
+      "category": "Code",
       "description": "Decode a cron expression into plain English with the next 10 run times, or build one field by field. Runs in your browser — no installs, no tracking.",
       "faqs": [
         {
@@ -658,7 +658,7 @@
       "slug": "lorem-ipsum",
       "name": "Lorem Ipsum Generator",
       "icon": "📜",
-      "category": "Text",
+      "category": "Generators",
       "description": "Generate Lorem Ipsum placeholder text — paragraphs, sentences, words, or list items, with Cupcake / Bacon / Hipster dictionaries too. Runs in your browser — no installs, no tracking.",
       "faqs": [
         {
