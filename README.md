@@ -30,6 +30,7 @@ A collection of single-file browser-native utilities. All logic runs client-side
 | [User Agent Parser](src/user-agent-parser.html) | Break a user-agent string down into browser, engine, OS, device type, and CPU architecture |
 | [Code Snippet to Image](src/snippet-to-image.html) | Turn a code snippet into a sharable PNG card with VS Code-grade syntax highlighting (Shiki) — pick a language, theme, window chrome, and background |
 | [QR Code Generator](src/qr-code-generator.html) | Turn text, URL, WiFi config, or vCard into a QR code with custom colors and error-correction level — export as SVG or PNG |
+| [Lorem Ipsum Generator](src/lorem-ipsum.html) | Generate placeholder text — paragraphs, sentences, words, or list items, with Cupcake / Bacon / Hipster dictionaries too |
 
 ## Design system
 
