@@ -248,6 +248,7 @@
             <button type="button" class="pill" data-corner="square"  onclick="setCornerStyle('square')">Square</button>
             <button type="button" class="pill" data-corner="rounded" onclick="setCornerStyle('rounded')">Rounded</button>
             <button type="button" class="pill" data-corner="circle"  onclick="setCornerStyle('circle')">Circle</button>
+            <button type="button" class="pill" data-corner="eye"     onclick="setCornerStyle('eye')">Eye</button>
           </div>
         </div>
 
@@ -271,14 +272,10 @@
 
         <div class="qr-section">
           <span class="qr-section-label">Layout</span>
-          <div class="flex flex-col gap-2">
+          <div class="flex flex-wrap items-center gap-3">
             <label class="switch">
               <input type="checkbox" id="qr-quiet" checked>
               <span>Quiet zone (4-module border)</span>
-            </label>
-            <label class="switch">
-              <input type="checkbox" id="qr-watermark">
-              <span>Footer badge (tools.mazipan.space)</span>
             </label>
           </div>
         </div>
@@ -1004,13 +1001,12 @@
 
     const state = {
       ecc: 'M',
-      cornerStyle: 'square', // 'square' | 'rounded' | 'circle'
+      cornerStyle: 'square', // 'square' | 'rounded' | 'circle' | 'eye'
       fg: '#000000',
       bg: '#ffffff',
       transparent: false,
       quietZone: true,
-      watermark: false,
-      logo: null,           // { url, name, dataUri, presetId? } — dataUri is what's embedded in SVG
+      logo: null,           // { name, dataUri, presetId? } — dataUri is what's embedded in SVG
       lockedEccToH: false,  // true while a logo is loaded
       last: null,           // last successful encode result
     };
@@ -1057,14 +1053,12 @@
     // ── SVG renderer ────────────────────────────────────────────
     // Builds the full output SVG: background, body modules (skipping the
     // three finder corners), styled finder patterns, optional white pad +
-    // embedded logo, and optional watermark below the code. Same SVG drives
-    // both the live preview and the PNG export — keeps every variant pixel-
+    // embedded logo, and a floating watermark overlay. Same SVG drives both
+    // the live preview and the PNG export — keeps every variant pixel-
     // identical.
     function buildSvgString({ modules, size }, opts) {
       const border = opts.quietZone ? 4 : 0;
       const total = size + 2 * border;
-      const footerH = opts.watermark ? 3.5 : 0;
-      const viewBoxH = total + footerH;
       const fg = escAttr(opts.fg);
 
       // Mask off the three finder regions so the body path doesn't double-
@@ -1084,49 +1078,60 @@
       }
       const bodyPath = `<path d="${bodyParts.join('')}" fill="${fg}" shape-rendering="crispEdges"/>`;
 
-      // 3 finder centers (in module coords, with quiet-zone offset).
+      // 3 finder centers (in module coords, with quiet-zone offset). Each
+      // gets a sharp-corner index for eye style — the corner that points
+      // *toward* the QR center is sharp; the other three are rounded.
+      // sharp index: 0=tl, 1=tr, 2=br, 3=bl
       const finders = [
-        { cx: border + 3.5,         cy: border + 3.5 },
-        { cx: border + size - 3.5,  cy: border + 3.5 },
-        { cx: border + 3.5,         cy: border + size - 3.5 },
+        { cx: border + 3.5,        cy: border + 3.5,        sharp: 2 }, // top-left → br points inward
+        { cx: border + size - 3.5, cy: border + 3.5,        sharp: 3 }, // top-right → bl
+        { cx: border + 3.5,        cy: border + size - 3.5, sharp: 1 }, // bottom-left → tr
       ];
-      const finderD = finders.map(f => finderPath(f.cx, f.cy, opts.cornerStyle)).join(' ');
+      const finderD = finders.map(f => finderPath(f.cx, f.cy, opts.cornerStyle, f.sharp)).join(' ');
       const finderShapeRendering = opts.cornerStyle === 'square' ? 'crispEdges' : 'geometricPrecision';
       const finderTag = `<path d="${finderD}" fill="${fg}" fill-rule="evenodd" shape-rendering="${finderShapeRendering}"/>`;
 
-      // Background — covers the whole viewBox (incl. watermark area) when not transparent.
+      // Background — covers the whole viewBox when not transparent.
       const bgRect = opts.transparent
         ? ''
-        : `<rect width="${total}" height="${viewBoxH}" fill="${escAttr(opts.bg)}"/>`;
+        : `<rect width="${total}" height="${total}" fill="${escAttr(opts.bg)}"/>`;
 
-      // Logo + rounded white pad.
+      // Logo + rounded white pad. Logo is intentionally small (~17% edge)
+      // so it leaves more error-correction headroom than the default 22%
+      // most generators use.
       let logoBlock = '';
       if (opts.logoDataUri) {
-        const padW = total * 0.26;
+        const padW = total * 0.21;
         const padX = (total - padW) / 2;
-        const padR = padW * 0.18;
-        const logoW = total * 0.22;
+        const padR = padW * 0.20;
+        const logoW = total * 0.17;
         const logoX = (total - logoW) / 2;
         logoBlock =
           `<rect x="${padX}" y="${padX}" width="${padW}" height="${padW}" rx="${padR}" fill="#ffffff"/>` +
           `<image href="${escAttr(opts.logoDataUri)}" x="${logoX}" y="${logoX}" width="${logoW}" height="${logoW}" preserveAspectRatio="xMidYMid meet"/>`;
       }
 
-      // Watermark — small text below the QR, outside the quiet zone, fg at 50% opacity.
+      // Floating watermark — does NOT extend the viewBox. Tiny text overlay
+      // near the bottom edge of the module area. Active only when the quiet
+      // zone is OFF (because then the QR is the user's "tight" output mode)
+      // AND the bg is not transparent (so we don't print onto an unknown
+      // surface). With the modules under the text, error correction
+      // absorbs the partial overlap.
       let watermarkBlock = '';
-      if (opts.watermark && footerH > 0) {
+      if (!opts.quietZone && !opts.transparent) {
         const tx = total / 2;
-        const ty = total + footerH * 0.72;
-        const fontSize = footerH * 0.55;
-        watermarkBlock = `<text x="${tx}" y="${ty}" font-size="${fontSize}" text-anchor="middle" fill="${fg}" fill-opacity="0.55" font-family="ui-sans-serif,system-ui,sans-serif">tools.mazipan.space</text>`;
+        const ty = total - 0.55;
+        const fontSize = 1.05;
+        watermarkBlock = `<text x="${tx}" y="${ty}" font-size="${fontSize}" text-anchor="middle" fill="${fg}" fill-opacity="0.32" font-family="ui-sans-serif,system-ui,sans-serif">tools.mazipan.space</text>`;
       }
 
-      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${viewBoxH}" role="img" aria-label="QR code">${bgRect}${bodyPath}${finderTag}${logoBlock}${watermarkBlock}</svg>`;
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${total}" role="img" aria-label="QR code">${bgRect}${bodyPath}${finderTag}${logoBlock}${watermarkBlock}</svg>`;
     }
 
     // Finder pattern path. Returns one combined "d" with three subpaths
     // (outer ring → inner light hole → center dot) for evenodd filling.
-    function finderPath(cx, cy, style) {
+    // sharpCorner is only consulted for the 'eye' style.
+    function finderPath(cx, cy, style, sharpCorner) {
       if (style === 'circle') {
         return circlePath(cx, cy, 3.5, false)
              + circlePath(cx, cy, 2.5, true)
@@ -1136,6 +1141,18 @@
         return roundedRectPath(cx - 3.5, cy - 3.5, 7, 7, 2,   false)
              + roundedRectPath(cx - 2.5, cy - 2.5, 5, 5, 1.5, true)
              + roundedRectPath(cx - 1.5, cy - 1.5, 3, 3, 0.8, false);
+      }
+      if (style === 'eye') {
+        // Max-rounded 3 corners (quarter circles), one sharp corner facing
+        // the QR center. Outer / hole / dot all share the same orientation.
+        const eyeRadii = (full) => {
+          const r = [full, full, full, full];
+          r[sharpCorner] = 0;
+          return r;
+        };
+        return rectWithCorners(cx - 3.5, cy - 3.5, 7, 7, eyeRadii(3.5), false)
+             + rectWithCorners(cx - 2.5, cy - 2.5, 5, 5, eyeRadii(2.5), true)
+             + rectWithCorners(cx - 1.5, cy - 1.5, 3, 3, eyeRadii(1.5), false);
       }
       // Square (default) — outer ring drawn as a 7×7 dark square with a
       // 5×5 counterclockwise hole, then a 3×3 center.
@@ -1151,6 +1168,34 @@
         return `M${x + r},${y}h${ix}a${r},${r} 0 0 1 ${r},${r}v${iy}a${r},${r} 0 0 1 ${-r},${r}h${-ix}a${r},${r} 0 0 1 ${-r},${-r}v${-iy}a${r},${r} 0 0 1 ${r},${-r}z`;
       }
       return `M${x + r},${y}a${r},${r} 0 0 0 ${-r},${r}v${iy}a${r},${r} 0 0 0 ${r},${r}h${ix}a${r},${r} 0 0 0 ${r},${-r}v${-iy}a${r},${r} 0 0 0 ${-r},${-r}z`;
+    }
+
+    // Per-corner rounded rect. `radii` is [topLeft, topRight, bottomRight,
+    // bottomLeft]. A radius of 0 emits a sharp 90° corner. Used by the eye
+    // style — three corners get max radius (= half edge), one stays at 0.
+    function rectWithCorners(x, y, w, h, radii, reverse) {
+      const [rtl, rtr, rbr, rbl] = radii;
+      if (!reverse) {
+        let d = `M${x + rtl},${y}`;
+        d += `h${w - rtl - rtr}`;
+        if (rtr > 0) d += `a${rtr},${rtr} 0 0 1 ${rtr},${rtr}`;
+        d += `v${h - rtr - rbr}`;
+        if (rbr > 0) d += `a${rbr},${rbr} 0 0 1 ${-rbr},${rbr}`;
+        d += `h${-(w - rbr - rbl)}`;
+        if (rbl > 0) d += `a${rbl},${rbl} 0 0 1 ${-rbl},${-rbl}`;
+        d += `v${-(h - rbl - rtl)}`;
+        if (rtl > 0) d += `a${rtl},${rtl} 0 0 1 ${rtl},${-rtl}`;
+        return d + 'z';
+      }
+      let d = `M${x + rtl},${y}`;
+      if (rtl > 0) d += `a${rtl},${rtl} 0 0 0 ${-rtl},${rtl}`;
+      d += `v${h - rtl - rbl}`;
+      if (rbl > 0) d += `a${rbl},${rbl} 0 0 0 ${rbl},${rbl}`;
+      d += `h${w - rbl - rbr}`;
+      if (rbr > 0) d += `a${rbr},${rbr} 0 0 0 ${rbr},${-rbr}`;
+      d += `v${-(h - rbr - rtr)}`;
+      if (rtr > 0) d += `a${rtr},${rtr} 0 0 0 ${-rtr},${-rtr}`;
+      return d + 'z';
     }
 
     function circlePath(cx, cy, r, ccw) {
@@ -1220,7 +1265,6 @@
         bg: state.bg,
         transparent: state.transparent,
         quietZone: state.quietZone,
-        watermark: state.watermark,
         cornerStyle: state.cornerStyle,
         logoDataUri: state.logo?.dataUri || null,
       };
@@ -1411,7 +1455,10 @@
       $('qr-logo-loaded').classList.add('hidden');
       $('qr-logo-loaded').classList.remove('flex');
       $('qr-logo-warn').classList.add('hidden');
-      document.querySelectorAll('#qr-logo-presets [data-preset]').forEach(b => b.classList.remove('on'));
+      // The "None" tile (data-preset="") is the active one when no logo is set.
+      document.querySelectorAll('#qr-logo-presets [data-preset]').forEach(b => {
+        b.classList.toggle('on', b.dataset.preset === '');
+      });
       syncEccPills();
       scheduleRender();
     }
@@ -1420,9 +1467,12 @@
       state.logo = logo;
       state.lockedEccToH = true;
       state.ecc = 'H';
-      // Highlight the matching preset tile (if any) and reset the file-upload UI.
+      // Highlight only the matching preset tile. For a custom upload no
+      // preset is highlighted (the loaded-tile in the drop-zone is the
+      // visual cue instead).
       document.querySelectorAll('#qr-logo-presets [data-preset]').forEach(b => {
-        b.classList.toggle('on', b.dataset.preset === logo.presetId);
+        const wanted = logo.presetId || null;
+        b.classList.toggle('on', wanted !== null && b.dataset.preset === wanted);
       });
       // The custom-upload zone reverts to its empty state when a preset is picked,
       // so users can swap freely between presets and uploads.
@@ -1474,6 +1524,19 @@
     function buildPresetGrid() {
       const grid = $('qr-logo-presets');
       grid.innerHTML = '';
+
+      // "None" tile — clears the logo back to no-overlay style. Marked as
+      // selected by default since the page starts with no logo.
+      const none = document.createElement('button');
+      none.type = 'button';
+      none.className = 'qr-preset-tile qr-preset-none on';
+      none.dataset.preset = '';
+      none.title = 'No logo';
+      none.setAttribute('aria-label', 'No logo');
+      none.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#1f2937"/><circle cx="32" cy="32" r="18" fill="none" stroke="#9ca3af" stroke-width="3"/><line x1="20" y1="44" x2="44" y2="20" stroke="#9ca3af" stroke-width="3"/></svg>`;
+      none.addEventListener('click', () => clearLogo());
+      grid.appendChild(none);
+
       for (const preset of LOGO_PRESETS) {
         const btn = document.createElement('button');
         btn.type = 'button';
@@ -1528,10 +1591,6 @@
       });
       $('qr-quiet').addEventListener('change', e => {
         state.quietZone = e.target.checked;
-        scheduleRender();
-      });
-      $('qr-watermark').addEventListener('change', e => {
-        state.watermark = e.target.checked;
         scheduleRender();
       });
     }
