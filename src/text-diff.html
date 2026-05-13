@@ -444,57 +444,31 @@
 
     // ── Actions ────────────────────────────────────────────────────
     function loadSample() {
-      leftEl.value = `# Project Setup
+      leftEl.value = `The quick brown fox jumps over the lazy dog.
+A journey of a thousand miles begins with a single step.
+All that glitters is not gold.
+To be or not to be, that is the question.
+The only thing we have to fear is fear itself.
 
-## Requirements
-- Node.js 18+
-- npm 9+
+Fortune favors the bold.
+In the middle of difficulty lies opportunity.
+It always seems impossible until it is done.
 
-## Installation
-Run the following commands to get started:
+The best time to plant a tree was twenty years ago.
+The second best time is now.`;
+      rightEl.value = `The quick brown fox jumps over the lazy dog.
+A journey of a thousand miles begins with a single step.
+All that glitters is not gold.
+To be or not to be, that is the answer.
+The only thing we have to fear is fear itself.
 
-  npm install
-  npm run dev
+Fortune favors the prepared mind.
+In the middle of every difficulty lies opportunity.
+It always seems impossible until it is done.
 
-## Configuration
-Copy the example config file and edit as needed:
-
-  cp .env.example .env
-
-Set the PORT variable to 3000 in your .env file.
-
-## Testing
-Run unit tests with:
-
-  npm test
-
-All tests must pass before submitting a pull request.`;
-      rightEl.value = `# Project Setup
-
-## Requirements
-- Node.js 20+
-- npm 10+
-
-## Installation
-Run the following commands to get started:
-
-  npm install
-  npm start
-
-## Configuration
-Copy the example config file and edit as needed:
-
-  cp .env.example .env
-
-Set the PORT variable to 8080 in your .env file.
-Set the DEBUG variable to false in production.
-
-## Testing
-Run unit tests with:
-
-  npm test
-
-All tests must pass before submitting a pull request.`;
+The best time to plant a tree was twenty years ago.
+The second best time is today.
+Small steps every day lead to big results.`;
     }
 
     function runCompare() {
