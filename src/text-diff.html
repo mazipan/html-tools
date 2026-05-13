@@ -118,11 +118,6 @@
                class="w-4 h-4 rounded border-gray-600 bg-gray-800 accent-blue-400 cursor-pointer">
         Ignore whitespace
       </label>
-      <label class="flex items-center gap-2 cursor-pointer select-none text-sm text-gray-400 hover:text-gray-200 transition-colors">
-        <input type="checkbox" id="show-unchanged"
-               class="w-4 h-4 rounded border-gray-600 bg-gray-800 accent-blue-400 cursor-pointer">
-        Show unchanged lines
-      </label>
     </div>
 
     <!-- Diff output -->
@@ -296,7 +291,6 @@
     const rightPanel    = document.getElementById('right-panel');
     const copyBtn       = document.getElementById('copy-btn');
     const ignoreWsCb    = document.getElementById('ignore-ws');
-    const showUnchangedCb = document.getElementById('show-unchanged');
 
     let lastRows = null;
     let isSyncing = false;
@@ -394,11 +388,10 @@
     }
 
     // ── Render split panels ────────────────────────────────────────
-    function renderPanels(rows, showUnchanged) {
+    function renderPanels(rows) {
       let lHtml = '', rHtml = '';
 
       for (const row of rows) {
-        if (row.type === 'unchanged' && !showUnchanged) continue;
 
         const isLeft  = row.type !== 'added';
         const isRight = row.type !== 'removed';
@@ -479,7 +472,7 @@ users.forEach(user => greet(user));`;
       lastRows = computeLineDiff(aLines, bLines, ignoreWS);
 
       renderSummary(lastRows);
-      renderPanels(lastRows, showUnchangedCb.checked);
+      renderPanels(lastRows);
       diffOutput.style.display = '';
       copyBtn.style.display = '';
 
@@ -497,11 +490,10 @@ users.forEach(user => greet(user));`;
 
     async function copyDiff() {
       if (!lastRows) return;
-      const showUnchanged = showUnchangedCb.checked;
       const lines = [];
       for (const row of lastRows) {
         if (row.type === 'unchanged') {
-          if (showUnchanged) lines.push(' ' + row.leftLine);
+          lines.push(' ' + row.leftLine);
         } else if (row.type === 'removed') {
           lines.push('-' + row.leftLine);
         } else if (row.type === 'added') {
@@ -521,10 +513,6 @@ users.forEach(user => greet(user));`;
       }
     }
 
-    // Re-render when "Show unchanged lines" toggles (no full re-diff needed)
-    showUnchangedCb.addEventListener('change', () => {
-      if (lastRows) renderPanels(lastRows, showUnchangedCb.checked);
-    });
   </script>
 
 </body>
