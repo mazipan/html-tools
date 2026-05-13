@@ -29,6 +29,7 @@ A collection of single-file browser-native utilities. All logic runs client-side
 | [OG Image Builder](src/og-image-builder.html) | Design a 1200×630 Open Graph social card — title, subtitle, gradient background, logo — export as PNG |
 | [User Agent Parser](src/user-agent-parser.html) | Break a user-agent string down into browser, engine, OS, device type, and CPU architecture |
 | [Code Snippet to Image](src/snippet-to-image.html) | Turn a code snippet into a sharable PNG card with VS Code-grade syntax highlighting (Shiki) — pick a language, theme, window chrome, and background |
+| [QR Code Generator](src/qr-code-generator.html) | Turn text, URL, WiFi config, or vCard into a QR code with custom colors and error-correction level — export as SVG or PNG |
 
 ## Design system
 
