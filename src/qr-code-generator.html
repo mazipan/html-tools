@@ -327,9 +327,9 @@
           <div class="flex items-center gap-1">
             <button type="button" class="btn btn-secondary" id="qr-download-png" onclick="downloadPNG()" disabled>⬇️ PNG</button>
             <select id="qr-png-size" class="select" aria-label="PNG size">
-              <option value="256">256 px</option>
-              <option value="512" selected>512 px</option>
-              <option value="1024">1024 px</option>
+              <option value="512">512 px</option>
+              <option value="1024" selected>1024 px</option>
+              <option value="2048">2048 px</option>
             </select>
           </div>
           <button type="button" class="btn btn-secondary" id="qr-copy-png" onclick="copyPNG()" disabled>📋 Copy</button>
@@ -1100,15 +1100,15 @@
         ? ''
         : `<rect width="${total}" height="${total}" fill="${escAttr(opts.bg)}"/>`;
 
-      // Logo + rounded white pad. Logo is intentionally small (~14% edge,
-      // ~2% area) — well under the H-level 30% error-correction budget.
+      // Logo + rounded white pad. Logo is intentionally tiny (~11% edge,
+      // ~1.2% area) — well under the H-level 30% error-correction budget.
       // Most generators use ~22%, which crowds the modules unnecessarily.
       let logoBlock = '';
       if (opts.logoDataUri) {
-        const padW = total * 0.17;
+        const padW = total * 0.135;
         const padX = (total - padW) / 2;
         const padR = padW * 0.22;
-        const logoW = total * 0.14;
+        const logoW = total * 0.11;
         const logoX = (total - logoW) / 2;
         logoBlock =
           `<rect x="${padX}" y="${padX}" width="${padW}" height="${padW}" rx="${padR}" fill="#ffffff"/>` +
@@ -1358,7 +1358,7 @@
     }
 
     async function downloadPNG() {
-      const size = parseInt($('qr-png-size').value, 10) || 512;
+      const size = parseInt($('qr-png-size').value, 10) || 1024;
       try {
         const blob = await exportPng(size);
         if (!blob) return;
@@ -1374,7 +1374,7 @@
         setStatus('Clipboard image API not available — use Download', 'error');
         return;
       }
-      const size = parseInt($('qr-png-size').value, 10) || 512;
+      const size = parseInt($('qr-png-size').value, 10) || 1024;
       try {
         const blob = await exportPng(size);
         if (!blob) return;
