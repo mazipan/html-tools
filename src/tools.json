@@ -685,6 +685,96 @@
       "maxWidth": "1100px"
     },
     {
+      "slug": "markdown-preview",
+      "name": "Markdown Preview",
+      "icon": "📄",
+      "category": "Code",
+      "description": "Paste or type Markdown and see a live rendered preview — CommonMark + GitHub Flavored Markdown (tables, task lists, strikethrough). Runs in your browser, no tracking.",
+      "faqs": [
+        {
+          "q": "Which Markdown flavour does the preview support?",
+          "a": "CommonMark plus GitHub Flavored Markdown (GFM) — tables, task-list checkboxes, strikethrough, and fenced code blocks with a language hint."
+        },
+        {
+          "q": "Does my Markdown ever leave my browser?",
+          "a": "No. Parsing and rendering happen entirely in your browser using the marked library bundled with the page — no upload, no server, no network request of any kind."
+        },
+        {
+          "q": "Can I copy the rendered HTML?",
+          "a": "Yes — click 'Copy HTML' to put the rendered HTML string on your clipboard. Click 'Copy Markdown' to copy the raw source instead."
+        },
+        {
+          "q": "Will links in the preview navigate away from the tool?",
+          "a": "No. Every link in the rendered preview opens in a new tab so you stay on the tool."
+        },
+        {
+          "q": "How do I save my Markdown?",
+          "a": "Click '⬇️ Download .md' to save the editor content as a .md file. Your browser handles the download — nothing is sent to a server."
+        }
+      ],
+      "maxWidth": "1200px"
+    },
+    {
+      "slug": "avatar-generator",
+      "name": "Avatar Generator",
+      "icon": "👤",
+      "category": "Image",
+      "description": "Generate an avatar from a name — auto-extracts initials, picks a deterministic color, choose shape and style, export as PNG. All in your browser, no tracking.",
+      "faqs": [
+        {
+          "q": "How are initials extracted from the name?",
+          "a": "The tool takes the first letter of the first word and the first letter of the last word (uppercased), giving you up to 2 characters. You can override them in the Initials field."
+        },
+        {
+          "q": "How is the avatar color chosen automatically?",
+          "a": "A simple hash of the name string deterministically picks one of 8 preset colors, so the same name always produces the same color — no random flickering on reload."
+        },
+        {
+          "q": "Does the image ever leave my browser?",
+          "a": "No. All rendering happens on a <canvas> element in your browser. Nothing is uploaded. The PNG download and clipboard copy are both generated locally."
+        },
+        {
+          "q": "What's the difference between Gradient, Flat, and Outlined styles?",
+          "a": "Gradient fills the background with a two-tone linear gradient. Flat uses a solid fill. Outlined leaves the background transparent and draws a border plus initials in the chosen color."
+        },
+        {
+          "q": "Why does clipboard copy sometimes fail?",
+          "a": "Clipboard access requires a secure context (HTTPS or localhost) and a user gesture. If it fails, use the Download button instead — the PNG is identical."
+        }
+      ],
+      "maxWidth": "1100px"
+    },
+    {
+      "slug": "semver-checker",
+      "name": "SemVer Checker",
+      "icon": "🏷️",
+      "category": "Code",
+      "description": "Paste a version string and a range expression to instantly check whether the version satisfies the range, with a parsed breakdown and syntax cheat sheet. Runs in your browser, no tracking.",
+      "faqs": [
+        {
+          "q": "Which range operators are supported?",
+          "a": "All standard npm semver operators: caret (^), tilde (~), hyphen ranges (1.0.0 - 2.0.0), wildcard (x, *), comparators (>, >=, <, <=, =), and OR chains (||). Pre-release identifiers and build metadata are also handled correctly."
+        },
+        {
+          "q": "Does my version string leave my browser?",
+          "a": "No. Parsing and comparison happen entirely in your browser using the semver library bundled with the page — no upload, no server."
+        },
+        {
+          "q": "What does the range expansion show?",
+          "a": "It normalises your input to its canonical comparator form, for example ^1.2.3 expands to >=1.2.3 <2.0.0. This makes it easy to understand exactly which versions a range allows."
+        },
+        {
+          "q": "Why does my pre-release version (e.g. 2.0.0-alpha.1) not satisfy ^1.0.0?",
+          "a": "By default semver excludes pre-release versions from ranges unless the range explicitly includes a pre-release tag on the same [major, minor, patch] tuple. This matches npm's behavior."
+        },
+        {
+          "q": "Can I check multiple versions at once?",
+          "a": "Not yet — the tool checks one version at a time. For batch checks, consider piping through the semver CLI in a terminal."
+        }
+      ],
+      "maxWidth": "800px"
+    },
+    {
       "slug": "design-system",
       "name": "Design System",
       "icon": "🎛️",
