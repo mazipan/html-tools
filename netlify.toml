@@ -7,3 +7,4 @@
   # .nvmrc so deploy previews don't fall back to Netlify's default and silently
   # ship a stale build.
   NODE_VERSION = "24.15.0"
+  NPM_VERSION= "11.14.1"
