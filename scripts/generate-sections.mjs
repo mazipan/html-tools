@@ -200,7 +200,7 @@ function applySection({ source, name, innerLines, anchorRegex, childOfAnchor = f
 }
 
 const files = (await Array.fromAsync(glob('*.html', { cwd: srcDir })))
-  .filter(f => !f.startsWith('google'))
+  .filter(f => !f.startsWith('google') && !f.startsWith('_'))
   .sort();
 
 let touched = 0;

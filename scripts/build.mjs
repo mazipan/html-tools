@@ -18,7 +18,8 @@ const SITE = tools.site;
 const SITE_URL = SITE.url;
 log(`📋 tools.json loaded — ${tools.tools.length} tools: ${tools.tools.map(t => t.slug).join(', ')}`);
 
-const entries = await Array.fromAsync(glob('src/*.html', { cwd: root }));
+const entries = (await Array.fromAsync(glob('src/*.html', { cwd: root })))
+  .filter(f => !f.split('/').pop().startsWith('_'));
 log(`📦 Parcel entries — ${entries.length} HTML files`);
 
 const bundler = new Parcel({
@@ -96,7 +97,7 @@ const cleanPath = f => f === 'index.html' ? '/' : `/${f.replace(/\.html$/, '')}`
 const INTERNAL_PAGES = new Set(
   tools.tools.filter(t => t.internal).map(t => `${t.slug}.html`),
 );
-const routable = htmlFiles.filter(f => !f.startsWith('google')).sort();
+const routable = htmlFiles.filter(f => !f.startsWith('google') && !f.startsWith('_')).sort();
 const sitemapPages = routable.filter(f => !INTERNAL_PAGES.has(f));
 
 // Generate _redirects: 301 .html paths to their clean form so old links keep working.

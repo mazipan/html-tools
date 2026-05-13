@@ -42,13 +42,13 @@ Current tools (all under `src/`):
 
 ## Adding a new tool
 
-1. Create a new `.html` file inside `src/` (e.g. `src/base64.html`) following the pattern of an existing tool.
-2. Add an entry for the tool in `src/tools.json` (`slug`, `name`, `icon`, `category`, `description`, `faqs`). Then run `npm run generate:sections` to write the FAQ block, "More tools" cross-link block, and JSON-LD structured data into `src/<slug>.html` (and refresh every other tool's "More tools" list so the new tool shows up there too). Also run `npm run generate:favicon` to rasterize the tool's emoji into `src/favicon-<slug>.png` and commit it.
+1. Copy `src/_tool-template.html` to `src/<slug>.html` and replace every `@@PLACEHOLDER@@` token (tool name, slug, icon, max-width, subtitle). The template has the correct partial order, sentinel comments, and footer position already in place — do not rearrange them.
+2. Add an entry for the tool in `src/tools.json` (`slug`, `name`, `icon`, `category`, `card`, `description`, `faqs`). `card` is a short one-liner shown on the index card; `description` is the full SEO text. Then run `npm run generate:sections` to write the FAQ block, "More tools" cross-link block, and JSON-LD structured data into `src/<slug>.html` (and refresh every other tool's "More tools" list so the new tool shows up there too). Run `npm run generate:index` to add the tool card to `index.html`. Also run `npm run generate:favicon` to rasterize the tool's emoji into `src/favicon-<slug>.png` and commit it.
 3. Include shared partials in `<head>` — see "Shared HTML partials" below. The minimum head is `meta-base` + per-page meta + `meta-social` + per-page icon (`<link rel="icon" type="image/png" sizes="32x32" href="favicon-<slug>.png">`) + `head-fonts` + `<link rel="stylesheet" href="styles.css">` + optional per-page `<style>` + `head-theme`.
 4. Include the shared site header at the top of `<body>` with a `<nav aria-label="Breadcrumb">` linking back to `index.html` — copy the header block from an existing tool. Mark the current page span with `aria-current="page"`. See "Semantic landmarks" below.
 5. Wrap the tool UI in `<main class="…">` (exactly one `<main>` per page). Inside, the page heading goes in an `<h1>` that matches the tool name.
-6. Include the shared footer at the bottom with `&copy; <span id="year"></span> Irfan Maulana<span id="deploy-time"></span>` and end with `<include src="_partials/footer-script.html"></include>`. The footer-script partial uses a `"__BUILD_TIME__"` placeholder that `scripts/build.mjs` replaces with the real ISO timestamp.
-7. Add a card linking to it in `index.html` under the appropriate section (or create a new section), update the "Current tools" list in `AGENTS.md`, and add a row for the new tool in the tools table in `README.md`.
+6. The template already contains the correct footer markup and `<include src="_partials/footer-script.html"></include>`. Do not move them — the required order is: `</main>` → optional module `<script>` → `footer-script` include → FAQ sentinel → more-tools sentinel → `<footer>`. The footer-script partial uses a `"__BUILD_TIME__"` placeholder that `scripts/build.mjs` replaces with the real ISO timestamp.
+7. Run `npm run generate:index` to insert the tool card into `index.html` automatically (the script reads `tools.json` and regenerates the sentinel-wrapped grid). Update the "Current tools" list in `AGENTS.md` and add a row for the new tool in the tools table in `README.md`.
 8. Use `<link rel="stylesheet" href="styles.css">` for shared styles.
 9. Keep all logic inline in a `<script>` tag at the bottom of the file.
 
@@ -66,7 +66,10 @@ The site header (the `HTML Tools / Tool Name` strip) is intentionally **not** a 
 
 ## Tools manifest
 
-`src/tools.json` is the single source of truth for the site name, publisher, and per-tool metadata (slug, name, icon, category, description, faqs, and optional `internal: true` for contributor-only pages such as the design-system reference). It's read by `scripts/generate-sections.mjs` (`npm run generate:sections`), which writes three blocks directly into `src/*.html` so they're visible in `npm run dev` and bundle through Parcel like the rest of the markup:
+`src/tools.json` is the single source of truth for the site name, publisher, and per-tool metadata (slug, name, icon, category, card, description, faqs, and optional `internal: true` for contributor-only pages such as the design-system reference). `card` is the short one-liner shown on the index card; if omitted the full `description` is used. `src/tools.json` feeds two generators:
+
+- `scripts/generate-index.mjs` (`npm run generate:index`) — rewrites the `<!-- BEGIN:tool-grid --> … <!-- END:tool-grid -->` sentinel in `src/index.html` with category sections built from `tools.json` order. Run this whenever a tool is added, removed, or recategorised.
+- `scripts/generate-sections.mjs` (`npm run generate:sections`) — writes three blocks directly into `src/*.html` so they're visible in `npm run dev` and bundle through Parcel like the rest of the markup:
 
 - JSON-LD `WebApplication` + `BreadcrumbList` + `FAQPage` blocks on each tool page (and `WebSite` on the index) — inside `<head>`, wrapped in `<!-- BEGIN:json-ld --> … <!-- END:json-ld -->`.
 - A visible FAQ section (collapsible `<details>` blocks) before the footer on every tool page — wrapped in `<!-- BEGIN:faq --> … <!-- END:faq -->`.
@@ -74,7 +77,7 @@ The site header (the `HTML Tools / Tool Name` strip) is intentionally **not** a 
 
 Each tool's `faqs` is an array of `{ q, a }` entries; aim for 3–5 genuinely common questions per tool. New tools must be registered here so the generator picks them up.
 
-**Re-run `npm run generate:sections` whenever you edit `src/tools.json`.** The script is idempotent — sentinel-wrapped regions are replaced in place on every run, so re-running can never produce duplicate blocks. The generated regions are committed as source.
+**Re-run both `npm run generate:index` and `npm run generate:sections` whenever you edit `src/tools.json`.** Both scripts are idempotent — sentinel-wrapped regions are replaced in place on every run, so re-running can never produce duplicate blocks. The generated regions are committed as source.
 
 ## Pull request rules
 
@@ -193,5 +196,6 @@ npm run build               # production build → dist/
 npm run preview             # serve dist/ locally to spot-check the production build
 npm run generate:og         # regenerate src/og-image.png from src/og-image.svg
 npm run generate:favicon    # regenerate src/favicon*.png from tools.json emojis
+npm run generate:index      # rewrite the tool-grid sentinel in src/index.html from src/tools.json
 npm run generate:sections   # rewrite FAQ / More tools / JSON-LD blocks in src/*.html from src/tools.json
 ```
