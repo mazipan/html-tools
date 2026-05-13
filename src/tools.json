@@ -625,6 +625,36 @@
       "maxWidth": "1100px"
     },
     {
+      "slug": "lorem-ipsum",
+      "name": "Lorem Ipsum Generator",
+      "icon": "📜",
+      "category": "Text",
+      "description": "Generate Lorem Ipsum placeholder text — paragraphs, sentences, words, or list items, with Cupcake / Bacon / Hipster dictionaries too. Runs in your browser — no installs, no tracking.",
+      "faqs": [
+        {
+          "q": "What does 'lorem ipsum' actually mean?",
+          "a": "It's scrambled Latin adapted from Cicero's De finibus bonorum et malorum (45 BC), used as printer's filler since the 1500s. Designers reach for it because the unfamiliar letterforms keep the eye on layout instead of meaning."
+        },
+        {
+          "q": "Why are there alternative dictionaries (Cupcake, Bacon, Hipster)?",
+          "a": "Same purpose, more fun. Cupcake leans dessert words, Bacon leans meat words, Hipster leans artisanal-coffee-shop nouns. Pick whichever fits the vibe of what you're mocking up."
+        },
+        {
+          "q": "Will the first paragraph always start with 'Lorem ipsum dolor sit amet…'?",
+          "a": "Only when the dictionary is set to Lorem and the 'Start with classic intro' toggle is on (both are the default). Turn it off if you want a fully random first sentence."
+        },
+        {
+          "q": "Can I paste this into production copy?",
+          "a": "No — it's nonsense Latin (or nonsense English). Treat it as a layout-only placeholder; replace it with real copy before shipping."
+        },
+        {
+          "q": "Does my generated text ever leave my computer?",
+          "a": "No. The page is a single static HTML file; all generation happens locally in your browser with no network requests."
+        }
+      ],
+      "maxWidth": "1100px"
+    },
+    {
       "slug": "design-system",
       "name": "Design System",
       "icon": "🎛️",
