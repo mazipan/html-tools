@@ -268,6 +268,7 @@
           <a href="#cards">Cards</a>
           <a href="#toolbar">Toolbar</a>
           <a href="#disclosure">Disclosure</a>
+          <a href="#tooltip">Tooltip</a>
           <a href="#cheat-table">Cheat table</a>
           <a href="#code">Code blocks</a>
           <a href="#json-tree">JSON tree</a>
@@ -729,6 +730,36 @@
     &lt;/div&gt;
   &lt;/div&gt;
 &lt;/details&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Tooltip -->
+        <section id="tooltip" class="ds-section">
+          <h2>Tooltip</h2>
+          <p class="lead">Small hover/focus popup for inline explanations. The trigger is a circled <code class="text-gray-300">i</code>; the popup floats above and disappears when the user moves on. <code class="text-gray-300">tabindex="0"</code> on the wrapper makes the keyboard path work via <code class="text-gray-300">:focus-within</code>.</p>
+          <div class="flex flex-wrap items-center gap-4 my-3">
+            <span class="inline-flex items-center gap-1.5 text-sm text-gray-200">
+              Error correction
+              <span class="tooltip" tabindex="0">
+                <span class="tooltip-trigger" aria-hidden="true">i</span>
+                <span class="tooltip-text" role="tooltip">L: ~7% recovery · M: ~15% · Q: ~25% · H: ~30%. Higher levels survive more damage but fit less data.</span>
+              </span>
+            </span>
+            <span class="inline-flex items-center gap-1.5 text-sm text-gray-200">
+              Quiet zone
+              <span class="tooltip" tabindex="0">
+                <span class="tooltip-trigger" aria-hidden="true">i</span>
+                <span class="tooltip-text" role="tooltip">4-module light border around the code. Some scanners refuse codes that sit flush against another element.</span>
+              </span>
+            </span>
+          </div>
+          <p class="text-gray-500 text-sm mb-3">Reach for it any time a control's label can't tell the whole story on its own — keep the popup under ~240 px wide, one or two sentences, plain language.</p>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;span class="tooltip" tabindex="0"&gt;
+  &lt;span class="tooltip-trigger" aria-hidden="true"&gt;i&lt;/span&gt;
+  &lt;span class="tooltip-text" role="tooltip"&gt;Explanatory text…&lt;/span&gt;
+&lt;/span&gt;</pre>
           </div>
         </section>
 

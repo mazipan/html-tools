@@ -138,6 +138,23 @@
     }
     .qr-logo-tile button:hover { color: #fca5a5; }
 
+    /* Logo preset tile (grid of brand marks) */
+    .qr-preset-tile {
+      aspect-ratio: 1 / 1;
+      border-radius: 0.4rem;
+      cursor: pointer;
+      border: 2px solid transparent;
+      background: #0b1220;
+      transition: transform 0.1s, border-color 0.1s;
+      padding: 0;
+      overflow: hidden;
+      display: block;
+    }
+    .qr-preset-tile:hover { transform: scale(1.05); border-color: #4b5563; }
+    .qr-preset-tile.on { border-color: var(--accent); }
+    .qr-preset-tile img,
+    .qr-preset-tile svg { width: 100%; height: 100%; display: block; }
+
     /* Capacity stat */
     .qr-stat {
       font-family: 'IBM Plex Mono', ui-monospace, monospace;
@@ -203,7 +220,13 @@
 
         <!-- Options toolbar -->
         <div class="qr-section">
-          <span class="qr-section-label">Error correction</span>
+          <div class="flex items-center gap-1.5 mb-1.5">
+            <span class="qr-section-label" style="margin-bottom: 0">Error correction</span>
+            <span class="tooltip" tabindex="0">
+              <span class="tooltip-trigger" aria-hidden="true">i</span>
+              <span class="tooltip-text" role="tooltip">How much of the code is reserved for redundancy. L: ~7% recovery · M: ~15% · Q: ~25% · H: ~30%. Higher levels survive more damage (printed, smudged, partially obscured, logo overlay) but fit less data in the same code.</span>
+            </span>
+          </div>
           <div class="flex flex-wrap items-center gap-1.5" id="qr-ecc">
             <button type="button" class="pill" data-ecc="L" onclick="setEcc('L')" title="~7% recovery">L</button>
             <button type="button" class="pill" data-ecc="M" onclick="setEcc('M')" title="~15% recovery">M</button>
@@ -214,11 +237,17 @@
         </div>
 
         <div class="qr-section">
-          <span class="qr-section-label">Module size</span>
-          <div class="flex flex-wrap items-center gap-1.5">
-            <button type="button" class="pill" data-scale="6"  onclick="setScale(6)">Small</button>
-            <button type="button" class="pill" data-scale="10" onclick="setScale(10)">Medium</button>
-            <button type="button" class="pill" data-scale="16" onclick="setScale(16)">Large</button>
+          <div class="flex items-center gap-1.5 mb-1.5">
+            <span class="qr-section-label" style="margin-bottom: 0">Corner style</span>
+            <span class="tooltip" tabindex="0">
+              <span class="tooltip-trigger" aria-hidden="true">i</span>
+              <span class="tooltip-text" role="tooltip">Visual style for the three large position-detection patterns at top-left, top-right, and bottom-left. The structure (a 7×7 ring around a 3×3 center) stays the same — only the shape of the corners and dot change, so the code still scans.</span>
+            </span>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5" id="qr-corner">
+            <button type="button" class="pill" data-corner="square"  onclick="setCornerStyle('square')">Square</button>
+            <button type="button" class="pill" data-corner="rounded" onclick="setCornerStyle('rounded')">Rounded</button>
+            <button type="button" class="pill" data-corner="circle"  onclick="setCornerStyle('circle')">Circle</button>
           </div>
         </div>
 
@@ -242,33 +271,49 @@
 
         <div class="qr-section">
           <span class="qr-section-label">Layout</span>
-          <div class="flex flex-wrap items-center gap-3">
+          <div class="flex flex-col gap-2">
             <label class="switch">
               <input type="checkbox" id="qr-quiet" checked>
               <span>Quiet zone (4-module border)</span>
             </label>
+            <label class="switch">
+              <input type="checkbox" id="qr-watermark">
+              <span>Footer badge (tools.mazipan.space)</span>
+            </label>
           </div>
         </div>
 
-        <!-- Center logo drop zone -->
-        <div class="qr-section">
-          <span class="qr-section-label">Center logo (optional)</span>
-          <div id="qr-logo-zone" class="drop-zone compact" tabindex="0" role="button" aria-label="Drop a logo image, or click to select">
-            <div id="qr-logo-empty" class="text-center text-sm text-gray-400 py-2">
-              <div>Drop or click to add a logo</div>
-              <div class="text-xs text-gray-500 mt-0.5">Adding a logo auto-selects error correction H</div>
+        <!-- Center logo (collapsible) -->
+        <details class="disclosure qr-section">
+          <summary>🖼️ Center logo (optional)</summary>
+          <div class="disclosure-content"><div class="disclosure-body">
+            <p class="text-xs text-gray-500 mb-3">Adding a logo automatically locks error correction to H so the code stays scannable. Keep the logo under ~20% of the code area.</p>
+
+            <!-- Presets -->
+            <div class="mb-3">
+              <span class="qr-section-label">Presets</span>
+              <div id="qr-logo-presets" class="grid grid-cols-5 gap-1.5"></div>
             </div>
-            <div id="qr-logo-loaded" class="hidden flex items-center justify-between gap-2 px-1 py-1">
-              <div class="qr-logo-tile">
-                <img id="qr-logo-preview" alt="">
-                <span id="qr-logo-name" class="truncate max-w-[14rem]"></span>
+
+            <!-- Custom upload -->
+            <span class="qr-section-label">Or upload your own</span>
+            <div id="qr-logo-zone" class="drop-zone compact" tabindex="0" role="button" aria-label="Drop a logo image, or click to select">
+              <div id="qr-logo-empty" class="text-center text-sm text-gray-400 py-2">
+                <div>Drop or click to add a custom logo</div>
+                <div class="text-xs text-gray-500 mt-0.5">PNG, JPEG, or SVG</div>
               </div>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="clearLogo(event)" title="Remove logo">🗑️ Remove</button>
+              <div id="qr-logo-loaded" class="hidden items-center justify-between gap-2 px-1 py-1">
+                <div class="qr-logo-tile">
+                  <img id="qr-logo-preview" alt="">
+                  <span id="qr-logo-name" class="truncate max-w-[14rem]"></span>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="clearLogo(event)" title="Remove logo">🗑️ Remove</button>
+              </div>
+              <input type="file" id="qr-logo-input" accept="image/*" class="hidden">
             </div>
-            <input type="file" id="qr-logo-input" accept="image/*" class="hidden">
-          </div>
-          <div id="qr-logo-warn" class="warn-bar mt-2 hidden"></div>
-        </div>
+            <div id="qr-logo-warn" class="warn-bar mt-2 hidden"></div>
+          </div></div>
+        </details>
       </div>
 
       <!-- ── Preview column ───────────────────────────────────── -->
@@ -959,15 +1004,37 @@
 
     const state = {
       ecc: 'M',
-      scale: 10,
+      cornerStyle: 'square', // 'square' | 'rounded' | 'circle'
       fg: '#000000',
       bg: '#ffffff',
       transparent: false,
       quietZone: true,
-      logo: null,           // { url, name, image }
+      watermark: false,
+      logo: null,           // { url, name, dataUri, presetId? } — dataUri is what's embedded in SVG
       lockedEccToH: false,  // true while a logo is loaded
       last: null,           // last successful encode result
     };
+
+    // ── Brand-logo presets ──────────────────────────────────────
+    // Each preset is a square SVG with a rounded colored background and a
+    // simple white mark. Embedded into the QR via a data URI so the SVG
+    // download contains the logo and the PNG export rasterizes it directly.
+    const LOGO_PRESETS = [
+      { id: 'mail',      name: 'Mail',      svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#3b82f6"/><rect x="14" y="20" width="36" height="24" rx="2" fill="none" stroke="#fff" stroke-width="3"/><path d="M14 22 32 36 50 22" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg>` },
+      { id: 'wifi',      name: 'WiFi',      svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0ea5e9"/><path d="M14 28a25 25 0 0 1 36 0" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M20 36a16 16 0 0 1 24 0" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="32" cy="46" r="3.5" fill="#fff"/></svg>` },
+      { id: 'sms',       name: 'SMS',       svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#06b6d4"/><path d="M14 22a3 3 0 0 1 3-3h30a3 3 0 0 1 3 3v18a3 3 0 0 1-3 3H28l-10 8V22z" fill="#fff"/></svg>` },
+      { id: 'pin',       name: 'Map',       svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#ef4444"/><path d="M32 14c-7 0-13 5.5-13 13 0 9 13 23 13 23s13-14 13-23c0-7.5-6-13-13-13z" fill="#fff"/><circle cx="32" cy="27" r="5" fill="#ef4444"/></svg>` },
+      { id: 'whatsapp',  name: 'WhatsApp',  svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#25D366"/><path d="M44.8 19.2C41.4 15.7 36.8 14 32 14c-9.9 0-18 8.1-18 18 0 3.2.8 6.3 2.4 9L14 50l9.3-2.4c2.6 1.4 5.6 2.2 8.7 2.2h.1c9.9 0 17.9-8.1 17.9-18 0-4.8-1.9-9.3-5.2-12.6zM32 46.8c-2.7 0-5.4-.7-7.7-2.1l-.6-.3-5.5 1.5 1.5-5.4-.4-.6c-1.5-2.5-2.3-5.3-2.3-8.2 0-8.2 6.7-14.9 14.9-14.9 4 0 7.7 1.6 10.5 4.4 2.8 2.8 4.3 6.5 4.3 10.5 0 8.2-6.6 14.9-14.7 14.9z" fill="#fff"/><path d="M40.5 35.8c-.4-.2-2.5-1.2-2.9-1.4-.4-.1-.7-.2-1 .2-.3.4-1.1 1.4-1.4 1.7-.3.3-.5.3-.9.1-.4-.2-1.8-.7-3.4-2.1-1.3-1.1-2.1-2.5-2.4-2.9-.2-.4 0-.6.2-.8.2-.2.4-.5.6-.7.2-.2.3-.4.4-.7.1-.3.1-.5 0-.7-.1-.2-1-2.4-1.4-3.3-.4-.9-.7-.7-1-.7l-.8-.1c-.3 0-.7.1-1.1.5-.4.4-1.4 1.4-1.4 3.4 0 2 1.5 4 1.7 4.2.2.3 2.9 4.4 7 6.2 1 .4 1.7.7 2.3.9.9.3 1.8.2 2.4.2.7-.1 2.3-1 2.6-1.8.3-.9.3-1.6.2-1.8-.1-.2-.4-.3-.8-.5z" fill="#25D366"/></svg>` },
+      { id: 'youtube',   name: 'YouTube',   svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#FF0000"/><path d="M27 22l16 10-16 10z" fill="#fff"/></svg>` },
+      { id: 'instagram', name: 'Instagram', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="ig" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fdc468"/><stop offset=".5" stop-color="#df4996"/><stop offset="1" stop-color="#7038c8"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#ig)"/><rect x="18" y="18" width="28" height="28" rx="7" fill="none" stroke="#fff" stroke-width="3"/><circle cx="32" cy="32" r="7" fill="none" stroke="#fff" stroke-width="3"/><circle cx="41" cy="23" r="2" fill="#fff"/></svg>` },
+      { id: 'x',         name: 'X',         svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#000"/><path d="M40 16h5l-11 13 13 19h-10l-8-11-9 11h-5l12-14L14 16h10l7 10 9-10z" fill="#fff"/></svg>` },
+      { id: 'facebook',  name: 'Facebook',  svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#1877F2"/><path d="M36 50V34h5l1-7h-6v-4c0-2 1-3 3-3h3v-6c-1 0-3-.5-5-.5-5 0-9 3-9 9v4.5h-5V34h5v16h8z" fill="#fff"/></svg>` },
+      { id: 'linkedin',  name: 'LinkedIn',  svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0A66C2"/><rect x="16" y="24" width="6" height="22" fill="#fff"/><circle cx="19" cy="18.5" r="3.5" fill="#fff"/><path d="M28 24h6v3c1.4-2 4-3.6 7-3.6 5.5 0 9 3.5 9 10V46h-6V35c0-3.5-1.5-5-4-5s-4 1.5-4 5v11h-6V24z" fill="#fff"/></svg>` },
+    ];
+
+    function svgToDataUri(svg) {
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
 
     // ── Encoder ─────────────────────────────────────────────────
     // Encodes text and returns { qr, modules, size } or throws.
@@ -988,23 +1055,107 @@
     }
 
     // ── SVG renderer ────────────────────────────────────────────
+    // Builds the full output SVG: background, body modules (skipping the
+    // three finder corners), styled finder patterns, optional white pad +
+    // embedded logo, and optional watermark below the code. Same SVG drives
+    // both the live preview and the PNG export — keeps every variant pixel-
+    // identical.
     function buildSvgString({ modules, size }, opts) {
       const border = opts.quietZone ? 4 : 0;
       const total = size + 2 * border;
-      // Build one path "d" per dark module — scanners only see two colors,
-      // so a single <path> is far smaller in DOM nodes than one <rect> per module.
-      let parts = [];
+      const footerH = opts.watermark ? 3.5 : 0;
+      const viewBoxH = total + footerH;
+      const fg = escAttr(opts.fg);
+
+      // Mask off the three finder regions so the body path doesn't double-
+      // draw modules that the styled finder will replace.
+      const inFinder = (x, y) =>
+        (x < 7 && y < 7) ||
+        (x >= size - 7 && y < 7) ||
+        (x < 7 && y >= size - 7);
+
+      let bodyParts = [];
       for (let y = 0; y < size; y++) {
         for (let x = 0; x < size; x++) {
-          if (modules[y][x]) {
-            parts.push(`M${x + border},${y + border}h1v1h-1z`);
+          if (modules[y][x] && !inFinder(x, y)) {
+            bodyParts.push(`M${x + border},${y + border}h1v1h-1z`);
           }
         }
       }
+      const bodyPath = `<path d="${bodyParts.join('')}" fill="${fg}" shape-rendering="crispEdges"/>`;
+
+      // 3 finder centers (in module coords, with quiet-zone offset).
+      const finders = [
+        { cx: border + 3.5,         cy: border + 3.5 },
+        { cx: border + size - 3.5,  cy: border + 3.5 },
+        { cx: border + 3.5,         cy: border + size - 3.5 },
+      ];
+      const finderD = finders.map(f => finderPath(f.cx, f.cy, opts.cornerStyle)).join(' ');
+      const finderShapeRendering = opts.cornerStyle === 'square' ? 'crispEdges' : 'geometricPrecision';
+      const finderTag = `<path d="${finderD}" fill="${fg}" fill-rule="evenodd" shape-rendering="${finderShapeRendering}"/>`;
+
+      // Background — covers the whole viewBox (incl. watermark area) when not transparent.
       const bgRect = opts.transparent
         ? ''
-        : `<rect width="100%" height="100%" fill="${escAttr(opts.bg)}"/>`;
-      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${total}" shape-rendering="crispEdges" role="img" aria-label="QR code">${bgRect}<path d="${parts.join('')}" fill="${escAttr(opts.fg)}"/></svg>`;
+        : `<rect width="${total}" height="${viewBoxH}" fill="${escAttr(opts.bg)}"/>`;
+
+      // Logo + rounded white pad.
+      let logoBlock = '';
+      if (opts.logoDataUri) {
+        const padW = total * 0.26;
+        const padX = (total - padW) / 2;
+        const padR = padW * 0.18;
+        const logoW = total * 0.22;
+        const logoX = (total - logoW) / 2;
+        logoBlock =
+          `<rect x="${padX}" y="${padX}" width="${padW}" height="${padW}" rx="${padR}" fill="#ffffff"/>` +
+          `<image href="${escAttr(opts.logoDataUri)}" x="${logoX}" y="${logoX}" width="${logoW}" height="${logoW}" preserveAspectRatio="xMidYMid meet"/>`;
+      }
+
+      // Watermark — small text below the QR, outside the quiet zone, fg at 50% opacity.
+      let watermarkBlock = '';
+      if (opts.watermark && footerH > 0) {
+        const tx = total / 2;
+        const ty = total + footerH * 0.72;
+        const fontSize = footerH * 0.55;
+        watermarkBlock = `<text x="${tx}" y="${ty}" font-size="${fontSize}" text-anchor="middle" fill="${fg}" fill-opacity="0.55" font-family="ui-sans-serif,system-ui,sans-serif">tools.mazipan.space</text>`;
+      }
+
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${viewBoxH}" role="img" aria-label="QR code">${bgRect}${bodyPath}${finderTag}${logoBlock}${watermarkBlock}</svg>`;
+    }
+
+    // Finder pattern path. Returns one combined "d" with three subpaths
+    // (outer ring → inner light hole → center dot) for evenodd filling.
+    function finderPath(cx, cy, style) {
+      if (style === 'circle') {
+        return circlePath(cx, cy, 3.5, false)
+             + circlePath(cx, cy, 2.5, true)
+             + circlePath(cx, cy, 1.5, false);
+      }
+      if (style === 'rounded') {
+        return roundedRectPath(cx - 3.5, cy - 3.5, 7, 7, 2,   false)
+             + roundedRectPath(cx - 2.5, cy - 2.5, 5, 5, 1.5, true)
+             + roundedRectPath(cx - 1.5, cy - 1.5, 3, 3, 0.8, false);
+      }
+      // Square (default) — outer ring drawn as a 7×7 dark square with a
+      // 5×5 counterclockwise hole, then a 3×3 center.
+      return `M${cx - 3.5},${cy - 3.5}h7v7h-7z`
+           + `M${cx - 2.5},${cy - 2.5}v5h5v-5z`
+           + `M${cx - 1.5},${cy - 1.5}h3v3h-3z`;
+    }
+
+    function roundedRectPath(x, y, w, h, r, reverse) {
+      const ix = w - 2 * r;
+      const iy = h - 2 * r;
+      if (!reverse) {
+        return `M${x + r},${y}h${ix}a${r},${r} 0 0 1 ${r},${r}v${iy}a${r},${r} 0 0 1 ${-r},${r}h${-ix}a${r},${r} 0 0 1 ${-r},${-r}v${-iy}a${r},${r} 0 0 1 ${r},${-r}z`;
+      }
+      return `M${x + r},${y}a${r},${r} 0 0 0 ${-r},${r}v${iy}a${r},${r} 0 0 0 ${r},${r}h${ix}a${r},${r} 0 0 0 ${r},${-r}v${-iy}a${r},${r} 0 0 0 ${-r},${-r}z`;
+    }
+
+    function circlePath(cx, cy, r, ccw) {
+      const dir = ccw ? 0 : 1;
+      return `M${cx - r},${cy}a${r},${r} 0 1 ${dir} ${2 * r},0a${r},${r} 0 1 ${dir} ${-2 * r},0z`;
     }
 
     function escAttr(s) {
@@ -1069,6 +1220,9 @@
         bg: state.bg,
         transparent: state.transparent,
         quietZone: state.quietZone,
+        watermark: state.watermark,
+        cornerStyle: state.cornerStyle,
+        logoDataUri: state.logo?.dataUri || null,
       };
       const svg = buildSvgString(result, opts);
 
@@ -1117,41 +1271,35 @@
     }
 
     // ── PNG export ──────────────────────────────────────────────
-    // Renders the QR (with optional logo overlay) at a given pixel size and
-    // returns a Blob. Both the live preview and the export pipeline render
-    // the SVG into a canvas — keeps colors and quiet zone identical.
+    // The unified SVG already contains the logo and watermark, so rasterizing
+    // it is the whole pipeline — no separate logo/watermark draw steps.
+    // The output viewBox may be taller than wide (when the footer badge is
+    // on), so we size the canvas to preserve aspect.
     async function exportPng(targetPx) {
       if (!state.last) return null;
-      const { svg, opts } = state.last;
-      // Use a Blob URL so external resources (none here) and viewBox both work.
+      const { svg } = state.last;
+      const vb = parseViewBox(svg);
+      const aspect = vb.h / vb.w;
+      const canvasW = targetPx;
+      const canvasH = Math.round(targetPx * aspect);
       const blob = new Blob([svg], { type: 'image/svg+xml' });
       const url = URL.createObjectURL(blob);
       try {
         const img = await loadImage(url);
         const canvas = document.createElement('canvas');
-        canvas.width = canvas.height = targetPx;
+        canvas.width = canvasW;
+        canvas.height = canvasH;
         const ctx = canvas.getContext('2d');
-        if (!opts.transparent) {
-          ctx.fillStyle = opts.bg;
-          ctx.fillRect(0, 0, targetPx, targetPx);
-        }
-        ctx.drawImage(img, 0, 0, targetPx, targetPx);
-        if (state.logo && state.logo.image) {
-          // Overlay logo at center, 22% of the canvas edge.
-          const edge = Math.round(targetPx * 0.22);
-          const cx = Math.round((targetPx - edge) / 2);
-          // Paint a white pad behind the logo so contrasting QR modules under
-          // it don't bleed through the alpha. Keeps the code scannable on H.
-          const pad = Math.round(edge * 1.18);
-          const padOff = Math.round((targetPx - pad) / 2);
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(padOff, padOff, pad, pad);
-          ctx.drawImage(state.logo.image, cx, cx, edge, edge);
-        }
+        ctx.drawImage(img, 0, 0, canvasW, canvasH);
         return await new Promise(res => canvas.toBlob(b => res(b), 'image/png'));
       } finally {
         URL.revokeObjectURL(url);
       }
+    }
+
+    function parseViewBox(svg) {
+      const m = svg.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/);
+      return m ? { w: parseFloat(m[1]), h: parseFloat(m[2]) } : { w: 1, h: 1 };
     }
 
     function loadImage(url) {
@@ -1237,15 +1385,12 @@
       $('qr-ecc-note').textContent = state.lockedEccToH ? 'Locked to H by logo overlay' : '';
     }
 
-    function setScale(s) {
-      state.scale = s;
-      document.querySelectorAll('[data-scale]').forEach(b => {
-        b.classList.toggle('on', parseInt(b.dataset.scale, 10) === s);
+    function setCornerStyle(style) {
+      state.cornerStyle = style;
+      document.querySelectorAll('#qr-corner [data-corner]').forEach(b => {
+        b.classList.toggle('on', b.dataset.corner === style);
       });
-      // Module size only affects the rendered preview width — viewBox is unitless,
-      // so we set a max-width on the preview to make Small/Medium/Large feel different.
-      const px = s * 24; // visual hint only
-      $('qr-preview').style.maxWidth = px > 0 ? `${px + 240}px` : '';
+      scheduleRender();
     }
 
     function loadSample(key) {
@@ -1266,8 +1411,44 @@
       $('qr-logo-loaded').classList.add('hidden');
       $('qr-logo-loaded').classList.remove('flex');
       $('qr-logo-warn').classList.add('hidden');
+      document.querySelectorAll('#qr-logo-presets [data-preset]').forEach(b => b.classList.remove('on'));
       syncEccPills();
       scheduleRender();
+    }
+
+    function setLogo(logo) {
+      state.logo = logo;
+      state.lockedEccToH = true;
+      state.ecc = 'H';
+      // Highlight the matching preset tile (if any) and reset the file-upload UI.
+      document.querySelectorAll('#qr-logo-presets [data-preset]').forEach(b => {
+        b.classList.toggle('on', b.dataset.preset === logo.presetId);
+      });
+      // The custom-upload zone reverts to its empty state when a preset is picked,
+      // so users can swap freely between presets and uploads.
+      if (logo.presetId) {
+        $('qr-logo-empty').classList.remove('hidden');
+        $('qr-logo-loaded').classList.add('hidden');
+        $('qr-logo-loaded').classList.remove('flex');
+      } else {
+        $('qr-logo-empty').classList.add('hidden');
+        $('qr-logo-loaded').classList.remove('hidden');
+        $('qr-logo-loaded').classList.add('flex');
+        $('qr-logo-preview').src = logo.dataUri;
+        $('qr-logo-name').textContent = logo.name;
+      }
+      syncEccPills();
+      scheduleRender();
+    }
+
+    function pickPreset(id) {
+      const preset = LOGO_PRESETS.find(p => p.id === id);
+      if (!preset) return;
+      setLogo({
+        name: preset.name,
+        dataUri: svgToDataUri(preset.svg),
+        presetId: preset.id,
+      });
     }
 
     function handleLogoFile(file) {
@@ -1277,24 +1458,33 @@
       }
       const reader = new FileReader();
       reader.onload = () => {
+        // FileReader gives us a data URI directly — perfect for embedding in
+        // the output SVG without a second base64 round-trip.
         const url = reader.result;
         const img = new Image();
         img.onload = () => {
-          state.logo = { url, name: file.name, image: img };
-          state.lockedEccToH = true;
-          state.ecc = 'H';
-          $('qr-logo-empty').classList.add('hidden');
-          $('qr-logo-loaded').classList.remove('hidden');
-          $('qr-logo-loaded').classList.add('flex');
-          $('qr-logo-preview').src = url;
-          $('qr-logo-name').textContent = file.name;
-          syncEccPills();
-          scheduleRender();
+          setLogo({ name: file.name, dataUri: url });
         };
         img.onerror = () => setStatus('That file isn’t a usable image', 'error');
         img.src = url;
       };
       reader.readAsDataURL(file);
+    }
+
+    function buildPresetGrid() {
+      const grid = $('qr-logo-presets');
+      grid.innerHTML = '';
+      for (const preset of LOGO_PRESETS) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'qr-preset-tile';
+        btn.dataset.preset = preset.id;
+        btn.title = preset.name;
+        btn.setAttribute('aria-label', preset.name);
+        btn.innerHTML = preset.svg;
+        btn.addEventListener('click', () => pickPreset(preset.id));
+        grid.appendChild(btn);
+      }
     }
 
     function wireLogoZone() {
@@ -1340,13 +1530,18 @@
         state.quietZone = e.target.checked;
         scheduleRender();
       });
+      $('qr-watermark').addEventListener('change', e => {
+        state.watermark = e.target.checked;
+        scheduleRender();
+      });
     }
 
     // ── Init ────────────────────────────────────────────────────
+    buildPresetGrid();
     wireLogoZone();
     wireColors();
     syncEccPills();
-    setScale(state.scale);
+    setCornerStyle(state.cornerStyle);
     $('qr-input').addEventListener('input', scheduleRender);
     // Seed with the sample URL so the page is immediately useful.
     loadSample('url');
