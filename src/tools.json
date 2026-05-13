@@ -595,6 +595,36 @@
       "maxWidth": "1400px"
     },
     {
+      "slug": "text-diff",
+      "name": "Text Diff",
+      "icon": "📄",
+      "category": "Code",
+      "description": "Compare two plain-text inputs line-by-line with word-level inline highlighting, split view, line numbers, and scroll sync. Runs in your browser — no installs, no tracking.",
+      "faqs": [
+        {
+          "q": "How is this different from JSON Diff?",
+          "a": "JSON Diff understands JSON structure — it compares keys, values, and nested objects semantically. Text Diff is format-agnostic: it diffs any two plain-text files line by line, so it works on code, prose, config files, or anything else."
+        },
+        {
+          "q": "What does 'Ignore whitespace' do?",
+          "a": "When checked, leading and trailing whitespace on each line is trimmed before comparing. A line that only changed indentation won't show as modified."
+        },
+        {
+          "q": "What does 'Show unchanged lines' do?",
+          "a": "By default only changed lines are shown (like git diff --unified=0). Enabling this option also renders unchanged context lines between hunks so you can see where each change sits."
+        },
+        {
+          "q": "What format does 'Copy diff' produce?",
+          "a": "A plain +/- prefixed text block: lines prefixed with + were added, - were removed, and unchanged context lines (if shown) have no prefix. It's human-readable without any special tooling."
+        },
+        {
+          "q": "Does any text leave my browser?",
+          "a": "No. The comparison runs entirely in your browser using a vanilla-JS LCS algorithm — there's no upload, no server, no network request of any kind."
+        }
+      ],
+      "maxWidth": "1100px"
+    },
+    {
       "slug": "qr-code-generator",
       "name": "QR Code Generator",
       "icon": "📱",
