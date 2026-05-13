@@ -216,9 +216,6 @@
 
   </main>
 
-  <footer class="border-t border-gray-800 px-6 py-5 text-center text-xs text-gray-600">
-    &copy; <span id="year"></span> Irfan Maulana<span id="deploy-time"></span>
-  </footer>
   <include src="_partials/footer-script.html"></include>
 
   <script>
@@ -631,6 +628,12 @@
     </div>
   </section>
   <!-- END:more-tools -->
+
+  <footer class="max-w-[1100px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
+    <div>&copy; <span id="year"></span> <a href="https://mazipan.space" rel="noreferrer noopener" target="_blank" class="text-blue-400 transition-colors">Irfan Maulana</a> &amp; Claude</div>
+    <div><span id="deploy-time"></span></div>
+    <div><span id="commit-sha"></span><a href="https://github.com/mazipan/html-tools" rel="noreferrer noopener" target="_blank" class="text-blue-400 transition-colors">Source</a></div>
+  </footer>
 
 </body>
 </html>
