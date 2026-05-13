@@ -1096,15 +1096,15 @@
         ? ''
         : `<rect width="${total}" height="${total}" fill="${escAttr(opts.bg)}"/>`;
 
-      // Logo + rounded white pad. Logo is intentionally small (~17% edge)
-      // so it leaves more error-correction headroom than the default 22%
-      // most generators use.
+      // Logo + rounded white pad. Logo is intentionally small (~14% edge,
+      // ~2% area) — well under the H-level 30% error-correction budget.
+      // Most generators use ~22%, which crowds the modules unnecessarily.
       let logoBlock = '';
       if (opts.logoDataUri) {
-        const padW = total * 0.21;
+        const padW = total * 0.17;
         const padX = (total - padW) / 2;
-        const padR = padW * 0.20;
-        const logoW = total * 0.17;
+        const padR = padW * 0.22;
+        const logoW = total * 0.14;
         const logoX = (total - logoW) / 2;
         logoBlock =
           `<rect x="${padX}" y="${padX}" width="${padW}" height="${padW}" rx="${padR}" fill="#ffffff"/>` +
