@@ -9,7 +9,8 @@
     "preview": "serve dist",
     "generate:og": "node scripts/generate-og-image.mjs",
     "generate:favicon": "node scripts/generate-favicon.mjs",
-    "generate:sections": "node scripts/generate-sections.mjs"
+    "generate:sections": "node scripts/generate-sections.mjs",
+    "generate:index": "node scripts/generate-index.mjs"
   },
   "license": "ISC",
   "devDependencies": {

@@ -15,6 +15,7 @@
       "name": "JSON Formatter",
       "icon": "🗂️",
       "category": "JSON",
+      "card": "Prettify, minify, and validate JSON with syntax highlighting.",
       "description": "Format, validate, and minify JSON with syntax highlighting and a collapsible tree view. Runs in your browser — no installs, no servers, no tracking.",
       "faqs": [
         {
@@ -41,6 +42,7 @@
       "name": "JSON to TypeScript",
       "icon": "🔷",
       "category": "JSON",
+      "card": "Convert JSON objects into TypeScript interface definitions.",
       "description": "Convert JSON to TypeScript interfaces or type aliases — handles optional fields, mixed arrays, and nested objects. Runs in your browser, no tracking.",
       "faqs": [
         {
@@ -67,6 +69,7 @@
       "name": "JSON Diff",
       "icon": "🔍",
       "category": "JSON",
+      "card": "Compare two JSON objects and highlight the differences.",
       "description": "Compare two JSON objects and instantly see what was added, removed, or changed. Runs in your browser — no installs, no servers, no tracking.",
       "faqs": [
         {
@@ -93,6 +96,7 @@
       "name": "JSON Sort",
       "icon": "🔤",
       "category": "JSON",
+      "card": "Sort JSON object keys alphabetically (A→Z or Z→A), recursively.",
       "description": "Sort JSON object keys alphabetically (A→Z or Z→A) recursively, for canonical, line-stable output. Runs in your browser — no installs, no tracking.",
       "faqs": [
         {
@@ -119,6 +123,7 @@
       "name": "JSON ↔ CSV",
       "icon": "📊",
       "category": "JSON",
+      "card": "Round-trip JSON and CSV with smart type inference and delimiter detection.",
       "description": "Convert between JSON and CSV — RFC 4180 quoting, type inference, configurable delimiters. Runs in your browser — no installs, no servers, no tracking.",
       "faqs": [
         {
@@ -149,6 +154,7 @@
       "name": "JSON ↔ YAML",
       "icon": "📝",
       "category": "JSON",
+      "card": "Round-trip JSON and YAML with anchor resolution and multi-document support.",
       "description": "Convert between JSON and YAML — YAML 1.2, anchors, aliases, and multi-document support. Runs in your browser — no installs, no servers, no tracking.",
       "faqs": [
         {
@@ -179,6 +185,7 @@
       "name": "Regex Tester",
       "icon": "🧪",
       "category": "Code",
+      "card": "Test JavaScript regular expressions live with capture-group breakdown.",
       "description": "Test JavaScript regex live — match, replace, split; flag toggles; capture groups; cheat sheet. Runs in your browser — no installs, no servers, no tracking.",
       "faqs": [
         {
@@ -209,6 +216,7 @@
       "name": "SVG to JSX",
       "icon": "⚛️",
       "category": "Code",
+      "card": "Convert SVG markup into React JSX-compatible component code.",
       "description": "Convert SVG markup to React JSX — camelCase attributes, className, inline style objects. Runs in your browser — no installs, no servers, no tracking.",
       "faqs": [
         {
@@ -234,7 +242,8 @@
       "slug": "gradients",
       "name": "Gradients",
       "icon": "🎨",
-      "category": "Visual",
+      "category": "Ornaments",
+      "card": "Curated gradient collection — copy CSS, Tailwind, or export PNG.",
       "description": "Browse 87 curated gradients and copy as CSS, Tailwind classes, or PNG export. Runs in your browser — no installs, no servers, no tracking.",
       "faqs": [
         {
@@ -260,7 +269,8 @@
       "slug": "blob",
       "name": "Blob Generator",
       "icon": "🫧",
-      "category": "Visual",
+      "category": "Ornaments",
+      "card": "Generate organic blob shapes — CSS border-radius or SVG path.",
       "description": "Generate organic blob shapes with CSS border-radius or SVG paths — copy, animate, or download. Runs in your browser, no installs, no tracking.",
       "faqs": [
         {
@@ -287,6 +297,7 @@
       "name": "Image Compressor",
       "icon": "🗜️",
       "category": "Image",
+      "card": "Compress PNG, JPEG, WebP, and AVIF images — quality presets or target size in KB.",
       "description": "Compress PNG, JPEG, WebP, and AVIF images — quality presets or target-size (KB budget). Runs in your browser — no installs, no servers, no tracking.",
       "faqs": [
         {
@@ -321,6 +332,7 @@
       "name": "Image Resizer",
       "icon": "📐",
       "category": "Image",
+      "card": "Batch-resize images by percentage, exact size, or max dimensions — social-card presets.",
       "description": "Batch-resize images by percentage, exact size, or max dimensions — social-card presets, zip download. Runs in your browser, no installs, no tracking.",
       "faqs": [
         {
@@ -359,6 +371,7 @@
       "name": "Image Cropper",
       "icon": "✂️",
       "category": "Image",
+      "card": "Crop a region — rectangle or circle, drag the box, lock an aspect ratio.",
       "description": "Crop any image to a region — rectangle or circle, aspect-ratio presets, keyboard nudge. Runs in your browser — no installs, no servers, no tracking.",
       "faqs": [
         {
@@ -393,6 +406,7 @@
       "name": "Image Format Converter",
       "icon": "🖼️",
       "category": "Image",
+      "card": "Convert images between PNG, JPEG, WebP, and AVIF with a quality slider and before/after diff.",
       "description": "Convert images between PNG, JPEG, WebP, and AVIF with a quality slider and before/after diff. Runs in your browser — no installs, no servers, no tracking.",
       "faqs": [
         {
@@ -423,6 +437,7 @@
       "name": "Meta Tag Preview",
       "icon": "🔍",
       "category": "Web / SEO",
+      "card": "See how your URL looks as a Twitter, Facebook, LinkedIn, and Google card.",
       "description": "Preview how a URL or HTML snippet renders as a Google, Twitter, Facebook, LinkedIn, WhatsApp, or Telegram card. Runs in your browser, no tracking.",
       "faqs": [
         {
@@ -453,6 +468,7 @@
       "name": "Cron Decoder",
       "icon": "⏱️",
       "category": "Code",
+      "card": "Decode a cron expression into plain English and preview the next 10 run times.",
       "description": "Decode a cron expression into plain English with the next 10 run times, or build one field by field. Runs in your browser — no installs, no tracking.",
       "faqs": [
         {
@@ -483,6 +499,7 @@
       "name": "User Agent Parser",
       "icon": "🕵️",
       "category": "Web / SEO",
+      "card": "Break a UA string down into browser, engine, OS, device type, and CPU.",
       "description": "Paste a user-agent string and instantly see the browser, engine, OS, device type, and CPU architecture. Runs in your browser — no installs, no tracking.",
       "faqs": [
         {
@@ -513,6 +530,7 @@
       "name": "OG Image Builder",
       "icon": "🖼️",
       "category": "Web / SEO",
+      "card": "Design a 1200×630 social card — title, subtitle, gradient, logo — export as PNG.",
       "description": "Design a 1200×630 Open Graph image with title, subtitle, gradient background, and logo — export as PNG. Runs in your browser, no tracking.",
       "faqs": [
         {
@@ -542,7 +560,8 @@
       "slug": "waves",
       "name": "Wave Generator",
       "icon": "〰️",
-      "category": "Visual",
+      "category": "Ornaments",
+      "card": "Generate SVG wave dividers — single wave or stacked layers.",
       "description": "Generate SVG wave dividers — single or stacked layers with custom amplitude, frequency, and gradient fill. Runs in your browser, no tracking.",
       "faqs": [
         {
@@ -569,6 +588,7 @@
       "name": "Code Snippet to Image",
       "icon": "📸",
       "category": "Code",
+      "card": "Turn code into a sharable PNG card with VS Code-grade syntax highlighting.",
       "description": "Turn a code snippet into a sharable PNG card — paste code, pick a language and a VS Code theme, tweak window chrome and padding, export as PNG. Runs in your browser, no tracking.",
       "faqs": [
         {
@@ -599,6 +619,7 @@
       "name": "Text Diff",
       "icon": "📄",
       "category": "Code",
+      "card": "Compare two plain-text blocks line-by-line with word-level inline highlighting.",
       "description": "Compare two plain-text inputs line-by-line with word-level inline highlighting, split view, line numbers, and scroll sync. Runs in your browser — no installs, no tracking.",
       "faqs": [
         {
@@ -629,6 +650,7 @@
       "name": "QR Code Generator",
       "icon": "📱",
       "category": "Generators",
+      "card": "Turn any text, URL, WiFi config, or vCard into a QR code — export as SVG or PNG.",
       "description": "Turn any text, URL, WiFi config, or vCard into a QR code. Customize colors and error-correction level, then download as SVG or PNG.",
       "faqs": [
         {
@@ -659,6 +681,7 @@
       "name": "Lorem Ipsum Generator",
       "icon": "📜",
       "category": "Generators",
+      "card": "Generate placeholder text — paragraphs, sentences, words, or list items, with flavored dictionaries.",
       "description": "Generate Lorem Ipsum placeholder text — paragraphs, sentences, words, or list items, with Cupcake / Bacon / Hipster dictionaries too. Runs in your browser — no installs, no tracking.",
       "faqs": [
         {
@@ -689,6 +712,7 @@
       "name": "Markdown Preview",
       "icon": "📝",
       "category": "Code",
+      "card": "Live Markdown editor with GFM support — tables, task lists, strikethrough.",
       "description": "Paste or type Markdown and see a live rendered preview — CommonMark + GitHub Flavored Markdown (tables, task lists, strikethrough). Runs in your browser, no tracking.",
       "faqs": [
         {
@@ -718,7 +742,8 @@
       "slug": "avatar-generator",
       "name": "Avatar Generator",
       "icon": "👤",
-      "category": "Image",
+      "category": "Generators",
+      "card": "Generate an initial-based avatar from a name — choose shape, style, and export as PNG.",
       "description": "Generate an avatar from a name — auto-extracts initials, picks a deterministic color, choose shape and style, export as PNG. All in your browser, no tracking.",
       "faqs": [
         {
@@ -749,6 +774,7 @@
       "name": "SemVer Checker",
       "icon": "🏷️",
       "category": "Code",
+      "card": "Check if a version satisfies a range — ^, ~, hyphen, wildcard, and more.",
       "description": "Paste a version string and a range expression to instantly check whether the version satisfies the range, with a parsed breakdown and syntax cheat sheet. Runs in your browser, no tracking.",
       "faqs": [
         {
