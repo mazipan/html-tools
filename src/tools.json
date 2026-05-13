@@ -687,7 +687,7 @@
     {
       "slug": "markdown-preview",
       "name": "Markdown Preview",
-      "icon": "📄",
+      "icon": "📝",
       "category": "Code",
       "description": "Paste or type Markdown and see a live rendered preview — CommonMark + GitHub Flavored Markdown (tables, task lists, strikethrough). Runs in your browser, no tracking.",
       "faqs": [
