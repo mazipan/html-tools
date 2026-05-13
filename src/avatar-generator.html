@@ -187,6 +187,17 @@
           </div>
         </div>
 
+        <!-- Text size -->
+        <div class="av-section">
+          <span class="av-section-label">Text size</span>
+          <div class="flex gap-2 flex-wrap">
+            <button class="btn btn-secondary" data-textscale="sm">S</button>
+            <button class="btn btn-secondary" data-textscale="md">M</button>
+            <button class="btn btn-active"    data-textscale="lg">L</button>
+            <button class="btn btn-secondary" data-textscale="xl">XL</button>
+          </div>
+        </div>
+
         <!-- Export size -->
         <div class="av-section">
           <span class="av-section-label">Export size</span>
@@ -237,10 +248,13 @@
       style:    'gradient',
       color:    PALETTE[0].color,
       font:     "'Bricolage Grotesque', sans-serif",
-      weight:   700,
-      size:     256,
+      weight:    700,
+      size:      256,
+      textScale: 'lg',
       userEditedInitials: false,
     };
+
+    const TEXT_SCALE = { sm: 0.35, md: 0.45, lg: 0.55, xl: 0.65 };
 
     const canvas = document.getElementById('av-canvas');
     const ctx    = canvas.getContext('2d');
@@ -332,7 +346,8 @@
 
       // Initials text
       const textColor = style === 'outlined' ? color : '#ffffff';
-      const fontSize  = Math.round(size * (initials.length > 1 ? 0.38 : 0.48));
+      const base      = TEXT_SCALE[state.textScale] ?? 0.55;
+      const fontSize  = Math.round(size * (initials.length > 1 ? base : base + 0.10));
       targetCtx.save();
       targetCtx.fillStyle = textColor;
       targetCtx.font = `${weight} ${fontSize}px ${font}`;
@@ -461,6 +476,17 @@
       btn.addEventListener('click', () => {
         state.weight = parseInt(btn.dataset.weight, 10);
         document.querySelectorAll('[data-weight]').forEach(b => {
+          b.className = b === btn ? 'btn btn-active' : 'btn btn-secondary';
+        });
+        render();
+      });
+    });
+
+    // Text scale buttons
+    document.querySelectorAll('[data-textscale]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.textScale = btn.dataset.textscale;
+        document.querySelectorAll('[data-textscale]').forEach(b => {
           b.className = b === btn ? 'btn btn-active' : 'btn btn-secondary';
         });
         render();
