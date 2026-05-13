@@ -89,7 +89,7 @@
 
     <!-- Inputs -->
     <div class="flex justify-end mb-2">
-      <button onclick="loadSample()" class="btn btn-secondary btn-sm">📥 Load sample</button>
+      <button onclick="loadSample()" class="btn btn-secondary">📥 Load sample</button>
     </div>
     <div class="grid grid-cols-2 gap-4 mb-4 max-md:grid-cols-1">
       <div>
@@ -444,20 +444,57 @@
 
     // ── Actions ────────────────────────────────────────────────────
     function loadSample() {
-      leftEl.value = `function greet(name) {
-  console.log("Hello, " + name);
-  return true;
-}
+      leftEl.value = `# Project Setup
 
-const users = ["Alice", "Bob", "Charlie"];
-users.forEach(greet);`;
-      rightEl.value = `function greet(name, greeting = "Hello") {
-  console.log(greeting + ", " + name + "!");
-  return name.length > 0;
-}
+## Requirements
+- Node.js 18+
+- npm 9+
 
-const users = ["Alice", "Bob", "Diana"];
-users.forEach(user => greet(user));`;
+## Installation
+Run the following commands to get started:
+
+  npm install
+  npm run dev
+
+## Configuration
+Copy the example config file and edit as needed:
+
+  cp .env.example .env
+
+Set the PORT variable to 3000 in your .env file.
+
+## Testing
+Run unit tests with:
+
+  npm test
+
+All tests must pass before submitting a pull request.`;
+      rightEl.value = `# Project Setup
+
+## Requirements
+- Node.js 20+
+- npm 10+
+
+## Installation
+Run the following commands to get started:
+
+  npm install
+  npm start
+
+## Configuration
+Copy the example config file and edit as needed:
+
+  cp .env.example .env
+
+Set the PORT variable to 8080 in your .env file.
+Set the DEBUG variable to false in production.
+
+## Testing
+Run unit tests with:
+
+  npm test
+
+All tests must pass before submitting a pull request.`;
     }
 
     function runCompare() {
