@@ -42,12 +42,12 @@ Current tools (all under `src/`):
 
 ## Adding a new tool
 
-1. Create a new `.html` file inside `src/` (e.g. `src/base64.html`) following the pattern of an existing tool.
+1. Copy `src/_tool-template.html` to `src/<slug>.html` and replace every `@@PLACEHOLDER@@` token (tool name, slug, icon, max-width, subtitle). The template has the correct partial order, sentinel comments, and footer position already in place — do not rearrange them.
 2. Add an entry for the tool in `src/tools.json` (`slug`, `name`, `icon`, `category`, `description`, `faqs`). Then run `npm run generate:sections` to write the FAQ block, "More tools" cross-link block, and JSON-LD structured data into `src/<slug>.html` (and refresh every other tool's "More tools" list so the new tool shows up there too). Also run `npm run generate:favicon` to rasterize the tool's emoji into `src/favicon-<slug>.png` and commit it.
 3. Include shared partials in `<head>` — see "Shared HTML partials" below. The minimum head is `meta-base` + per-page meta + `meta-social` + per-page icon (`<link rel="icon" type="image/png" sizes="32x32" href="favicon-<slug>.png">`) + `head-fonts` + `<link rel="stylesheet" href="styles.css">` + optional per-page `<style>` + `head-theme`.
 4. Include the shared site header at the top of `<body>` with a `<nav aria-label="Breadcrumb">` linking back to `index.html` — copy the header block from an existing tool. Mark the current page span with `aria-current="page"`. See "Semantic landmarks" below.
 5. Wrap the tool UI in `<main class="…">` (exactly one `<main>` per page). Inside, the page heading goes in an `<h1>` that matches the tool name.
-6. Include the shared footer at the bottom with `&copy; <span id="year"></span> Irfan Maulana<span id="deploy-time"></span>` and end with `<include src="_partials/footer-script.html"></include>`. The footer-script partial uses a `"__BUILD_TIME__"` placeholder that `scripts/build.mjs` replaces with the real ISO timestamp.
+6. The template already contains the correct footer markup and `<include src="_partials/footer-script.html"></include>`. Do not move them — the required order is: `</main>` → optional module `<script>` → `footer-script` include → FAQ sentinel → more-tools sentinel → `<footer>`. The footer-script partial uses a `"__BUILD_TIME__"` placeholder that `scripts/build.mjs` replaces with the real ISO timestamp.
 7. Add a card linking to it in `index.html` under the appropriate section (or create a new section), update the "Current tools" list in `AGENTS.md`, and add a row for the new tool in the tools table in `README.md`.
 8. Use `<link rel="stylesheet" href="styles.css">` for shared styles.
 9. Keep all logic inline in a `<script>` tag at the bottom of the file.
