@@ -1,6 +1,5 @@
 User-agent: *
 Allow: /
 Disallow: /design-system
-Disallow: /design-system.html
 
 Sitemap: https://tools.mazipan.space/sitemap.xml
