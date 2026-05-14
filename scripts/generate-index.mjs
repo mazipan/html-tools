@@ -37,7 +37,7 @@ function toolCard(tool) {
   const desc = tool.card || tool.description;
   return [
     `          <a`,
-    `            href="${tool.slug}.html"`,
+    `            href="/${tool.slug}"`,
     `            class="card card-lift p-6"`,
     `          >`,
     `            <div class="text-3xl mb-3">${tool.icon}</div>`,

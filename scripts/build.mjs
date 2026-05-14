@@ -52,7 +52,10 @@ for (const html of htmlFiles) {
     .replace('"__COMMIT_SHA__"', commitSha)
     .replace(/src="\/([^"]+)"/g, 'src="./$1"')
     .replace(/href="\/([^"]+)"/g, 'href="./$1"')
-    .replace(/href=("?)index\.html\1(?=[ >])/g, 'href="/"');
+    .replace(/href=("?)index\.html\1(?=[ >])/g, 'href="/"')
+    // Strip .html from any remaining relative href="*.html" links so
+    // internal links never cause redirect chains in production.
+    .replace(/href="([^"#?:/][^"#?:]*?)\.html(#[^"]*)?"/g, (_, path, hash) => `href="/${path}${hash ?? ''}"`);
   writeFileSync(htmlPath, updated);
 }
 log(`🔧 post-process pass — replaced __BUILD_TIME__ / __COMMIT_SHA__ and rewrote relative paths in ${htmlFiles.length} files`);

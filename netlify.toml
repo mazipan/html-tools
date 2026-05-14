@@ -2,6 +2,15 @@
   command  = "npm run build"
   publish  = "dist"
 
+# Redirect any *.html URL to its clean equivalent. The build also generates
+# per-page 301! rules in dist/_redirects, but this wildcard catches anything
+# not covered there (deep links, old bookmarks, Search Console flagged URLs).
+[[redirects]]
+  from   = "/*.html"
+  to     = "/:splat"
+  status = 301
+  force  = false
+
 [build.environment]
   # `scripts/build.mjs` uses Array.fromAsync (Node 22+). Pin to the version in
   # .nvmrc so deploy previews don't fall back to Netlify's default and silently
