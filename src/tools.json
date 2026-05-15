@@ -181,6 +181,37 @@
       "maxWidth": "1100px"
     },
     {
+      "slug": "json-to-schema",
+      "name": "JSON to Validator Schema",
+      "icon": "🛡️",
+      "category": "JSON",
+      "card": "Generate Zod, Valibot, or Yup schemas from a JSON sample.",
+      "description": "Paste a JSON sample and get runtime-validation schemas for Zod, Valibot, and Yup — optional field detection, null handling, and strict mode. Runs in your browser — no installs, no tracking.",
+      "faqs": [
+        {
+          "q": "Which validators are supported?",
+          "a": "Zod, Valibot, and Yup. All three outputs are generated from a single inference pass — switching tabs doesn't re-parse the input."
+        },
+        {
+          "q": "How are optional fields detected?",
+          "a": "If a key is missing in any element of an array of objects, the generator marks that key as optional — the same heuristic used by the JSON to TypeScript tool. Top-level keys are required unless null and the 'Treat null as optional' toggle is on."
+        },
+        {
+          "q": "What does 'Treat null as optional' do?",
+          "a": "When on, any field whose value is null gets wrapped in the validator's nullable modifier — .nullable() for Zod/Yup, v.nullable() for Valibot — making it accept both the typed value and null."
+        },
+        {
+          "q": "What does 'Strict mode' do?",
+          "a": "Strict mode rejects unknown keys on objects: .strict() in Zod, v.strictObject() in Valibot, .noUnknown(true) in Yup. Useful when you want the schema to be an exact shape contract rather than a minimum requirement."
+        },
+        {
+          "q": "How are mixed-type arrays handled?",
+          "a": "The element types are collected and wrapped in a union — z.array(z.union([…])) for Zod, v.array(v.union([…])) for Valibot. Yup doesn't have first-class union support, so mixed arrays emit yup.array() without a typed element."
+        }
+      ],
+      "maxWidth": "1200px"
+    },
+    {
       "slug": "regex-tester",
       "name": "Regex Tester",
       "icon": "🧪",
@@ -770,6 +801,37 @@
       "maxWidth": "1100px"
     },
     {
+      "slug": "uuid-generator",
+      "name": "UUID Generator",
+      "icon": "🪪",
+      "category": "Generators",
+      "card": "Generate UUID v4 (random) or v7 (time-ordered) in bulk — copy individually or as a list.",
+      "description": "Generate UUID v4 (random) or v7 (time-ordered, monotonic) identifiers in bulk — copy individually or as a formatted list. Runs in your browser — no installs, no tracking.",
+      "faqs": [
+        {
+          "q": "What is the difference between UUID v4 and v7?",
+          "a": "v4 is purely random — all 122 bits are random, giving no ordering information. v7 encodes a 48-bit millisecond timestamp in the first 6 bytes so UUIDs generated in the same millisecond are monotonically ordered. v7 is better for database primary keys where sequential insert order matters."
+        },
+        {
+          "q": "Is UUID v4 cryptographically secure?",
+          "a": "Yes. The tool uses crypto.randomUUID() which is backed by the browser's cryptographically secure PRNG — the same source as crypto.getRandomValues()."
+        },
+        {
+          "q": "Does the UUID v7 implementation follow the RFC?",
+          "a": "Yes. It follows RFC 9562, encoding 48-bit millisecond timestamp, 4-bit version (7), 12-bit sequence counter for same-millisecond monotonicity, 2-bit variant, and 62-bit random bits."
+        },
+        {
+          "q": "Are these UUIDs unique?",
+          "a": "With overwhelming statistical probability. The random bits in v4 give a collision probability of about 1 in 5.3 × 10^36 per pair. v7 adds a timestamp prefix making same-millisecond collisions even rarer. For practical purposes, treat them as unique."
+        },
+        {
+          "q": "Do any UUIDs leave my browser?",
+          "a": "No. Generation uses only browser-native APIs (crypto.randomUUID, crypto.getRandomValues) and happens entirely locally — no server, no network, no tracking."
+        }
+      ],
+      "maxWidth": "800px"
+    },
+    {
       "slug": "semver-checker",
       "name": "SemVer Checker",
       "icon": "🏷️",
@@ -799,6 +861,37 @@
         }
       ],
       "maxWidth": "800px"
+    },
+    {
+      "slug": "jwt-decoder",
+      "name": "JWT Decoder",
+      "icon": "🔑",
+      "category": "Code",
+      "card": "Decode JWT header, payload, and signature — timestamps shown as human-readable dates.",
+      "description": "Paste any JWT token to decode the header, payload, and signature — claim timestamps shown as human-readable dates, exp shows a live valid/expired badge. Runs in your browser — no installs, no tracking.",
+      "faqs": [
+        {
+          "q": "Does this verify the JWT signature?",
+          "a": "No. Signature verification requires the secret key or the RSA/ECDSA public key, which the tool never has. The decoder only base64url-decodes the header and payload, which is safe and useful for inspecting contents without needing the key."
+        },
+        {
+          "q": "Is it safe to paste a real JWT here?",
+          "a": "The decoding happens entirely in your browser — nothing is sent to a server. That said, JWTs can carry access tokens. Treat them like passwords: paste production tokens only in a trusted environment, and rotate any you paste into a public or shared machine."
+        },
+        {
+          "q": "What do the colour-coded token segments mean?",
+          "a": "Red is the header (algorithm and type), purple is the payload (claims), and blue is the signature — the same colour convention used by jwt.io."
+        },
+        {
+          "q": "What is exp / nbf / iat?",
+          "a": "exp (expiration) is the Unix timestamp after which the token is no longer valid. nbf (not before) is the earliest it should be accepted. iat (issued at) is when it was created. All three are rendered as human-readable UTC dates alongside the raw epoch value."
+        },
+        {
+          "q": "Does the tool support JWE or nested JWTs?",
+          "a": "JWS compact serialisation (the common 3-part JWT) is supported. JWE (encrypted tokens, 5 parts) and nested JWTs are not decoded automatically — paste the inner token separately if needed."
+        }
+      ],
+      "maxWidth": "900px"
     },
     {
       "slug": "design-system",
