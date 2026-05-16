@@ -100,8 +100,10 @@
       font-size: 0.72rem;
       line-height: 1.5;
       color: #d1d5db;
-      overflow-x: auto;
       max-height: 220px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
       margin: 0;
     }
   </style>
@@ -280,11 +282,15 @@
       <div>
         <h2 class="text-xl font-bold text-white mb-4">HTML snippet</h2>
         <p class="text-gray-400 leading-relaxed mb-2">After unzipping into your site root, reference the icons from <code>&lt;head&gt;</code>:</p>
-        <pre class="fg-manifest" style="max-height: none;">&lt;link rel="icon" href="/favicon.ico" sizes="any"&gt;
+        <pre id="html-snippet" class="fg-manifest" style="max-height: none;">&lt;link rel="icon" href="/favicon.ico" sizes="any"&gt;
 &lt;link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"&gt;
 &lt;link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"&gt;
 &lt;link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"&gt;
 &lt;link rel="manifest" href="/manifest.webmanifest"&gt;</pre>
+        <div class="mt-2 flex items-center gap-2">
+          <button class="btn btn-secondary btn-sm" type="button" onclick="copyHtmlSnippet()">📋 Copy</button>
+          <span id="html-snippet-status" class="text-xs text-gray-500"></span>
+        </div>
       </div>
       <div>
         <h2 class="text-xl font-bold text-white mb-4">Tips</h2>
@@ -571,21 +577,28 @@
       document.getElementById('manifest-snippet').textContent = JSON.stringify(obj, null, 2);
     }
 
-    async function copyManifest() {
-      const text = document.getElementById('manifest-snippet').textContent;
+    async function copyTextTo(text, statusElId) {
+      const s = document.getElementById(statusElId);
       try {
         await navigator.clipboard.writeText(text);
-        const s = document.getElementById('manifest-status');
         s.textContent = '✓ Copied';
         s.style.color = '#86efac';
-        setTimeout(() => { s.textContent = ''; }, 2000);
+        setTimeout(() => { s.textContent = ''; s.style.color = ''; }, 2000);
       } catch (err) {
-        const s = document.getElementById('manifest-status');
         s.textContent = 'Copy failed';
         s.style.color = '#fca5a5';
       }
     }
+
+    async function copyManifest() {
+      copyTextTo(document.getElementById('manifest-snippet').textContent, 'manifest-status');
+    }
     window.copyManifest = copyManifest;
+
+    async function copyHtmlSnippet() {
+      copyTextTo(document.getElementById('html-snippet').textContent, 'html-snippet-status');
+    }
+    window.copyHtmlSnippet = copyHtmlSnippet;
 
     // ── PNG-in-ICO writer ─────────────────────────────────────────
     // The PNG-in-ICO variant just wraps PNG blobs inside the standard ICO
