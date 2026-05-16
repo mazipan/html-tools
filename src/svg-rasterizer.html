@@ -192,10 +192,36 @@
 
         <div id="bg-section" class="sr-section hidden">
           <span class="sr-section-label">JPEG background</span>
-          <div class="flex items-center gap-2">
-            <input id="bg-color" type="color" class="swatch-input" value="#ffffff" style="width:2rem;height:2rem;padding:0;border:1px solid #374151;border-radius:0.4rem;background:transparent;cursor:pointer;">
-            <input id="bg-color-text" type="text" class="input input-mono" value="#ffffff" style="width: 9rem;">
-            <span class="text-[0.7rem] text-gray-600 flex-1">JPEG can't store transparency; this color fills behind transparent areas.</span>
+          <div class="flex flex-wrap gap-1.5 mb-2">
+            <button class="pill on" type="button" data-bgmode="solid">Solid</button>
+            <button class="pill" type="button" data-bgmode="gradient">Gradient</button>
+          </div>
+
+          <div id="bg-solid-panel">
+            <div class="flex items-center gap-2">
+              <input id="bg-color" type="color" class="swatch-input" value="#ffffff" style="width:2rem;height:2rem;padding:0;border:1px solid #374151;border-radius:0.4rem;background:transparent;cursor:pointer;">
+              <input id="bg-color-text" type="text" class="input input-mono" value="#ffffff" style="width: 9rem;">
+              <span class="text-[0.7rem] text-gray-600 flex-1">JPEG can't store transparency; this color fills behind transparent areas.</span>
+            </div>
+          </div>
+
+          <div id="bg-gradient-panel" class="hidden">
+            <div class="flex items-center flex-wrap gap-3">
+              <label class="flex items-center gap-1.5 text-xs text-gray-400">
+                Start
+                <input id="grad-start" type="color" class="swatch-input" value="#1e3a8a" style="width:2rem;height:2rem;padding:0;border:1px solid #374151;border-radius:0.4rem;background:transparent;cursor:pointer;">
+              </label>
+              <label class="flex items-center gap-1.5 text-xs text-gray-400">
+                End
+                <input id="grad-end" type="color" class="swatch-input" value="#7c3aed" style="width:2rem;height:2rem;padding:0;border:1px solid #374151;border-radius:0.4rem;background:transparent;cursor:pointer;">
+              </label>
+              <label class="flex items-center gap-1.5 text-xs text-gray-400 flex-1 min-w-[160px]">
+                Angle
+                <input id="grad-angle" type="range" class="range" min="0" max="360" step="15" value="135" style="flex:1;">
+                <span id="grad-angle-val" class="text-gray-500 tabular-nums" style="min-width:3em;">135°</span>
+              </label>
+            </div>
+            <p class="text-[0.7rem] text-gray-600 mt-1.5">CSS-style angle — 0° goes bottom→top, 90° left→right. Two stops; for more, edit the exported file.</p>
           </div>
         </div>
 
@@ -404,6 +430,10 @@
       format: 'png',     // 'png' | 'jpeg' | 'webp'
       quality: 0.92,
       bg: '#ffffff',
+      bgMode: 'solid',   // 'solid' | 'gradient'
+      gradStart: '#1e3a8a',
+      gradEnd: '#7c3aed',
+      gradAngle: 135,
       // Current preview Blob URL — revoked when replaced.
       previewUrl: null,
     };
@@ -632,16 +662,19 @@
 
     // ── Format pills ──────────────────────────────────────────────
     // Preview stage shows what JPEG output will actually look like: the
-    // checker pattern (transparent) for PNG/WebP, the picked bg color for
-    // JPEG (since JPEG has no alpha and we fill behind the SVG at export).
+    // checker pattern (transparent) for PNG/WebP, the picked bg for JPEG
+    // (since JPEG has no alpha and we fill behind the SVG at export).
+    function cssGradient() {
+      return `linear-gradient(${state.gradAngle}deg, ${state.gradStart}, ${state.gradEnd})`;
+    }
     function syncPreviewBg() {
       const stage = document.querySelector('.sr-preview-stage');
       if (!stage) return;
-      if (state.format === 'jpeg') {
-        stage.style.background = state.bg;
-      } else {
+      if (state.format !== 'jpeg') {
         stage.style.background = '';
+        return;
       }
+      stage.style.background = state.bgMode === 'gradient' ? cssGradient() : state.bg;
     }
 
     document.querySelectorAll('[data-format]').forEach(btn => {
@@ -681,6 +714,31 @@
       }
     });
 
+    // bg-mode pills (Solid / Gradient)
+    document.querySelectorAll('[data-bgmode]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.bgMode = btn.dataset.bgmode;
+        document.querySelectorAll('[data-bgmode]').forEach(b => b.classList.toggle('on', b === btn));
+        $('bg-solid-panel').classList.toggle('hidden', state.bgMode !== 'solid');
+        $('bg-gradient-panel').classList.toggle('hidden', state.bgMode !== 'gradient');
+        syncPreviewBg();
+      });
+    });
+
+    $('grad-start').addEventListener('input', () => {
+      state.gradStart = $('grad-start').value;
+      syncPreviewBg();
+    });
+    $('grad-end').addEventListener('input', () => {
+      state.gradEnd = $('grad-end').value;
+      syncPreviewBg();
+    });
+    $('grad-angle').addEventListener('input', () => {
+      state.gradAngle = +$('grad-angle').value;
+      $('grad-angle-val').textContent = state.gradAngle + '°';
+      syncPreviewBg();
+    });
+
     // ── Rasterize to canvas → blob ─────────────────────────────────
     function rasterizeToBlob() {
       return new Promise((resolve, reject) => {
@@ -696,7 +754,22 @@
             const ctx = c.getContext('2d');
             // JPEG has no alpha — fill the background first
             if (state.format === 'jpeg') {
-              ctx.fillStyle = state.bg;
+              if (state.bgMode === 'gradient') {
+                // CSS-style angle: 0deg = bottom→top, 90deg = left→right.
+                // Convert to a canvas gradient between two opposite edge
+                // midpoints in the same direction.
+                const rad = (state.gradAngle - 90) * Math.PI / 180;
+                const cx = state.outW / 2, cy = state.outH / 2;
+                const dx = Math.cos(rad) * state.outW / 2;
+                const dy = Math.sin(rad) * state.outH / 2;
+                // CSS: 0deg points UP, but canvas y grows DOWN — flip dy.
+                const grad = ctx.createLinearGradient(cx - dx, cy + dy, cx + dx, cy - dy);
+                grad.addColorStop(0, state.gradStart);
+                grad.addColorStop(1, state.gradEnd);
+                ctx.fillStyle = grad;
+              } else {
+                ctx.fillStyle = state.bg;
+              }
               ctx.fillRect(0, 0, state.outW, state.outH);
             }
             ctx.drawImage(img, 0, 0, state.outW, state.outH);
