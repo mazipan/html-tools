@@ -18,6 +18,7 @@ A collection of single-file browser-native utilities. All logic runs client-side
 | [JSON ↔ YAML](src/json-to-yaml.html) | Round-trip JSON and YAML with anchor resolution and multi-document support |
 | [Regex Tester](src/regex-tester.html) | Test JavaScript regular expressions live with capture-group breakdown |
 | [SVG → JSX](src/svg-to-jsx.html) | Convert SVG markup to React JSX |
+| [SVG → Raster](src/svg-rasterizer.html) | Rasterize an SVG to PNG / JPEG / WebP at any pixel size — preset social-card dimensions, aspect lock, quality slider |
 | [Image Format Converter](src/image-converter.html) | Re-encode images between PNG, JPEG, WebP, and AVIF with a quality slider and visual diff |
 | [Image Resizer](src/image-resizer.html) | Batch-resize images via max dimensions, exact size, or percentage — with social-card presets |
 | [Image Compressor](src/image-compressor.html) | Shrink images via quality presets or binary-search to a target KB size |
@@ -31,6 +32,7 @@ A collection of single-file browser-native utilities. All logic runs client-side
 | [Code Snippet to Image](src/snippet-to-image.html) | Turn a code snippet into a sharable PNG card with VS Code-grade syntax highlighting (Shiki) — pick a language, theme, window chrome, and background |
 | [QR Code Generator](src/qr-code-generator.html) | Turn text, URL, WiFi config, or vCard into a QR code with custom colors and error-correction level — export as SVG or PNG |
 | [Lorem Ipsum Generator](src/lorem-ipsum.html) | Generate placeholder text — paragraphs, sentences, words, or list items, with Cupcake / Bacon / Hipster dictionaries too |
+| [Favicon Generator](src/favicon-generator.html) | Drop an image or type an emoji to generate a full favicon set — 16/32/48/180/192/512 PNGs, multi-frame ICO, maskable variant, and `manifest.webmanifest` snippet, bundled as a zip |
 
 ## Design system
 

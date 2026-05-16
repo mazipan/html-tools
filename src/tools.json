@@ -270,6 +270,37 @@
       "maxWidth": "1100px"
     },
     {
+      "slug": "svg-rasterizer",
+      "name": "SVG to Raster",
+      "icon": "📷",
+      "category": "Code",
+      "card": "Rasterize an SVG to PNG, JPEG, or WebP at any pixel size — preset sizes, aspect lock.",
+      "description": "Paste or drop an SVG and export it as PNG, JPEG, or WebP at any pixel size — preset social-card dimensions, aspect-ratio lock, quality slider, copy to clipboard. Runs in your browser — no installs, no servers, no tracking.",
+      "faqs": [
+        {
+          "q": "How is this different from SVG to JSX?",
+          "a": "SVG to JSX rewrites the markup for React (camelCase props, className) but keeps the result as SVG code. SVG to Raster renders the SVG to actual pixels — a PNG, JPEG, or WebP image — at the exact dimensions you ask for."
+        },
+        {
+          "q": "How does it know the SVG's natural size?",
+          "a": "The parser reads the root <svg>'s width and height attributes first, falling back to the viewBox if either is missing. If none of those are present, it defaults to 300×150 (which is what browsers use for an SVG with no dimensions)."
+        },
+        {
+          "q": "What does Lock aspect do?",
+          "a": "When the source SVG has known dimensions, editing one of W or H auto-fills the other so the ratio matches the source. Presets ignore the lock so they always set both dimensions, since their whole point is to enforce a specific ratio."
+        },
+        {
+          "q": "Why is the exported image blank or missing parts?",
+          "a": "The canvas pipeline can't fetch external assets — fonts referenced via @import or <link>, <image href> pointing at a different origin, and external stylesheets all silently fail. Inline fonts as glyph paths and embed images as data URIs."
+        },
+        {
+          "q": "Does the SVG ever leave my browser?",
+          "a": "No. Parsing, rendering, and encoding all run locally — the SVG only ever becomes a Blob URL that gets painted onto a canvas, never a network request."
+        }
+      ],
+      "maxWidth": "1200px"
+    },
+    {
       "slug": "gradients",
       "name": "Gradients",
       "icon": "🎨",
@@ -799,6 +830,37 @@
         }
       ],
       "maxWidth": "1100px"
+    },
+    {
+      "slug": "favicon-generator",
+      "name": "Favicon Generator",
+      "icon": "⭐",
+      "category": "Generators",
+      "card": "Drop an image or pick an emoji to generate a full favicon set — PNG, ICO, maskable, manifest.",
+      "description": "Drop any image or type an emoji to generate the full browser favicon set — 16/32/48/180/192/512 PNGs, a multi-frame favicon.ico, a maskable variant, and a manifest.webmanifest snippet, all bundled into one zip. Runs in your browser, no tracking.",
+      "faqs": [
+        {
+          "q": "Which sizes are in the exported zip?",
+          "a": "16×16, 32×32, 48×48, 180×180 (Apple touch icon), 192×192 and 512×512 (Android chrome). Plus a two-frame favicon.ico (16+32 px), a 512×512 maskable variant, and a manifest.webmanifest snippet referencing the manifest icons."
+        },
+        {
+          "q": "What is a maskable icon?",
+          "a": "On Android and other adaptive-icon platforms, the OS clips the icon to a shape (circle, squircle, teardrop, …). Maskable icons fill the canvas with background + foreground and keep the meaningful content inside the inner 60% (a 20% safe-area padding on each side) so cropping never removes it."
+        },
+        {
+          "q": "Does the tool use a real ICO encoder?",
+          "a": "Yes — a hand-rolled ~60-line PNG-in-ICO writer. The favicon.ico file is a standard ICO header wrapping the 16×16 and 32×32 PNG blobs as separate frames. Every modern browser reads PNG-in-ICO files; Windows has supported them since Vista."
+        },
+        {
+          "q": "Why does my emoji look different on different machines?",
+          "a": "Emoji are rendered with the user's system emoji font — Apple Color Emoji on macOS/iOS, Segoe UI Emoji on Windows, Noto Color Emoji on Linux/Chrome OS, etc. The PNGs in the zip will look like whatever your browser drew. If you need pixel-identical icons everywhere, drop in an SVG or PNG instead."
+        },
+        {
+          "q": "Does any of this leave my browser?",
+          "a": "No. The image or emoji is rendered to a canvas locally, the PNGs and ICO are generated client-side, and the zip is assembled in your browser. Nothing is uploaded."
+        }
+      ],
+      "maxWidth": "1200px"
     },
     {
       "slug": "uuid-generator",
