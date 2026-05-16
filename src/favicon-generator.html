@@ -235,6 +235,13 @@
         </div>
 
         <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Maskable icon</h2>
+        <div class="warn-bar mb-3">
+          <strong>Shape control doesn't apply here.</strong> Maskable icons follow the
+          <a href="https://w3c.github.io/manifest/#icon-masks" rel="noreferrer noopener" target="_blank" class="text-yellow-200 underline hover:no-underline">adaptive-icon spec</a> —
+          Android / Chrome apply their own mask (circle, squircle, teardrop, …) on top of your PNG, so the source must be a
+          full-bleed <em>square</em> with content inside the inner 60%. Pre-shaping would double-mask the icon.
+          The transparent-background toggle is also ignored here for the same reason.
+        </div>
         <div class="flex flex-wrap items-start gap-5">
           <div class="thumb-box" style="padding: 0.75rem;">
             <div class="fg-maskable-wrap">
