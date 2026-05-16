@@ -230,7 +230,7 @@
       listEl.innerHTML = uuids.map((u, i) =>
         `<div class="flex items-center gap-2">
           <code class="flex-1 input input-mono text-sm select-all">${fmt(u)}</code>
-          <button onclick="copyOne(${i})" class="btn btn-secondary btn-sm" title="Copy">📋</button>
+          <button onclick="copyOne(${i})" class="btn btn-secondary" title="Copy">📋</button>
         </div>`
       ).join('');
       bulkEl.classList.remove('hidden');
