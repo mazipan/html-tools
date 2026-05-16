@@ -190,11 +190,11 @@
           <p id="format-note" class="text-[0.7rem] text-gray-600 mt-1.5">PNG is lossless — quality slider is disabled.</p>
         </div>
 
-        <div class="sr-section">
+        <div id="bg-section" class="sr-section hidden">
           <span class="sr-section-label">JPEG background</span>
           <div class="flex items-center gap-2">
-            <input id="bg-color" type="color" class="swatch-input" value="#ffffff" style="width:2rem;height:2rem;padding:0;border:1px solid #374151;border-radius:0.4rem;background:transparent;cursor:pointer;" disabled>
-            <input id="bg-color-text" type="text" class="input input-mono" value="#ffffff" style="width: 9rem;" disabled>
+            <input id="bg-color" type="color" class="swatch-input" value="#ffffff" style="width:2rem;height:2rem;padding:0;border:1px solid #374151;border-radius:0.4rem;background:transparent;cursor:pointer;">
+            <input id="bg-color-text" type="text" class="input input-mono" value="#ffffff" style="width: 9rem;">
             <span class="text-[0.7rem] text-gray-600 flex-1">JPEG can't store transparency; this color fills behind transparent areas.</span>
           </div>
         </div>
@@ -652,8 +652,7 @@
         const isJpeg = state.format === 'jpeg';
         $('quality').disabled = !isLossy;
         $('quality').style.opacity = isLossy ? '' : '0.4';
-        $('bg-color').disabled = !isJpeg;
-        $('bg-color-text').disabled = !isJpeg;
+        $('bg-section').classList.toggle('hidden', !isJpeg);
         $('format-note').textContent = state.format === 'png'
           ? 'PNG is lossless — quality slider is disabled.'
           : state.format === 'jpeg'
