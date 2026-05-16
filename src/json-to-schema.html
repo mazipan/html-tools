@@ -45,14 +45,14 @@
         <div>
           <div class="flex items-center justify-between mb-2">
             <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" for="json-input">JSON Input</label>
-            <span id="err-msg" class="text-xs text-red-400"></span>
+            <div class="flex items-center gap-2">
+              <span id="err-msg" class="text-xs text-red-400"></span>
+              <button onclick="loadSample()" class="btn btn-secondary btn-sm">📥 Load sample</button>
+              <button onclick="clearAll()" class="btn btn-secondary btn-sm">🗑️ Clear</button>
+            </div>
           </div>
           <textarea id="json-input" placeholder="Paste JSON here…" spellcheck="false" oninput="onInput()"
                     class="w-full h-[400px] min-h-[200px] rounded-lg border border-gray-700 bg-gray-900 text-gray-200 font-mono text-[0.8rem] leading-relaxed p-4 resize-y outline-none focus:border-blue-400 transition-colors"></textarea>
-        </div>
-        <div class="flex gap-2">
-          <button onclick="loadSample()" class="btn btn-secondary">📥 Load sample</button>
-          <button onclick="clearAll()" class="btn btn-secondary">🗑️ Clear</button>
         </div>
         <!-- Options -->
         <div class="space-y-2">
