@@ -48,6 +48,9 @@
       background:
         repeating-linear-gradient(45deg, #1f2937 0 6px, #111827 6px 12px);
       border-radius: 0.25rem;
+      /* Always render square even when the column clamps the width. */
+      aspect-ratio: 1 / 1;
+      height: auto;
     }
 
     .fg-maskable-wrap {
@@ -556,7 +559,7 @@
             data-size="${px}"
             width="${px}"
             height="${px}"
-            style="width: ${canvasSize}px; height: ${canvasSize}px; max-width: 100%;"
+            style="width: ${canvasSize}px; max-width: 100%;"
             aria-label="${px} by ${px} preview"
           ></canvas>
           <span class="thumb-label mt-2">${px}×${px}</span>
