@@ -63,14 +63,14 @@
       <div class="flex flex-wrap gap-4 items-center">
         <div class="flex items-center gap-2 text-sm text-gray-400">
           Format:
-          <button id="fmt-lower" onclick="setFormat('lower')" class="tab-btn btn-active">lowercase</button>
-          <button id="fmt-upper" onclick="setFormat('upper')" class="tab-btn">UPPERCASE</button>
+          <button id="fmt-lower" onclick="setFormat('lower')" class="chip on">lowercase</button>
+          <button id="fmt-upper" onclick="setFormat('upper')" class="chip">UPPERCASE</button>
         </div>
         <div class="flex items-center gap-2 text-sm text-gray-400">
           Separator:
-          <button id="sep-nl"    onclick="setSep('nl')"    class="tab-btn btn-active">newline</button>
-          <button id="sep-comma" onclick="setSep('comma')" class="tab-btn">comma</button>
-          <button id="sep-space" onclick="setSep('space')" class="tab-btn">space</button>
+          <button id="sep-nl"    onclick="setSep('nl')"    class="chip on">newline</button>
+          <button id="sep-comma" onclick="setSep('comma')" class="chip">comma</button>
+          <button id="sep-space" onclick="setSep('space')" class="chip">space</button>
         </div>
       </div>
       <div class="flex gap-2">
@@ -265,16 +265,16 @@
 
     function setFormat(f) {
       format = f;
-      document.getElementById('fmt-lower').classList.toggle('btn-active', f === 'lower');
-      document.getElementById('fmt-upper').classList.toggle('btn-active', f === 'upper');
+      document.getElementById('fmt-lower').classList.toggle('on', f === 'lower');
+      document.getElementById('fmt-upper').classList.toggle('on', f === 'upper');
       render();
     }
 
     function setSep(s) {
       sep = s;
-      document.getElementById('sep-nl').classList.toggle('btn-active',    s === 'nl');
-      document.getElementById('sep-comma').classList.toggle('btn-active', s === 'comma');
-      document.getElementById('sep-space').classList.toggle('btn-active', s === 'space');
+      document.getElementById('sep-nl').classList.toggle('on',    s === 'nl');
+      document.getElementById('sep-comma').classList.toggle('on', s === 'comma');
+      document.getElementById('sep-space').classList.toggle('on', s === 'space');
     }
 
     generate();
