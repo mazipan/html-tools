@@ -71,9 +71,9 @@
       <div class="flex flex-col gap-3">
         <div class="flex items-center justify-between">
           <div class="flex gap-1">
-            <button id="tab-zod"     onclick="setTab('zod')"     class="tab-btn btn-active">Zod</button>
-            <button id="tab-valibot" onclick="setTab('valibot')" class="tab-btn">Valibot</button>
-            <button id="tab-yup"     onclick="setTab('yup')"     class="tab-btn">Yup</button>
+            <button id="tab-zod"     onclick="setTab('zod')"     class="chip on">Zod</button>
+            <button id="tab-valibot" onclick="setTab('valibot')" class="chip">Valibot</button>
+            <button id="tab-yup"     onclick="setTab('yup')"     class="chip">Yup</button>
           </div>
           <div class="flex gap-2">
             <button onclick="copyOutput()" class="btn btn-secondary">📋 Copy</button>
@@ -422,7 +422,7 @@
     function setTab(t) {
       activeTab = t;
       ['zod', 'valibot', 'yup'].forEach(id => {
-        document.getElementById('tab-' + id).classList.toggle('btn-active', id === t);
+        document.getElementById('tab-' + id).classList.toggle('on', id === t);
       });
       outputEl.value = lastOutputs[t] || '';
     }
