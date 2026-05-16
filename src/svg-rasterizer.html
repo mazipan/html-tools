@@ -136,8 +136,14 @@
             placeholder="Paste SVG markup here, drop a .svg file, or click Upload SVG…"
             aria-label="SVG markup input"
           ></textarea>
-          <div id="parse-status" class="text-xs text-gray-500 mt-1.5">
-            <span id="parse-msg">Paste, drop, or upload an SVG to begin.</span>
+          <div class="flex items-center justify-between gap-2 mt-1.5 flex-wrap">
+            <div id="parse-status" class="text-xs text-gray-500">
+              <span id="parse-msg">Paste, drop, or upload an SVG to begin.</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="copy-svg-status" class="text-xs text-gray-500"></span>
+              <button id="copy-svg" class="btn btn-secondary btn-sm" type="button" disabled>📋 Copy SVG</button>
+            </div>
           </div>
         </div>
 
@@ -484,6 +490,7 @@
     // ── Live preview ──────────────────────────────────────────────
     let parseTimer = null;
     function onSvgInputChanged() {
+      updateCopySvgButton();
       clearTimeout(parseTimer);
       parseTimer = setTimeout(updatePreview, 200);
     }
@@ -555,6 +562,10 @@
       $('copy-btn').disabled = !enabled;
     }
 
+    function updateCopySvgButton() {
+      $('copy-svg').disabled = !$('svg-input').value.trim();
+    }
+
     function updateOutputDisplay() {
       $('out-size-disp').textContent = `${state.outW} × ${state.outH}`;
       const ar = state.outW / state.outH;
@@ -578,6 +589,7 @@
       }
       file.text().then(text => {
         svgInput.value = text;
+        updateCopySvgButton();
         updatePreview();
       }).catch(err => {
         flash('Could not read file: ' + err.message, '#fca5a5');
@@ -601,7 +613,23 @@
 
     $('load-sample').addEventListener('click', () => {
       svgInput.value = SAMPLE_SVG;
+      updateCopySvgButton();
       updatePreview();
+    });
+
+    $('copy-svg').addEventListener('click', async () => {
+      const text = svgInput.value;
+      const s = $('copy-svg-status');
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        s.textContent = '✓ Copied';
+        s.style.color = '#86efac';
+      } catch (err) {
+        s.textContent = 'Copy failed';
+        s.style.color = '#fca5a5';
+      }
+      setTimeout(() => { s.textContent = ''; s.style.color = ''; }, 2000);
     });
 
     // ── Size inputs + aspect lock ──────────────────────────────────
