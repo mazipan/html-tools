@@ -160,18 +160,20 @@
           </div>
         </div>
 
-        <div class="sr-section">
-          <span class="sr-section-label">Presets</span>
-          <div class="flex flex-wrap gap-1.5">
-            <button class="pill" type="button" data-preset="512,512">Square 512</button>
-            <button class="pill" type="button" data-preset="1024,1024">Square 1024</button>
-            <button class="pill" type="button" data-preset="1200,630">OG 1200×630</button>
-            <button class="pill" type="button" data-preset="1600,900">Twitter 1600×900</button>
-            <button class="pill" type="button" data-preset="1920,1080">HD 1920×1080</button>
-            <button class="pill" type="button" data-preset="natural">Natural size</button>
-          </div>
-          <p class="text-[0.7rem] text-gray-600 mt-1.5">Presets ignore the aspect lock so they always set both dimensions.</p>
-        </div>
+        <details class="disclosure mb-5">
+          <summary>📐 Size presets</summary>
+          <div class="disclosure-content"><div class="disclosure-body">
+            <div class="flex flex-wrap gap-1.5">
+              <button class="pill" type="button" data-preset="512,512">Square 512</button>
+              <button class="pill" type="button" data-preset="1024,1024">Square 1024</button>
+              <button class="pill" type="button" data-preset="1200,630">OG 1200×630</button>
+              <button class="pill" type="button" data-preset="1600,900">Twitter 1600×900</button>
+              <button class="pill" type="button" data-preset="1920,1080">HD 1920×1080</button>
+              <button class="pill" type="button" data-preset="natural">Natural size</button>
+            </div>
+            <p class="text-[0.7rem] text-gray-600 mt-1.5">Presets ignore the aspect lock so they always set both dimensions.</p>
+          </div></div>
+        </details>
 
         <div class="sr-section">
           <span class="sr-section-label">Format</span>
