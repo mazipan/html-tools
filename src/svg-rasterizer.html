@@ -119,19 +119,23 @@
       <!-- ── Left: Input + controls ─────────────────────────────── -->
       <div>
         <div class="sr-section">
-          <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
             <span class="sr-section-label mb-0">SVG input</span>
-            <button id="load-sample" class="btn btn-secondary btn-sm" type="button">📥 Load sample SVG</button>
+            <div class="flex items-center gap-2">
+              <button id="upload-svg" class="btn btn-secondary btn-sm" type="button">📁 Upload SVG</button>
+              <button id="load-sample" class="btn btn-secondary btn-sm" type="button">📥 Load sample</button>
+            </div>
           </div>
+          <input id="svg-file" type="file" accept=".svg,image/svg+xml" class="hidden">
           <textarea
             id="svg-input"
             class="sr-textarea"
             spellcheck="false"
-            placeholder="Paste SVG markup here, or drop a .svg file…"
+            placeholder="Paste SVG markup here, drop a .svg file, or click Upload SVG…"
             aria-label="SVG markup input"
           ></textarea>
           <div id="parse-status" class="text-xs text-gray-500 mt-1.5">
-            <span id="parse-msg">Paste or drop an SVG to begin.</span>
+            <span id="parse-msg">Paste, drop, or upload an SVG to begin.</span>
           </div>
         </div>
 
@@ -532,17 +536,34 @@
     ['dragleave', 'drop'].forEach(evt => {
       svgInput.addEventListener(evt, e => { e.preventDefault(); svgInput.classList.remove('dragover'); });
     });
-    svgInput.addEventListener('drop', e => {
-      const file = e.dataTransfer?.files?.[0];
+    function loadSvgFile(file) {
       if (!file) return;
-      if (!/svg/i.test(file.type) && !/\.svg$/i.test(file.name)) return;
+      if (!/svg/i.test(file.type) && !/\.svg$/i.test(file.name)) {
+        flash('That doesn\'t look like an SVG file', '#fca5a5');
+        return;
+      }
       file.text().then(text => {
         svgInput.value = text;
         updatePreview();
+      }).catch(err => {
+        flash('Could not read file: ' + err.message, '#fca5a5');
       });
+    }
+
+    svgInput.addEventListener('drop', e => {
+      loadSvgFile(e.dataTransfer?.files?.[0]);
     });
 
     svgInput.addEventListener('input', onSvgInputChanged);
+
+    const svgFileInput = $('svg-file');
+    $('upload-svg').addEventListener('click', () => svgFileInput.click());
+    svgFileInput.addEventListener('change', e => {
+      const file = e.target.files?.[0];
+      if (file) loadSvgFile(file);
+      // Reset so picking the same file twice re-triggers change.
+      svgFileInput.value = '';
+    });
 
     $('load-sample').addEventListener('click', () => {
       svgInput.value = SAMPLE_SVG;
