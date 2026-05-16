@@ -956,6 +956,37 @@
       "maxWidth": "900px"
     },
     {
+      "slug": "pdf-merger",
+      "name": "PDF Merger",
+      "icon": "📄",
+      "category": "PDF",
+      "card": "Combine multiple PDFs into one — reorder pages, pick page ranges, add bookmarks.",
+      "description": "Combine multiple PDFs (and optionally images) into a single file entirely in your browser. Drag to reorder, specify per-file page ranges, add bookmarks per source file, and strip metadata for privacy. No upload, no server, no tracking.",
+      "faqs": [
+        {
+          "q": "Do my PDFs ever leave my device?",
+          "a": "No. All merging happens locally in your browser using pdf-lib and PDF.js — two open-source libraries that run entirely client-side. Your files are never uploaded anywhere."
+        },
+        {
+          "q": "Can I include only certain pages from each PDF?",
+          "a": "Yes. Each file card has an optional Pages field. Leave it empty to include all pages, or type a range like '1-3, 7, 9-' (9- means page 9 through the last page)."
+        },
+        {
+          "q": "What image formats can I drop in alongside PDFs?",
+          "a": "PNG, JPEG, and WebP images are accepted. Each image is promoted to a single PDF page, sized to fit A4 (portrait) with the image centered."
+        },
+        {
+          "q": "What does 'Strip metadata' do?",
+          "a": "It clears the Title, Author, Creator, and Producer fields from the output PDF. Useful when you want to share a document without leaking authoring details."
+        },
+        {
+          "q": "What does 'Add bookmarks per source' do?",
+          "a": "It adds a top-level outline entry (bookmark) for each input file, pointing to the first page contributed by that file. This makes it easy to jump between source documents in any PDF viewer."
+        }
+      ],
+      "maxWidth": "1200px"
+    },
+    {
       "slug": "design-system",
       "name": "Design System",
       "icon": "🎛️",
