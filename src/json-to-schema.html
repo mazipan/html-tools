@@ -77,7 +77,7 @@
           </div>
           <div class="flex gap-2">
             <button onclick="copyOutput()" class="btn btn-secondary">📋 Copy</button>
-            <button onclick="downloadOutput()" class="btn btn-secondary">⬇️ Download</button>
+
           </div>
         </div>
         <textarea id="output" readonly spellcheck="false"
@@ -429,17 +429,6 @@
 
     function copyOutput() {
       if (outputEl.value) navigator.clipboard.writeText(outputEl.value);
-    }
-
-    function downloadOutput() {
-      if (!outputEl.value) return;
-      const blob = new Blob([outputEl.value], { type: 'text/plain' });
-      const a = Object.assign(document.createElement('a'), {
-        href: URL.createObjectURL(blob),
-        download: `schema-${activeTab}.ts`
-      });
-      a.click();
-      URL.revokeObjectURL(a.href);
     }
 
     function loadSample() {
