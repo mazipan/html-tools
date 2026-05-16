@@ -58,7 +58,7 @@
     <!-- UUID list -->
     <div id="uuid-list" class="space-y-1.5 mb-6"></div>
 
-    <!-- Format + separator + bulk actions (shown only when list has items) -->
+    <!-- Format + separator + combined output (shown only when list has items) -->
     <div id="bulk-actions" class="hidden space-y-4">
       <div class="flex flex-wrap gap-4 items-center">
         <div class="flex items-center gap-2 text-sm text-gray-400">
@@ -73,6 +73,8 @@
           <button id="sep-space" onclick="setSep('space')" class="chip">space</button>
         </div>
       </div>
+      <textarea id="combined" readonly spellcheck="false"
+                class="w-full h-32 rounded-lg border border-gray-700 bg-gray-900 text-gray-200 font-mono text-[0.8rem] leading-relaxed p-4 resize-y outline-none select-all"></textarea>
       <div class="flex gap-2">
         <button onclick="copyAll()" class="btn btn-secondary">📋 Copy all</button>
         <button onclick="download()" class="btn btn-secondary">⬇️ Download .txt</button>
@@ -223,6 +225,12 @@
 
     function fmt(s) { return format === 'upper' ? s.toUpperCase() : s; }
 
+    function sepChar() { return sep === 'nl' ? '\n' : sep === 'comma' ? ',' : ' '; }
+
+    function renderCombined() {
+      document.getElementById('combined').value = uuids.map(fmt).join(sepChar());
+    }
+
     function render() {
       const listEl = document.getElementById('uuid-list');
       const bulkEl = document.getElementById('bulk-actions');
@@ -234,18 +242,17 @@
         </div>`
       ).join('');
       bulkEl.classList.remove('hidden');
+      renderCombined();
     }
 
     function copyOne(i) { navigator.clipboard.writeText(fmt(uuids[i])); }
 
     function copyAll() {
-      const sepChar = sep === 'nl' ? '\n' : sep === 'comma' ? ',' : ' ';
-      navigator.clipboard.writeText(uuids.map(fmt).join(sepChar));
+      navigator.clipboard.writeText(uuids.map(fmt).join(sepChar()));
     }
 
     function download() {
-      const sepChar = sep === 'nl' ? '\n' : sep === 'comma' ? ',' : ' ';
-      const blob = new Blob([uuids.map(fmt).join(sepChar)], { type: 'text/plain' });
+      const blob = new Blob([uuids.map(fmt).join(sepChar())], { type: 'text/plain' });
       const a = Object.assign(document.createElement('a'), {
         href: URL.createObjectURL(blob),
         download: `uuids-${version}.txt`
@@ -268,6 +275,7 @@
       document.getElementById('fmt-lower').classList.toggle('on', f === 'lower');
       document.getElementById('fmt-upper').classList.toggle('on', f === 'upper');
       render();
+      renderCombined();
     }
 
     function setSep(s) {
@@ -275,6 +283,7 @@
       document.getElementById('sep-nl').classList.toggle('on',    s === 'nl');
       document.getElementById('sep-comma').classList.toggle('on', s === 'comma');
       document.getElementById('sep-space').classList.toggle('on', s === 'space');
+      renderCombined();
     }
 
     generate();
