@@ -41,8 +41,8 @@
     <!-- Controls -->
     <div class="flex flex-wrap items-center gap-4 mb-5">
       <div class="flex gap-1">
-        <button id="tab-v4" onclick="setVersion('v4')" class="tab-btn btn-active">v4 Random</button>
-        <button id="tab-v7" onclick="setVersion('v7')" class="tab-btn">v7 Time-ordered</button>
+        <button id="tab-v4" onclick="setVersion('v4')" class="chip on">v4 Random</button>
+        <button id="tab-v7" onclick="setVersion('v7')" class="chip">v7 Time-ordered</button>
       </div>
       <label class="flex items-center gap-2 text-sm text-gray-400">
         Count
@@ -258,8 +258,8 @@
 
     function setVersion(v) {
       version = v;
-      document.getElementById('tab-v4').classList.toggle('btn-active', v === 'v4');
-      document.getElementById('tab-v7').classList.toggle('btn-active', v === 'v7');
+      document.getElementById('tab-v4').classList.toggle('on', v === 'v4');
+      document.getElementById('tab-v7').classList.toggle('on', v === 'v7');
       if (uuids.length) generate();
     }
 
