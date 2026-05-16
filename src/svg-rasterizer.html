@@ -67,6 +67,7 @@
     .sr-preview-stage {
       width: 100%;
       min-height: 200px;
+      /* Checker by default — overridden inline to a solid color when JPEG output is selected. */
       background:
         repeating-linear-gradient(45deg, #1f2937 0 8px, #111827 8px 16px);
       border: 1px solid #1f2937;
@@ -76,6 +77,7 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
+      transition: background-color 0.12s linear;
     }
     .sr-preview-stage img {
       max-width: 100%;
@@ -629,6 +631,19 @@
     });
 
     // ── Format pills ──────────────────────────────────────────────
+    // Preview stage shows what JPEG output will actually look like: the
+    // checker pattern (transparent) for PNG/WebP, the picked bg color for
+    // JPEG (since JPEG has no alpha and we fill behind the SVG at export).
+    function syncPreviewBg() {
+      const stage = document.querySelector('.sr-preview-stage');
+      if (!stage) return;
+      if (state.format === 'jpeg') {
+        stage.style.background = state.bg;
+      } else {
+        stage.style.background = '';
+      }
+    }
+
     document.querySelectorAll('[data-format]').forEach(btn => {
       btn.addEventListener('click', () => {
         state.format = btn.dataset.format;
@@ -644,6 +659,7 @@
           : state.format === 'jpeg'
             ? 'JPEG is lossy and opaque — the background fills transparent areas.'
             : 'WebP is lossy and supports transparency.';
+        syncPreviewBg();
       });
     });
 
@@ -655,12 +671,14 @@
     $('bg-color').addEventListener('input', () => {
       state.bg = $('bg-color').value;
       $('bg-color-text').value = state.bg;
+      syncPreviewBg();
     });
     $('bg-color-text').addEventListener('input', () => {
       const v = $('bg-color-text').value.trim();
       if (/^#[0-9a-fA-F]{3}$|^#[0-9a-fA-F]{6}$/.test(v)) {
         state.bg = v;
         $('bg-color').value = v;
+        syncPreviewBg();
       }
     });
 
