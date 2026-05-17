@@ -49,6 +49,9 @@ const downInput  = document.getElementById('downscale-input');
 const downPx     = document.getElementById('downscale-px');
 const toggleMeta = document.getElementById('toggle-strip-meta');
 const filePattern = document.getElementById('filename-pattern');
+const summaryWrap = document.getElementById('compress-summary');
+const summaryRows = document.getElementById('summary-rows');
+const summaryTotal = document.getElementById('summary-total');
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 function showError(msg) {
@@ -103,6 +106,7 @@ function renderCard(item) {
     fileCount.textContent = items.length ? `(${items.length})` : '';
     updateVisibility();
     refreshActionState();
+    renderSummary();
   });
 
   return card;
@@ -169,6 +173,67 @@ async function downloadZip() {
 function refreshActionState() {
   const anyDone = items.some(i => i.status === 'done');
   downloadZipBtn.classList.toggle('hidden', !anyDone || items.filter(i => i.status === 'done').length < 2);
+}
+
+function escAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function renderSummary() {
+  const processed = items.filter(i =>
+    i.status === 'done' || i.status === 'skipped' || i.status === 'error'
+  );
+  if (processed.length === 0) {
+    summaryWrap.classList.add('hidden');
+    summaryRows.innerHTML = '';
+    summaryTotal.textContent = '';
+    return;
+  }
+  summaryWrap.classList.remove('hidden');
+
+  let totalBefore = 0;
+  let totalAfter  = 0;
+
+  summaryRows.innerHTML = processed.map(i => {
+    if (i.status === 'error') {
+      return `<div class="summary-row">
+        <span class="name" title="${escAttr(i.file.name)}">${escAttr(i.file.name)}</span>
+        <span class="sizes">${formatBytes(i.originalBytes)}</span>
+        <span class="delta error" title="${escAttr(i.error || '')}">error</span>
+      </div>`;
+    }
+    if (i.status === 'skipped' || !i.stats) {
+      // Treat the "no changes" path as zero savings on totals.
+      totalBefore += i.originalBytes;
+      totalAfter  += i.originalBytes;
+      return `<div class="summary-row">
+        <span class="name" title="${escAttr(i.file.name)}">${escAttr(i.file.name)}</span>
+        <span class="sizes">${formatBytes(i.originalBytes)}</span>
+        <span class="delta skipped" title="No JPEG images re-encoded (text-only or non-DCT images)">unchanged</span>
+      </div>`;
+    }
+    const before = i.stats.before;
+    const after  = i.stats.after;
+    totalBefore += before;
+    totalAfter  += after;
+    const pctNum = before ? ((after - before) / before) * 100 : 0;
+    const cls = pctNum < -2 ? 'good' : (pctNum > 2 ? 'bad' : 'neutral');
+    return `<div class="summary-row">
+      <span class="name" title="${escAttr(i.file.name)}">${escAttr(i.file.name)}</span>
+      <span class="sizes">
+        <span class="before">${formatBytes(before)}</span>
+        <span class="arrow">→</span>
+        <span class="after">${formatBytes(after)}</span>
+      </span>
+      <span class="delta ${cls}">${formatPct(after, before)}</span>
+    </div>`;
+  }).join('');
+
+  const savedBytes = totalBefore - totalAfter;
+  const savedPct = totalBefore ? (savedBytes / totalBefore) * 100 : 0;
+  const sign = savedBytes > 0 ? '−' : (savedBytes < 0 ? '+' : '');
+  summaryTotal.textContent =
+    `${processed.length} file${processed.length === 1 ? '' : 's'} · saved ${sign}${formatBytes(Math.abs(savedBytes))} (${savedPct.toFixed(0)}%)`;
 }
 
 // ── File ingestion ───────────────────────────────────────────────────────
@@ -391,9 +456,11 @@ async function runQueue() {
     }
     updateCard(item);
     refreshActionState();
+    renderSummary();
   }
   compressBtn.disabled = false;
   statusEl.textContent = 'Done.';
+  renderSummary();
 }
 
 // ── Options wiring ───────────────────────────────────────────────────────
@@ -438,6 +505,7 @@ clearAll.addEventListener('click', () => {
   statusEl.textContent = '';
   updateVisibility();
   refreshActionState();
+  renderSummary();
 });
 
 compressBtn.addEventListener('click', runQueue);

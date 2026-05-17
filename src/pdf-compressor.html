@@ -124,6 +124,51 @@
     .downscale-input { display: none; align-items: center; gap: 0.4rem; }
     .downscale-input.on { display: inline-flex; }
 
+    /* Compact summary rows shown below the Compress button so the user
+       doesn't have to scroll back up to the queue cards to read the stats. */
+    .summary-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.35rem 0;
+      border-top: 1px solid rgba(31, 41, 55, 0.6);
+      font-size: 0.75rem;
+    }
+    .summary-row:first-child { border-top: none; }
+    .summary-row .name {
+      flex: 1 1 auto;
+      min-width: 0;
+      color: #e5e7eb;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .summary-row .sizes {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      color: #9ca3af;
+      font-size: 0.7rem;
+      white-space: nowrap;
+    }
+    .summary-row .sizes .arrow { color: #4b5563; margin: 0 0.25rem; }
+    .summary-row .sizes .after { color: #e5e7eb; font-weight: 600; }
+    .summary-row .delta {
+      font-size: 0.65rem;
+      padding: 1px 6px;
+      border-radius: 0.25rem;
+      white-space: nowrap;
+      flex: 0 0 auto;
+    }
+    .summary-row .delta.good    { background: color-mix(in srgb, #22c55e 18%, transparent); color: #86efac; }
+    .summary-row .delta.bad     { background: color-mix(in srgb, #ef4444 18%, transparent); color: #fca5a5; }
+    .summary-row .delta.neutral { background: #1f2937; color: #9ca3af; }
+    .summary-row .delta.skipped { background: color-mix(in srgb, #d97706 18%, transparent); color: #fbbf24; }
+    .summary-row .delta.error   { background: color-mix(in srgb, #ef4444 18%, transparent); color: #fca5a5; }
+
+    html[data-theme="light"] .summary-row { border-top-color: #e5e7eb; }
+    html[data-theme="light"] .summary-row .name  { color: #111827; }
+    html[data-theme="light"] .summary-row .sizes { color: #6b7280; }
+    html[data-theme="light"] .summary-row .sizes .after { color: #111827; }
+
     html[data-theme="light"] .pdfc-card { background: #f9fafb; border-color: #e5e7eb; }
     html[data-theme="light"] .pdfc-thumb { background: #f3f4f6; color: #d1d5db; }
     html[data-theme="light"] .pdfc-card-remove { background: #e5e7eb; color: #9ca3af; }
@@ -222,6 +267,16 @@
       <button id="download-zip-btn" class="btn btn-secondary hidden" type="button">⬇️ Download all (zip)</button>
       <span id="compress-status" class="text-sm text-gray-500"></span>
     </div>
+
+    <!-- Compact results panel — shown below the action button so the user
+         doesn't have to scroll back up to the queue cards to read stats. -->
+    <section id="compress-summary" class="hidden mt-4 border border-gray-800 rounded-xl bg-gray-900/40 p-4" aria-live="polite">
+      <div class="flex items-center justify-between mb-1">
+        <h2 class="text-sm font-medium text-gray-300">Results</h2>
+        <span id="summary-total" class="text-xs text-gray-500"></span>
+      </div>
+      <div id="summary-rows"></div>
+    </section>
 
   </main>
 
