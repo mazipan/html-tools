@@ -1,13 +1,10 @@
 import { PDFDocument, degrees } from 'pdf-lib';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 
-// Use Parcel's recognized worker pattern so the output is always a .js bundle.
-// (url: scheme can emit extensionless files on some hosts, breaking module import.)
-const _pdfJsWorker = new Worker(
-  new URL('./pdf-worker-entry.js', import.meta.url),
-  { type: 'module' }
-);
-pdfjsLib.GlobalWorkerOptions.workerPort = _pdfJsWorker;
+// pdf-worker-entry.js re-exports the pdfjs worker so Parcel bundles it as a
+// named .js file (url: scheme emits extensionless files on some CDN hosts).
+// Using new URL() here makes Parcel compile and replace the URL at build time.
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('./pdf-worker-entry.js', import.meta.url).href;
 
 // ── State ──────────────────────────────────────────────────────────────────
 let srcDoc = null;
