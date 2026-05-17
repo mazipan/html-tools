@@ -987,6 +987,68 @@
       "maxWidth": "1200px"
     },
     {
+      "slug": "image-to-pdf",
+      "name": "Image to PDF",
+      "icon": "📑",
+      "category": "PDF",
+      "card": "Combine PNG, JPEG, or WebP images into a single PDF — page size, fit, margin, drag-to-reorder.",
+      "description": "Combine PNG, JPEG, and WebP images into a single PDF — page-size presets (Auto / A4 / Letter / Legal / Custom), Contain/Cover/Stretch fit, margins, white or transparent background, drag-to-reorder. Runs in your browser — no installs, no servers, no tracking.",
+      "faqs": [
+        {
+          "q": "Do my images ever leave my computer?",
+          "a": "No. Everything happens locally in your browser using pdf-lib — no upload, no server, no third-party API. JPEGs and PNGs are embedded losslessly; WebP is re-encoded to JPEG before embedding."
+        },
+        {
+          "q": "What's the difference between Contain, Cover, and Stretch?",
+          "a": "Contain scales the image to fit inside the page with whitespace on the short edge. Cover scales to fill the page and crops the overflow. Stretch distorts the image to fill the page exactly — aspect ratio is not preserved."
+        },
+        {
+          "q": "What does Auto page size do?",
+          "a": "Each image becomes a page sized to match its own pixel dimensions (treated at 72 DPI). Use this when you want one image per page and no whitespace. The fit and margin settings are ignored in Auto mode."
+        },
+        {
+          "q": "Can I mix portrait and landscape images?",
+          "a": "Yes. With Orientation set to Auto, each page follows the longer edge of its image. Lock to Portrait or Landscape to force every page the same way (useful for printable booklets)."
+        },
+        {
+          "q": "Why does my transparent PNG show black in the PDF?",
+          "a": "Most PDF viewers render transparent page regions as black, not as the surrounding UI colour. If your image has transparent corners, pick the White background option so the page itself is opaque white behind the image."
+        }
+      ],
+      "maxWidth": "1200px"
+    },
+    {
+      "slug": "pdf-compressor",
+      "name": "PDF Compressor",
+      "icon": "🤏",
+      "category": "PDF",
+      "card": "Shrink PDFs in-browser by re-encoding embedded JPEG images — text stays selectable.",
+      "description": "Shrink PDF file size locally — re-encodes embedded JPEG images at the chosen quality and strips metadata, keeping text and fonts untouched so the result stays searchable and selectable. Runs in your browser — no upload, no server, no tracking.",
+      "faqs": [
+        {
+          "q": "Does my PDF ever leave my computer?",
+          "a": "No. All parsing, image re-encoding, and saving happen locally using pdf-lib. PDFs often carry sensitive content (contracts, IDs, financial records), and none of it is uploaded anywhere."
+        },
+        {
+          "q": "What does each preset actually do?",
+          "a": "Each preset re-encodes every embedded JPEG image at a fixed quality: Lossless q=0.92, Visually identical q=0.85 (default), Smaller q=0.70, Smallest q=0.50. 'Lossless' is misleading shorthand — true bit-perfect PDF compression isn't browser-feasible — but at q=0.92 the visual loss is imperceptible."
+        },
+        {
+          "q": "Why is text still selectable after compression?",
+          "a": "Only embedded image streams are re-encoded; text glyphs, fonts, page content streams, and annotations are untouched. The output is a normal PDF whose text is selectable, copyable, and searchable in any viewer."
+        },
+        {
+          "q": "Why didn't my PDF get smaller?",
+          "a": "This v1 only re-encodes JPEG (DCTDecode) image streams. PDFs that are text-only, or whose images are stored as raw pixel data (FlateDecode), or that use the rarer JBIG2 / JPX / CCITT filters, will pass through unchanged. Photo-heavy PDFs typically shrink 30–70%."
+        },
+        {
+          "q": "How is this different from Acrobat or Ghostscript?",
+          "a": "Desktop tools can subset fonts, downsample colour profiles, and use specialised PDF filters (JBIG2 for black-and-white scans, lossy JPX). This tool sticks to what's safe in a browser — JPEG image re-encoding plus structural save options — so it can't beat them on every file, but it never uploads anything."
+        }
+      ],
+      "maxWidth": "1200px"
+    },
+    {
       "slug": "design-system",
       "name": "Design System",
       "icon": "🎛️",

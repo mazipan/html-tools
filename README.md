@@ -33,6 +33,9 @@ A collection of single-file browser-native utilities. All logic runs client-side
 | [QR Code Generator](src/qr-code-generator.html) | Turn text, URL, WiFi config, or vCard into a QR code with custom colors and error-correction level — export as SVG or PNG |
 | [Lorem Ipsum Generator](src/lorem-ipsum.html) | Generate placeholder text — paragraphs, sentences, words, or list items, with Cupcake / Bacon / Hipster dictionaries too |
 | [Favicon Generator](src/favicon-generator.html) | Drop an image or type an emoji to generate a full favicon set — 16/32/48/180/192/512 PNGs, multi-frame ICO, maskable variant, and `manifest.webmanifest` snippet, bundled as a zip |
+| [PDF Merger](src/pdf-merger.html) | Combine multiple PDFs (and optionally images) into one — drag-to-reorder, per-file page ranges, bookmarks per source, strip metadata |
+| [Image to PDF](src/image-to-pdf.html) | Combine PNG / JPEG / WebP images into a single PDF — page-size presets, Contain/Cover/Stretch fit, margins, drag-to-reorder |
+| [PDF Compressor](src/pdf-compressor.html) | Shrink PDFs locally by re-encoding embedded JPEG images at chosen quality — text stays selectable, optional downscale + metadata strip |
 
 ## Design system
 

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <include src="_partials/meta-base.html"></include>
+  <title>PDF Compressor — HTML Tools</title>
+  <meta name="description" content="Shrink PDFs locally by re-encoding embedded JPEG images — text stays selectable. Quality presets, optional downscale + metadata strip, batch + zip download. Runs in your browser, no tracking.">
+  <link rel="canonical" href="https://tools.mazipan.space/pdf-compressor">
+  <meta property="og:title" content="PDF Compressor — HTML Tools">
+  <meta property="og:description" content="Shrink PDFs locally by re-encoding embedded JPEG images — text stays selectable. Quality presets, optional downscale + metadata strip, batch + zip download. Runs in your browser, no tracking.">
+  <meta property="og:url" content="https://tools.mazipan.space/pdf-compressor">
+  <meta name="twitter:title" content="PDF Compressor — HTML Tools">
+  <meta name="twitter:description" content="Shrink PDFs locally by re-encoding embedded JPEG images — text stays selectable. Quality presets, optional downscale + metadata strip, batch + zip download. Runs in your browser, no tracking.">
+  <include src="_partials/meta-social.html"></include>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-pdf-compressor.png">
+  <include src="_partials/head-fonts.html"></include>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    #file-strip {
+      display: flex;
+      gap: 0.75rem;
+      overflow-x: auto;
+      padding: 0.25rem 0.25rem 0.75rem;
+      scrollbar-width: thin;
+    }
+    .pdfc-card {
+      flex: 0 0 200px;
+      border: 1px solid #1f2937;
+      border-radius: 0.625rem;
+      background: #0b1220;
+      padding: 0.7rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      position: relative;
+    }
+    .pdfc-thumb {
+      width: 100%;
+      aspect-ratio: 3/4;
+      background: #111827;
+      border-radius: 0.375rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.75rem;
+      color: #374151;
+    }
+    .pdfc-card-remove {
+      position: absolute;
+      top: 0.45rem;
+      right: 0.5rem;
+      width: 1.25rem;
+      height: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1f2937;
+      border: none;
+      border-radius: 50%;
+      color: #6b7280;
+      font-size: 0.7rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .pdfc-card-remove:hover { background: #374151; color: #f87171; }
+    .pdfc-name {
+      font-size: 0.7rem;
+      color: #e5e7eb;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-right: 1.4rem;
+    }
+    .pdfc-meta { font-size: 0.62rem; color: #6b7280; }
+    .pdfc-status {
+      font-size: 0.62rem;
+      color: #9ca3af;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .pdfc-status .dot {
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background: #6b7280;
+      flex: 0 0 auto;
+    }
+    .pdfc-status.queued     .dot { background: #6b7280; }
+    .pdfc-status.working    .dot { background: var(--accent); animation: pulse 1.2s infinite; }
+    .pdfc-status.done       .dot { background: #22c55e; }
+    .pdfc-status.error      .dot { background: #ef4444; }
+    .pdfc-status.skipped    .dot { background: #d97706; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    .pdfc-result {
+      display: flex;
+      gap: 0.4rem;
+      align-items: baseline;
+      font-size: 0.65rem;
+      flex-wrap: wrap;
+    }
+    .pdfc-result .before { color: #6b7280; text-decoration: line-through; }
+    .pdfc-result .after  { color: #e5e7eb; font-weight: 600; }
+    .pdfc-result .delta  { font-size: 0.6rem; padding: 1px 5px; border-radius: 0.25rem; }
+    .pdfc-result .delta.good    { background: color-mix(in srgb, #22c55e 18%, transparent); color: #86efac; }
+    .pdfc-result .delta.bad     { background: color-mix(in srgb, #ef4444 18%, transparent); color: #fca5a5; }
+    .pdfc-result .delta.neutral { background: #1f2937; color: #9ca3af; }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem 1rem;
+      align-items: center;
+    }
+    .control-row + .control-row { margin-top: 0.65rem; padding-top: 0.65rem; border-top: 1px solid #1f2937; }
+    .control-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      min-width: 5.5rem;
+    }
+    .downscale-input { display: none; align-items: center; gap: 0.4rem; }
+    .downscale-input.on { display: inline-flex; }
+
+    html[data-theme="light"] .pdfc-card { background: #f9fafb; border-color: #e5e7eb; }
+    html[data-theme="light"] .pdfc-thumb { background: #f3f4f6; color: #d1d5db; }
+    html[data-theme="light"] .pdfc-card-remove { background: #e5e7eb; color: #9ca3af; }
+    html[data-theme="light"] .pdfc-card-remove:hover { background: #d1d5db; }
+    html[data-theme="light"] .pdfc-name { color: #111827; }
+    html[data-theme="light"] .pdfc-meta { color: #9ca3af; }
+    html[data-theme="light"] .pdfc-result .before { color: #9ca3af; }
+    html[data-theme="light"] .pdfc-result .after  { color: #111827; }
+    html[data-theme="light"] .control-row + .control-row { border-top-color: #e5e7eb; }
+  </style>
+  <include src="_partials/head-theme.html"></include>
+  <!-- BEGIN:json-ld generated by scripts/generate-sections.mjs — re-run after editing tools.json -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"PDF Compressor","url":"https://tools.mazipan.space/pdf-compressor","description":"Shrink PDF file size locally — re-encodes embedded JPEG images at the chosen quality and strips metadata, keeping text and fonts untouched so the result stays searchable and selectable. Runs in your browser — no upload, no server, no tracking.","applicationCategory":"DeveloperApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"isPartOf":{"@type":"WebSite","name":"HTML Tools","url":"https://tools.mazipan.space/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"HTML Tools","item":"https://tools.mazipan.space/"},{"@type":"ListItem","position":2,"name":"PDF Compressor","item":"https://tools.mazipan.space/pdf-compressor"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does my PDF ever leave my computer?","acceptedAnswer":{"@type":"Answer","text":"No. All parsing, image re-encoding, and saving happen locally using pdf-lib. PDFs often carry sensitive content (contracts, IDs, financial records), and none of it is uploaded anywhere."}},{"@type":"Question","name":"What does each preset actually do?","acceptedAnswer":{"@type":"Answer","text":"Each preset re-encodes every embedded JPEG image at a fixed quality: Lossless q=0.92, Visually identical q=0.85 (default), Smaller q=0.70, Smallest q=0.50. 'Lossless' is misleading shorthand — true bit-perfect PDF compression isn't browser-feasible — but at q=0.92 the visual loss is imperceptible."}},{"@type":"Question","name":"Why is text still selectable after compression?","acceptedAnswer":{"@type":"Answer","text":"Only embedded image streams are re-encoded; text glyphs, fonts, page content streams, and annotations are untouched. The output is a normal PDF whose text is selectable, copyable, and searchable in any viewer."}},{"@type":"Question","name":"Why didn't my PDF get smaller?","acceptedAnswer":{"@type":"Answer","text":"This v1 only re-encodes JPEG (DCTDecode) image streams. PDFs that are text-only, or whose images are stored as raw pixel data (FlateDecode), or that use the rarer JBIG2 / JPX / CCITT filters, will pass through unchanged. Photo-heavy PDFs typically shrink 30–70%."}},{"@type":"Question","name":"How is this different from Acrobat or Ghostscript?","acceptedAnswer":{"@type":"Answer","text":"Desktop tools can subset fonts, downsample colour profiles, and use specialised PDF filters (JBIG2 for black-and-white scans, lossy JPX). This tool sticks to what's safe in a browser — JPEG image re-encoding plus structural save options — so it can't beat them on every file, but it never uploads anything."}}]}</script>
+  <!-- END:json-ld -->
+</head>
+<body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+
+  <header class="border-b border-gray-800 px-6 py-4">
+    <nav aria-label="Breadcrumb" class="max-w-[1200px] mx-auto flex items-center gap-3">
+      <a href="index.html" class="no-underline text-white font-bold text-lg tracking-tight hover:text-blue-400 transition-colors">HTML Tools</a>
+      <span class="text-gray-700">/</span>
+      <span class="text-gray-400 text-sm" aria-current="page">🤏 PDF Compressor</span>
+    </nav>
+  </header>
+
+  <main class="max-w-[1200px] mx-auto w-full flex-1 py-8 px-6">
+
+    <header class="mb-7">
+      <h1 class="text-3xl font-bold text-white flex items-center gap-3">🤏 PDF Compressor</h1>
+      <p class="mt-1.5 text-sm text-gray-500">Shrink PDF file size locally — re-encodes embedded JPEG images at the chosen quality. Text stays selectable. Files never leave your browser.</p>
+    </header>
+
+    <div id="drop-zone" class="drop-zone p-10 mb-5 text-center" tabindex="0" role="button"
+         aria-label="Drop PDFs here, or click to choose files">
+      <div class="text-4xl mb-3" aria-hidden="true">🤏</div>
+      <p class="text-gray-300 font-medium mb-1">Drop PDFs here to compress</p>
+      <p class="text-gray-500 text-sm">Re-encodes embedded JPEG images; text and fonts are preserved</p>
+      <p class="text-gray-600 text-xs mt-2">Click to browse, or drop anywhere — up to 25 files</p>
+      <input id="file-input" type="file" accept=".pdf,application/pdf" multiple class="sr-only">
+    </div>
+
+    <div id="strip-wrap" class="hidden mb-5">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-sm font-medium text-gray-400">Queue <span id="file-count" class="text-gray-600"></span></h2>
+        <button id="clear-all-btn" class="btn btn-sm text-gray-500 hover:text-red-400" type="button">🗑️ Clear all</button>
+      </div>
+      <div id="file-strip"></div>
+    </div>
+
+    <div id="options-wrap" class="hidden border border-gray-800 rounded-xl bg-gray-900/40 p-5 mb-5">
+
+      <div class="control-row">
+        <span class="control-label">Quality</span>
+        <div role="radiogroup" aria-label="Quality preset" class="flex flex-wrap gap-1.5">
+          <button class="pill"    data-preset="lossless" type="button" role="radio">Lossless (q=0.92)</button>
+          <button class="pill on" data-preset="visual"   type="button" role="radio">Visually identical (q=0.85)</button>
+          <button class="pill"    data-preset="smaller"  type="button" role="radio">Smaller (q=0.70)</button>
+          <button class="pill"    data-preset="smallest" type="button" role="radio">Smallest (q=0.50)</button>
+        </div>
+      </div>
+
+      <div class="control-row">
+        <label class="switch">
+          <input id="toggle-downscale" type="checkbox">
+          <span>Downscale large images</span>
+        </label>
+        <span class="downscale-input" id="downscale-input">
+          <span class="text-xs text-gray-500">long edge ≥</span>
+          <input id="downscale-px" type="number" min="200" max="20000" step="100" value="2000" class="num-input" style="width:5.5rem" aria-label="Downscale threshold (pixels)">
+          <span class="text-xs text-gray-500">px</span>
+        </span>
+      </div>
+
+      <div class="control-row">
+        <label class="switch">
+          <input id="toggle-strip-meta" type="checkbox" checked>
+          <span>Strip metadata (Title / Author / Subject / Keywords / Creator / Producer)</span>
+        </label>
+      </div>
+
+      <div class="control-row">
+        <span class="control-label">Filename</span>
+        <select id="filename-pattern" class="select" style="max-width:280px">
+          <option value="overwrite">{name}.pdf (overwrite name)</option>
+          <option value="suffix">{name}-compressed.pdf</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="error-bar" class="error-bar hidden mb-4" role="alert"></div>
+
+    <div id="action-wrap" class="hidden flex gap-3 items-center flex-wrap">
+      <button id="compress-btn" class="btn btn-primary" type="button">🗜️ Compress all</button>
+      <button id="download-zip-btn" class="btn btn-secondary hidden" type="button">⬇️ Download all (zip)</button>
+      <span id="compress-status" class="text-sm text-gray-500"></span>
+    </div>
+
+    <!-- Compact results panel — shown below the action button so the user
+         doesn't have to scroll back up to the queue cards to read stats.
+         Catalogued as `.stats-panel` in /design-system → Use cases. -->
+    <section id="compress-summary" class="stats-panel hidden" aria-live="polite">
+      <div class="stats-panel-head">
+        <h2>Results</h2>
+        <span id="summary-total" class="stats-panel-total"></span>
+      </div>
+      <div id="summary-rows" class="stats-panel-rows"></div>
+    </section>
+
+  </main>
+
+  <script src="image-utils.js"></script>
+  <script type="module" src="pdf-compressor.js"></script>
+
+  <include src="_partials/footer-script.html"></include>
+
+  <!-- BEGIN:faq generated by scripts/generate-sections.mjs — re-run after editing tools.json -->
+  <section class="max-w-[1200px] mx-auto w-full px-6 py-8 border-t border-gray-800">
+    <h2 class="text-xl font-bold text-white mb-6">FAQ</h2>
+    <div class="space-y-2">
+      <details class="disclosure">
+        <summary>Does my PDF ever leave my computer?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">No. All parsing, image re-encoding, and saving happen locally using pdf-lib. PDFs often carry sensitive content (contracts, IDs, financial records), and none of it is uploaded anywhere.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>What does each preset actually do?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">Each preset re-encodes every embedded JPEG image at a fixed quality: Lossless q=0.92, Visually identical q=0.85 (default), Smaller q=0.70, Smallest q=0.50. 'Lossless' is misleading shorthand — true bit-perfect PDF compression isn't browser-feasible — but at q=0.92 the visual loss is imperceptible.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>Why is text still selectable after compression?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">Only embedded image streams are re-encoded; text glyphs, fonts, page content streams, and annotations are untouched. The output is a normal PDF whose text is selectable, copyable, and searchable in any viewer.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>Why didn't my PDF get smaller?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">This v1 only re-encodes JPEG (DCTDecode) image streams. PDFs that are text-only, or whose images are stored as raw pixel data (FlateDecode), or that use the rarer JBIG2 / JPX / CCITT filters, will pass through unchanged. Photo-heavy PDFs typically shrink 30–70%.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>How is this different from Acrobat or Ghostscript?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">Desktop tools can subset fonts, downsample colour profiles, and use specialised PDF filters (JBIG2 for black-and-white scans, lossy JPX). This tool sticks to what's safe in a browser — JPEG image re-encoding plus structural save options — so it can't beat them on every file, but it never uploads anything.</div></div>
+      </details>
+    </div>
+  </section>
+  <!-- END:faq -->
+
+  <!-- BEGIN:more-tools generated by scripts/generate-sections.mjs — re-run after editing tools.json -->
+  <section class="max-w-[1200px] mx-auto w-full px-6 py-8 border-t border-gray-800">
+    <h2 class="text-xl font-bold text-white mb-6">More tools</h2>
+    <div class="space-y-4">
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">JSON</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/json-formatter" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🗂️ JSON Formatter</a>
+          <a href="/json-to-ts" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔷 JSON to TypeScript</a>
+          <a href="/json-diff" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔍 JSON Diff</a>
+          <a href="/json-sort" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔤 JSON Sort</a>
+          <a href="/csv-to-json" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📊 JSON ↔ CSV</a>
+          <a href="/json-to-yaml" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📝 JSON ↔ YAML</a>
+          <a href="/json-to-schema" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🛡️ JSON to Validator Schema</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Code</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/regex-tester" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🧪 Regex Tester</a>
+          <a href="/svg-to-jsx" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">⚛️ SVG to JSX</a>
+          <a href="/svg-rasterizer" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📷 SVG to Raster</a>
+          <a href="/cron-decoder" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">⏱️ Cron Decoder</a>
+          <a href="/snippet-to-image" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📸 Code Snippet to Image</a>
+          <a href="/text-diff" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📄 Text Diff</a>
+          <a href="/markdown-preview" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📝 Markdown Preview</a>
+          <a href="/semver-checker" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🏷️ SemVer Checker</a>
+          <a href="/jwt-decoder" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔑 JWT Decoder</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Ornaments</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/gradients" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🎨 Gradients</a>
+          <a href="/blob" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🫧 Blob Generator</a>
+          <a href="/waves" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">〰️ Wave Generator</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Image</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/image-compressor" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🗜️ Image Compressor</a>
+          <a href="/image-resizer" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📐 Image Resizer</a>
+          <a href="/image-cropper" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">✂️ Image Cropper</a>
+          <a href="/image-converter" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🖼️ Image Format Converter</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Web / SEO</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/meta-tag-preview" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔍 Meta Tag Preview</a>
+          <a href="/user-agent-parser" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🕵️ User Agent Parser</a>
+          <a href="/og-image-builder" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🖼️ OG Image Builder</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Generators</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/qr-code-generator" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📱 QR Code Generator</a>
+          <a href="/lorem-ipsum" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📜 Lorem Ipsum Generator</a>
+          <a href="/avatar-generator" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">👤 Avatar Generator</a>
+          <a href="/favicon-generator" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">⭐ Favicon Generator</a>
+          <a href="/uuid-generator" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🪪 UUID Generator</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">PDF</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/pdf-merger" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📄 PDF Merger</a>
+          <a href="/image-to-pdf" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📑 Image to PDF</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- END:more-tools -->
+
+  <footer class="max-w-[1200px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
+    <div>&copy; <span id="year"></span> <a href="https://mazipan.space" rel="noreferrer noopener" target="_blank" class="text-blue-400 transition-colors">Irfan Maulana</a> &amp; Claude</div>
+    <div><span id="deploy-time"></span></div>
+    <div><span id="commit-sha"></span><a href="https://github.com/mazipan/html-tools" rel="noreferrer noopener" target="_blank" class="text-blue-400 transition-colors">Source</a></div>
+  </footer>
+
+</body>
+</html>

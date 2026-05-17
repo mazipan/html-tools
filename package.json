@@ -4,7 +4,7 @@
   "description": "Browser-native utilities",
   "scripts": {
     "clean": "rimraf ./dist ./.parcel-cache",
-    "dev": "parcel 'src/*.html'",
+    "dev": "parcel 'src/[!_]*.html'",
     "build": "npm run clean && node scripts/build.mjs",
     "preview": "serve dist",
     "generate:og": "node scripts/generate-og-image.mjs",

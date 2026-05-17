@@ -276,6 +276,8 @@
           <a href="#error-bar">Error / warn bars</a>
           <a href="#stats">Stats &amp; deltas</a>
           <a href="#diff-slider">Diff slider</a>
+          <h3>Use cases</h3>
+          <a href="#use-case-stats">Stats panel</a>
         </div>
       </nav>
 
@@ -890,6 +892,90 @@ console.log([...text.matchAll(re)]);</pre>
 &lt;/div&gt;
 
 &lt;!-- JS: on slider input, set --split: ${value}% on .diff-wrap --&gt;</pre>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             USE CASES — compound patterns built from the primitives above.
+             ============================================================ -->
+
+        <section id="use-case-stats" class="ds-section">
+          <h2>Stats panel</h2>
+          <p class="lead">Multi-row results list shown below the action button when the user has just compressed / converted / processed a batch and the queue cards live too far up the page to scroll back to. One row per file: <em>name · before → after · delta chip</em>. No thumbnails — compact so a 25-row list stays readable. Used by <a href="/pdf-compressor" class="text-blue-400">PDF Compressor</a>; reach for it whenever a batch tool's stats are otherwise stranded above the fold.</p>
+          <p class="lead">Five delta variants cover the common outcomes: <code class="text-gray-300">good</code> (got smaller), <code class="text-gray-300">bad</code> (got bigger), <code class="text-gray-300">neutral</code> (≈ unchanged), <code class="text-gray-300">skipped</code> (no work done), <code class="text-gray-300">error</code> (failed).</p>
+
+          <section class="stats-panel my-4">
+            <div class="stats-panel-head">
+              <h2>Results</h2>
+              <span class="stats-panel-total">5 files · saved −12.3 MB (67%)</span>
+            </div>
+            <div class="stats-panel-rows">
+              <div class="summary-row">
+                <span class="name">vacation-photos.pdf</span>
+                <span class="sizes">
+                  <span class="before">8.4 MB</span>
+                  <span class="arrow">→</span>
+                  <span class="after">1.2 MB</span>
+                </span>
+                <span class="delta good">−86%</span>
+              </div>
+              <div class="summary-row">
+                <span class="name">brochure-print-ready.pdf</span>
+                <span class="sizes">
+                  <span class="before">5.6 MB</span>
+                  <span class="arrow">→</span>
+                  <span class="after">812 KB</span>
+                </span>
+                <span class="delta good">−85%</span>
+              </div>
+              <div class="summary-row">
+                <span class="name">already-optimised.pdf</span>
+                <span class="sizes">
+                  <span class="before">412 KB</span>
+                  <span class="arrow">→</span>
+                  <span class="after">487 KB</span>
+                </span>
+                <span class="delta bad">+18%</span>
+              </div>
+              <div class="summary-row">
+                <span class="name">text-only-contract.pdf</span>
+                <span class="sizes">128 KB</span>
+                <span class="delta skipped" title="No JPEG images to re-encode">unchanged</span>
+              </div>
+              <div class="summary-row">
+                <span class="name">corrupted-scan.pdf</span>
+                <span class="sizes">2.1 MB</span>
+                <span class="delta error" title="Could not decode embedded image">error</span>
+              </div>
+            </div>
+          </section>
+
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;section class="stats-panel" aria-live="polite"&gt;
+  &lt;div class="stats-panel-head"&gt;
+    &lt;h2&gt;Results&lt;/h2&gt;
+    &lt;span class="stats-panel-total"&gt;5 files · saved −12.3 MB (67%)&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class="stats-panel-rows"&gt;
+    &lt;div class="summary-row"&gt;
+      &lt;span class="name"&gt;vacation-photos.pdf&lt;/span&gt;
+      &lt;span class="sizes"&gt;
+        &lt;span class="before"&gt;8.4 MB&lt;/span&gt;
+        &lt;span class="arrow"&gt;→&lt;/span&gt;
+        &lt;span class="after"&gt;1.2 MB&lt;/span&gt;
+      &lt;/span&gt;
+      &lt;span class="delta good"&gt;−86%&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;!-- skipped: drop the arrow + after, show one size only --&gt;
+    &lt;div class="summary-row"&gt;
+      &lt;span class="name"&gt;text-only.pdf&lt;/span&gt;
+      &lt;span class="sizes"&gt;128 KB&lt;/span&gt;
+      &lt;span class="delta skipped"&gt;unchanged&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;!-- delta classes: good / bad / neutral / skipped / error --&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</pre>
           </div>
         </section>
 
