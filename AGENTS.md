@@ -1,5 +1,7 @@
 # Agent Guidelines — HTML Tools
 
+> ⚠️ Before you start, skim [`COMMON_BUGS.md`](COMMON_BUGS.md) — it lists non-obvious footguns from project conventions (e.g. `image-utils.js` is a classic script, not an ES module). One read is enough to skip a class of "the button silently does nothing" debugging.
+
 ## Project overview
 
 A collection of single-file browser-native utilities built with Parcel + Tailwind CSS v4. Each tool is a self-contained HTML file; all logic runs client-side with no backend.

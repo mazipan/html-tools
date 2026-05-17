@@ -48,6 +48,14 @@ const customH   = document.getElementById('custom-h');
 const customU   = document.getElementById('custom-unit');
 const customM   = document.getElementById('custom-margin');
 
+// Initial filename — images_YYYYMMDD.pdf so repeated runs don't overwrite.
+function todayStamp() {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+}
+outName.value = `images_${todayStamp()}.pdf`;
+
 // ── Helpers ──────────────────────────────────────────────────────────────
 function formatBytes(n) {
   if (n < 1024) return `${n} B`;

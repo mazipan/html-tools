@@ -5,7 +5,10 @@ import {
   PDFNumber,
   PDFRawStream,
 } from 'pdf-lib';
-import { formatBytes, formatPct, buildStoreZip } from './image-utils.js';
+
+// formatBytes / formatPct / buildStoreZip are loaded as classic-script globals
+// from image-utils.js (see <script src="image-utils.js"> in the HTML head).
+const { formatBytes, formatPct, buildStoreZip } = window;
 
 const MAX_FILES = 25;
 

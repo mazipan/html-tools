@@ -1,0 +1,44 @@
+# Common bugs
+
+A log of footguns we've already hit so future tools (and future agents) don't repeat them. Add to this file whenever you spend more than a few minutes tracking down a non-obvious bug — especially one that comes from a project convention rather than a typical JS mistake.
+
+Each entry is one short section: what broke, why, and how to do it right.
+
+---
+
+## `image-utils.js` is a classic script, not an ES module
+
+**Symptom**: A new tool's sibling-module `.js` imports from `./image-utils.js`, the build succeeds, the page loads with no console errors at startup — but the moment the user picks files or clicks a button that triggers the first call into a shared helper (`formatBytes`, `buildStoreZip`, etc.), nothing happens. The handler silently aborts because the imported binding is `undefined`.
+
+**Why**: `src/image-utils.js` declares its functions as plain `function formatBytes(n) { … }` with **no `export` keyword anywhere**. It's loaded by other tools via a classic `<script src="image-utils.js"></script>` tag, which deposits the functions on `window`. When Parcel sees a module `import { formatBytes } from './image-utils.js'` against a script that has no ES exports, it produces a bundle where the import binding resolves to `undefined` — no compile error, no runtime warning, just an undefined value that throws "is not a function" the first time you call it. The throw happens inside an event listener, so the user only sees "the button doesn't work."
+
+**How to do it right** (the pattern every existing tool uses — `image-compressor`, `image-converter`, `favicon-generator`):
+
+1. In the tool's HTML, include image-utils.js as a classic script **before** the module script:
+   ```html
+   <script src="image-utils.js"></script>
+   <script type="module" src="my-tool.js"></script>
+   ```
+   Parcel will deduplicate it across tools and emit a single shared hashed chunk.
+
+2. In the tool's `.js`, read the helpers off `window` (or just reference them as bare globals since modules can read globals):
+   ```js
+   // Loaded as classic-script globals from image-utils.js
+   const { formatBytes, formatPct, buildStoreZip } = window;
+   ```
+
+3. **Don't** write `import { formatBytes } from './image-utils.js'` — that's the broken path.
+
+If you're tempted to add `export` keywords to `image-utils.js` to make the imports work, also update every classic `<script src="image-utils.js">` callsite to a module load. Don't half-migrate.
+
+---
+
+## `parcel 'src/*.html'` picks up `_tool-template.html` and crashes dev
+
+**Symptom**: `npm run dev` fails immediately with `Failed to resolve 'favicon-@@SLUG@@.png' from './src/_tool-template.html'`. The production build (`npm run build`) works fine because `scripts/build.mjs` filters underscored files; the dev script doesn't.
+
+**Why**: `src/_tool-template.html` contains `@@PLACEHOLDER@@` tokens that aren't valid asset paths. The build script explicitly filters `!f.split('/').pop().startsWith('_')`; the dev script uses a raw `src/*.html` glob that includes the template.
+
+**How to do it right**: The `dev` script uses `parcel 'src/[!_]*.html'` (extglob negation) so underscored files are skipped, matching the build script's filter. If you add a new underscored file under `src/` (e.g. another template), the same rule will already cover it.
+
+---
