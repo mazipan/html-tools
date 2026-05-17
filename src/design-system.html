@@ -326,7 +326,7 @@
         <!-- Buttons -->
         <section id="buttons" class="ds-section">
           <h2>Buttons</h2>
-          <p class="lead">Three variants — primary (page's main action), secondary (everything else / toggle groups), danger (destructive). Three sizes: regular (default), <code class="text-gray-300">btn-sm</code> for compact rows, <code class="text-gray-300">btn-xs</code> for genuinely tight density. Add <code class="text-gray-300">btn-icon</code> for icon-only square buttons.</p>
+          <p class="lead">Three variants — primary (page's main action), secondary (everything else / toggle groups), danger (destructive). Three sizes: regular (default), <code class="text-gray-300">btn-sm</code> for compact rows, <code class="text-gray-300">btn-xs</code> for genuinely tight density. For icon-only buttons use the separate <code class="text-gray-300">btn-icon</code> component below — it uses fixed <code class="text-gray-300">width/height</code> rather than padding to guarantee a true square.</p>
 
           <span class="ds-state-label">Variants</span>
           <div class="ds-row">
@@ -357,15 +357,28 @@
             <button class="btn btn-danger btn-xs" type="button">Danger</button>
           </div>
 
-          <span class="ds-state-label">Icon-only square (<code class="text-gray-300">btn-icon</code>)</span>
+          <span class="ds-state-label">Icon-only square (<code class="text-gray-300">btn-icon</code>) — regular (2 rem)</span>
           <div class="ds-row">
-            <button class="btn btn-secondary btn-icon" type="button" title="Rotate">↻</button>
-            <button class="btn btn-secondary btn-icon" type="button" title="Move up">↑</button>
-            <button class="btn btn-secondary btn-icon" type="button" title="Move down">↓</button>
-            <button class="btn btn-danger btn-icon" type="button" title="Delete">✕</button>
-            <button class="btn btn-secondary btn-sm btn-icon" type="button" title="Previous">↑</button>
-            <button class="btn btn-secondary btn-sm btn-icon" type="button" title="Next">↓</button>
-            <button class="btn btn-danger btn-sm btn-icon" type="button" title="Close">✕</button>
+            <button class="btn-icon ghost"   type="button" title="Ghost">↻</button>
+            <button class="btn-icon subtle"  type="button" title="Subtle">↑</button>
+            <button class="btn-icon outline" type="button" title="Outline">↓</button>
+            <button class="btn-icon primary" type="button" title="Primary">★</button>
+            <button class="btn-icon danger"  type="button" title="Danger">✕</button>
+          </div>
+          <span class="ds-state-label">Small (<code class="text-gray-300">btn-icon-sm</code>) — 1.5 rem</span>
+          <div class="ds-row">
+            <button class="btn-icon btn-icon-sm ghost"   type="button" title="Ghost">↑</button>
+            <button class="btn-icon btn-icon-sm subtle"  type="button" title="Subtle">↓</button>
+            <button class="btn-icon btn-icon-sm outline" type="button" title="Outline">↻</button>
+            <button class="btn-icon btn-icon-sm primary" type="button" title="Primary">★</button>
+            <button class="btn-icon btn-icon-sm danger"  type="button" title="Danger">✕</button>
+          </div>
+          <span class="ds-state-label">Disabled</span>
+          <div class="ds-row">
+            <button class="btn-icon ghost"   type="button" disabled>↻</button>
+            <button class="btn-icon subtle"  type="button" disabled>↑</button>
+            <button class="btn-icon outline" type="button" disabled>↓</button>
+            <button class="btn-icon danger"  type="button" disabled>✕</button>
           </div>
 
           <span class="ds-state-label">Tab strip</span>
@@ -383,10 +396,15 @@
 &lt;button class="btn btn-danger"&gt;Danger&lt;/button&gt;
 &lt;button class="btn btn-primary btn-sm"&gt;Compact&lt;/button&gt;
 &lt;button class="btn btn-primary btn-xs"&gt;Tight&lt;/button&gt;
-&lt;!-- Icon-only: equal padding, square aspect --&gt;
-&lt;button class="btn btn-secondary btn-icon" title="Rotate"&gt;↻&lt;/button&gt;
-&lt;button class="btn btn-danger btn-icon" title="Delete"&gt;✕&lt;/button&gt;
-&lt;button class="btn btn-secondary btn-sm btn-icon" title="Previous"&gt;↑&lt;/button&gt;</pre>
+&lt;!-- Icon-only: fixed 2rem × 2rem square, no padding --&gt;
+&lt;button class="btn-icon ghost" title="Rotate"&gt;↻&lt;/button&gt;
+&lt;button class="btn-icon subtle" title="Move"&gt;↑&lt;/button&gt;
+&lt;button class="btn-icon outline" title="Move"&gt;↓&lt;/button&gt;
+&lt;button class="btn-icon primary" title="Save"&gt;★&lt;/button&gt;
+&lt;button class="btn-icon danger" title="Delete"&gt;✕&lt;/button&gt;
+&lt;!-- Small (1.5rem): --&gt;
+&lt;button class="btn-icon btn-icon-sm ghost" title="Previous"&gt;↑&lt;/button&gt;
+&lt;button class="btn-icon btn-icon-sm danger" title="Close"&gt;✕&lt;/button&gt;</pre>
           </div>
         </section>
 
