@@ -1,10 +1,10 @@
 import { PDFDocument, degrees } from 'pdf-lib';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import workerUrl from 'url:./pdf-worker-entry.js';
 
-// pdf-worker-entry.js re-exports the pdfjs worker so Parcel bundles it as a
-// named .js file (url: scheme emits extensionless files on some CDN hosts).
-// Using new URL() here makes Parcel compile and replace the URL at build time.
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('./pdf-worker-entry.js', import.meta.url).href;
+// url:./pdf-worker-entry.js (a .js shim) always gets a named .js output from
+// Parcel. url: on bare .mjs files emits extensionless chunks on some hosts.
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 // ── State ──────────────────────────────────────────────────────────────────
 let srcDoc = null;
@@ -266,7 +266,7 @@ function renderGrid() {
 
 // ── PDF loading ────────────────────────────────────────────────────────────
 async function loadPdf(file) {
-  dlBtn.disabled = true;
+  dlBtn.classList.add('hidden');
   dlStatus.textContent = 'Loading…';
   errorBar.classList.add('hidden');
   try {
@@ -297,11 +297,10 @@ async function loadPdf(file) {
     syncUndoRedo();
     controls.classList.remove('hidden');
     dlStatus.textContent = '';
-    dlBtn.disabled = false;
+    dlBtn.classList.remove('hidden');
   } catch (err) {
     showError(`Could not load PDF: ${err.message || err}`);
     dlStatus.textContent = '';
-    dlBtn.disabled = false;
   }
 }
 
@@ -359,7 +358,7 @@ clearBtn.addEventListener('click', () => {
   pageGrid.innerHTML = '';
   controls.classList.add('hidden');
   dlStatus.textContent = '';
-  dlBtn.disabled = true;
+  dlBtn.classList.add('hidden');
   syncUndoRedo();
 });
 
