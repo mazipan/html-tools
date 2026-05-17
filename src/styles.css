@@ -381,6 +381,13 @@ html[data-theme="light"] .btn-danger:hover { background-color: color-mix(in srgb
 /* Documented and demoed at design-system.html. When you reach for one of */
 /* these patterns in a tool, use the class — don't redefine it inline.    */
 
+/* Promote Tailwind's `.hidden` to !important so it wins over component   */
+/* rules in this file that set their own `display` (e.g. .btn uses        */
+/* inline-flex). Without this, `class="btn ... hidden"` would still       */
+/* render visibly because .btn loads after Tailwind utilities and there   */
+/* are no specificity differences to break the tie. See COMMON_BUGS.md.   */
+.hidden { display: none !important; }
+
 /* ── Focus ring (keyboard navigation) ────────────────────────── */
 /* Universal :focus-visible ring so every interactive element shows a clear */
 /* accent outline when reached via keyboard. Mouse-focus stays unstyled.   */

@@ -33,6 +33,18 @@ If you're tempted to add `export` keywords to `image-utils.js` to make the impor
 
 ---
 
+## Tailwind v4's `.hidden` doesn't beat `.btn` (or any custom `display:` rule)
+
+**Symptom**: A button is marked `class="btn btn-secondary hidden"` (or any combination of a component class + `hidden`), but it renders visibly anyway. JS that toggles the `hidden` class on a `.btn` element does nothing — `classList.toggle('hidden', true)` leaves the button on screen.
+
+**Why**: Tailwind v4 emits its utilities **without** `!important` — `.hidden { display: none }` is a plain rule. The project's `src/styles.css` defines `.btn { display: inline-flex }` (and similar `display` declarations on other shared components). Because `styles.css` is processed **after** the Tailwind utility layer, its rules win on the cascade when specificity is equal. So `class="btn hidden"` ends up with `display: inline-flex`, not `display: none`.
+
+**How to do it right**: `src/styles.css` now contains an explicit `.hidden { display: none !important; }` at the top of the Shared-components block. With that line in place, `class="… hidden"` reliably hides any element, including `.btn`. **Don't remove it**, and don't redefine `.hidden` elsewhere.
+
+The general principle: any class that's meant to *override* the default presentation (e.g. `hidden`, `sr-only`, `invisible`) needs `!important` in this project as long as we keep shared-component CSS in the same file as Tailwind utilities. If you add another such utility, give it the same treatment.
+
+---
+
 ## `parcel 'src/*.html'` picks up `_tool-template.html` and crashes dev
 
 **Symptom**: `npm run dev` fails immediately with `Failed to resolve 'favicon-@@SLUG@@.png' from './src/_tool-template.html'`. The production build (`npm run build`) works fine because `scripts/build.mjs` filters underscored files; the dev script doesn't.
