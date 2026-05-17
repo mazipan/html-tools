@@ -869,6 +869,71 @@ html[data-theme="light"] .summary-row .sizes .after { color: #111827; }
   font-size: 0.78rem;
 }
 
+/* ── Loader (pulsing icon + cycling text + wave dots) ────────
+   Markup:
+   <p class="loader hidden" role="status" aria-live="polite">
+     <svg class="loader-icon" width="16" height="16"
+          viewBox="0 0 16 16" fill="none" aria-hidden="true">
+       <circle cx="8" cy="8" r="3" fill="var(--accent)"/>
+       <circle cx="8" cy="8" r="3" fill="none" stroke="var(--accent)"
+               stroke-width="1.5" class="loader-pulse-ring"/>
+     </svg>
+     <span class="loader-msg">Loading</span>
+     <span class="loader-dots" aria-hidden="true">
+       <span></span><span></span><span></span>
+     </span>
+   </p>
+
+   Show:  el.classList.remove('hidden')
+   Cycle: const h = startLoader(el, msgs);  →  h.stop() + add hidden
+   startLoader is a small helper — see design-system.html for the snippet. */
+.loader {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.8125rem;
+  color: #9ca3af;
+}
+.loader-icon { flex-shrink: 0; }
+.loader-icon circle:first-child {
+  animation: loader-core-breathe 2s ease-in-out infinite;
+}
+.loader-pulse-ring {
+  transform-origin: 8px 8px;
+  animation: loader-ring-expand 2s ease-out infinite;
+}
+@keyframes loader-core-breathe {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+@keyframes loader-ring-expand {
+  0%   { transform: scale(1);   opacity: 0.65; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+.loader-msg { transition: opacity 0.25s; }
+.loader-msg.fade { opacity: 0; }
+.loader-dots {
+  display: inline-flex;
+  gap: 0.18em;
+  align-items: center;
+}
+.loader-dots > span {
+  display: inline-block;
+  width: 0.24em;
+  height: 0.24em;
+  border-radius: 50%;
+  background: currentColor;
+  animation: loader-dot-bounce 1.4s ease-in-out infinite;
+}
+.loader-dots > span:nth-child(2) { animation-delay: 0.16s; }
+.loader-dots > span:nth-child(3) { animation-delay: 0.32s; }
+@keyframes loader-dot-bounce {
+  0%, 60%, 100% { transform: translateY(0);       opacity: 0.3; }
+  30%            { transform: translateY(-0.35em); opacity: 1;   }
+}
+html[data-theme="light"] .loader { color: #6b7280; }
+
 /* ── Tooltip (hover/focus reveals an explanatory popup) ──────── */
 /* Markup:
    <span class="tooltip" tabindex="0">

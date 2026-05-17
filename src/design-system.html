@@ -273,6 +273,7 @@
           <a href="#code">Code blocks</a>
           <a href="#json-tree">JSON tree</a>
           <h3>Feedback</h3>
+          <a href="#loader">Loader</a>
           <a href="#error-bar">Error / warn bars</a>
           <a href="#stats">Stats &amp; deltas</a>
           <a href="#diff-slider">Diff slider</a>
@@ -830,6 +831,72 @@ console.log([...text.matchAll(re)]);</pre>
           </div>
         </section>
 
+        <!-- Loader -->
+        <section id="loader" class="ds-section">
+          <h2>Loader</h2>
+          <p class="lead">Inline loading state: a pulsing SVG beacon, text that fades between messages, and three wave-bouncing dots. Show/hide with <code class="text-gray-300">.hidden</code>; call <code class="text-gray-300">startLoader(el, msgs)</code> to start cycling and get back a <code class="text-gray-300">{ stop }</code> handle.</p>
+          <div class="my-4 flex flex-col gap-3">
+            <p id="ds-loader-demo" class="loader" role="status" aria-live="polite">
+              <svg class="loader-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <circle cx="8" cy="8" r="3" fill="var(--accent)"/>
+                <circle cx="8" cy="8" r="3" fill="none" stroke="var(--accent)" stroke-width="1.5" class="loader-pulse-ring"/>
+              </svg>
+              <span class="loader-msg">Loading</span>
+              <span class="loader-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+            </p>
+            <p class="loader" role="status" aria-live="polite">
+              <svg class="loader-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <circle cx="8" cy="8" r="3" fill="var(--accent)"/>
+                <circle cx="8" cy="8" r="3" fill="none" stroke="var(--accent)" stroke-width="1.5" class="loader-pulse-ring"/>
+              </svg>
+              <span class="loader-msg">Building PDF</span>
+              <span class="loader-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+            </p>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;!-- HTML --&gt;
+&lt;p class="loader hidden" role="status" aria-live="polite"&gt;
+  &lt;svg class="loader-icon" width="16" height="16"
+       viewBox="0 0 16 16" fill="none" aria-hidden="true"&gt;
+    &lt;circle cx="8" cy="8" r="3" fill="var(--accent)"/&gt;
+    &lt;circle cx="8" cy="8" r="3" fill="none" stroke="var(--accent)"
+            stroke-width="1.5" class="loader-pulse-ring"/&gt;
+  &lt;/svg&gt;
+  &lt;span class="loader-msg"&gt;Loading&lt;/span&gt;
+  &lt;span class="loader-dots" aria-hidden="true"&gt;
+    &lt;span&gt;&lt;/span&gt;&lt;span&gt;&lt;/span&gt;&lt;span&gt;&lt;/span&gt;
+  &lt;/span&gt;
+&lt;/p&gt;
+
+&lt;!-- JS helper (copy into your tool) --&gt;
+function startLoader(el, msgs, intervalMs = 3000) {
+  const msgEl = el.querySelector('.loader-msg');
+  if (!msgEl || !msgs.length) return { stop: () =&gt; {} };
+  msgEl.textContent = msgs[0];
+  let i = 0;
+  const timer = setInterval(() =&gt; {
+    msgEl.classList.add('fade');
+    setTimeout(() =&gt; {
+      i = (i + 1) % msgs.length;
+      msgEl.textContent = msgs[i];
+      msgEl.classList.remove('fade');
+    }, 260);
+  }, intervalMs);
+  return { stop() { clearInterval(timer); msgEl.classList.remove('fade'); } };
+}
+
+&lt;!-- Usage --&gt;
+const msgs = ['Loading', 'Almost there', 'Just a moment', 'Hang tight'];
+loaderEl.classList.remove('hidden');
+const loader = startLoader(loaderEl, msgs);
+
+// when done:
+loader.stop();
+loaderEl.classList.add('hidden');</pre>
+          </div>
+        </section>
+
         <!-- Error / warn bars -->
         <section id="error-bar" class="ds-section">
           <h2>Error &amp; warning bars</h2>
@@ -1020,6 +1087,23 @@ console.log([...text.matchAll(re)]);</pre>
         });
       });
     });
+
+    // Loader demo: cycle messages on the live preview
+    (function () {
+      const el = document.getElementById('ds-loader-demo');
+      if (!el) return;
+      const msgs = ['Loading', 'Almost there', 'Just a moment', 'Hang tight'];
+      const msgEl = el.querySelector('.loader-msg');
+      let i = 0;
+      setInterval(() => {
+        msgEl.classList.add('fade');
+        setTimeout(() => {
+          i = (i + 1) % msgs.length;
+          msgEl.textContent = msgs[i];
+          msgEl.classList.remove('fade');
+        }, 260);
+      }, 2800);
+    })();
 
     // Pill group demo (single-select)
     const group = document.getElementById('ds-pill-group');
