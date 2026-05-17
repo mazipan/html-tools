@@ -218,6 +218,7 @@
   <include src="_partials/head-theme.html"></include>
 </head>
 <body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+  <include src="_partials/icons.html"></include>
 
   <header class="border-b border-gray-800 px-6 py-4">
     <nav aria-label="Breadcrumb" class="max-w-[1200px] mx-auto flex items-center gap-3">
@@ -253,6 +254,7 @@
           <a href="#typography">Typography</a>
           <h3>Forms</h3>
           <a href="#buttons">Buttons</a>
+          <a href="#icons">Icons</a>
           <a href="#pills">Pills</a>
           <a href="#chips">Chips</a>
           <a href="#text-input">Text input</a>
@@ -359,26 +361,26 @@
 
           <span class="ds-state-label">Icon-only square (<code class="text-gray-300">btn-icon</code>) — regular (2 rem)</span>
           <div class="ds-row">
-            <button class="btn-icon ghost"   type="button" title="Ghost">↻</button>
-            <button class="btn-icon subtle"  type="button" title="Subtle">↑</button>
-            <button class="btn-icon outline" type="button" title="Outline">↓</button>
-            <button class="btn-icon primary" type="button" title="Primary">★</button>
-            <button class="btn-icon danger"  type="button" title="Danger">✕</button>
+            <button class="btn-icon ghost"   type="button" title="Ghost — rotate"><svg class="icon" aria-hidden="true"><use href="#icon-rotate-cw"/></svg></button>
+            <button class="btn-icon subtle"  type="button" title="Subtle — move up"><svg class="icon" aria-hidden="true"><use href="#icon-arrow-up"/></svg></button>
+            <button class="btn-icon outline" type="button" title="Outline — move down"><svg class="icon" aria-hidden="true"><use href="#icon-arrow-down"/></svg></button>
+            <button class="btn-icon primary" type="button" title="Primary — download"><svg class="icon" aria-hidden="true"><use href="#icon-download"/></svg></button>
+            <button class="btn-icon danger"  type="button" title="Danger — delete"><svg class="icon" aria-hidden="true"><use href="#icon-trash"/></svg></button>
           </div>
           <span class="ds-state-label">Small (<code class="text-gray-300">btn-icon-sm</code>) — 1.5 rem</span>
           <div class="ds-row">
-            <button class="btn-icon btn-icon-sm ghost"   type="button" title="Ghost">↑</button>
-            <button class="btn-icon btn-icon-sm subtle"  type="button" title="Subtle">↓</button>
-            <button class="btn-icon btn-icon-sm outline" type="button" title="Outline">↻</button>
-            <button class="btn-icon btn-icon-sm primary" type="button" title="Primary">★</button>
-            <button class="btn-icon btn-icon-sm danger"  type="button" title="Danger">✕</button>
+            <button class="btn-icon btn-icon-sm ghost"   type="button" title="Ghost — previous"><svg class="icon" aria-hidden="true"><use href="#icon-arrow-up"/></svg></button>
+            <button class="btn-icon btn-icon-sm subtle"  type="button" title="Subtle — next"><svg class="icon" aria-hidden="true"><use href="#icon-arrow-down"/></svg></button>
+            <button class="btn-icon btn-icon-sm outline" type="button" title="Outline — search"><svg class="icon" aria-hidden="true"><use href="#icon-search"/></svg></button>
+            <button class="btn-icon btn-icon-sm primary" type="button" title="Primary — copy"><svg class="icon" aria-hidden="true"><use href="#icon-copy"/></svg></button>
+            <button class="btn-icon btn-icon-sm danger"  type="button" title="Danger — close"><svg class="icon" aria-hidden="true"><use href="#icon-x"/></svg></button>
           </div>
           <span class="ds-state-label">Disabled</span>
           <div class="ds-row">
-            <button class="btn-icon ghost"   type="button" disabled>↻</button>
-            <button class="btn-icon subtle"  type="button" disabled>↑</button>
-            <button class="btn-icon outline" type="button" disabled>↓</button>
-            <button class="btn-icon danger"  type="button" disabled>✕</button>
+            <button class="btn-icon ghost"   type="button" disabled><svg class="icon" aria-hidden="true"><use href="#icon-rotate-cw"/></svg></button>
+            <button class="btn-icon subtle"  type="button" disabled><svg class="icon" aria-hidden="true"><use href="#icon-arrow-up"/></svg></button>
+            <button class="btn-icon outline" type="button" disabled><svg class="icon" aria-hidden="true"><use href="#icon-arrow-down"/></svg></button>
+            <button class="btn-icon danger"  type="button" disabled><svg class="icon" aria-hidden="true"><use href="#icon-trash"/></svg></button>
           </div>
 
           <span class="ds-state-label">Tab strip</span>
@@ -397,14 +399,103 @@
 &lt;button class="btn btn-primary btn-sm"&gt;Compact&lt;/button&gt;
 &lt;button class="btn btn-primary btn-xs"&gt;Tight&lt;/button&gt;
 &lt;!-- Icon-only: fixed 2rem × 2rem square, no padding --&gt;
-&lt;button class="btn-icon ghost" title="Rotate"&gt;↻&lt;/button&gt;
-&lt;button class="btn-icon subtle" title="Move"&gt;↑&lt;/button&gt;
-&lt;button class="btn-icon outline" title="Move"&gt;↓&lt;/button&gt;
-&lt;button class="btn-icon primary" title="Save"&gt;★&lt;/button&gt;
-&lt;button class="btn-icon danger" title="Delete"&gt;✕&lt;/button&gt;
+&lt;button class="btn-icon ghost" title="Rotate"&gt;
+  &lt;svg class="icon" aria-hidden="true"&gt;&lt;use href="#icon-rotate-cw"/&gt;&lt;/svg&gt;
+&lt;/button&gt;
+&lt;button class="btn-icon danger" title="Delete"&gt;
+  &lt;svg class="icon" aria-hidden="true"&gt;&lt;use href="#icon-trash"/&gt;&lt;/svg&gt;
+&lt;/button&gt;
 &lt;!-- Small (1.5rem): --&gt;
-&lt;button class="btn-icon btn-icon-sm ghost" title="Previous"&gt;↑&lt;/button&gt;
-&lt;button class="btn-icon btn-icon-sm danger" title="Close"&gt;✕&lt;/button&gt;</pre>
+&lt;button class="btn-icon btn-icon-sm ghost" title="Previous"&gt;
+  &lt;svg class="icon" aria-hidden="true"&gt;&lt;use href="#icon-arrow-up"/&gt;&lt;/svg&gt;
+&lt;/button&gt;
+&lt;button class="btn-icon btn-icon-sm danger" title="Close"&gt;
+  &lt;svg class="icon" aria-hidden="true"&gt;&lt;use href="#icon-x"/&gt;&lt;/svg&gt;
+&lt;/button&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Icons -->
+        <section id="icons" class="ds-section">
+          <h2>Icons</h2>
+          <p class="lead">Inline SVG icons via <code class="text-gray-300">&lt;use href="#icon-NAME"&gt;</code>. The sprite is inlined once via <code class="text-gray-300">&lt;include src="_partials/icons.html"&gt;</code> at the top of <code class="text-gray-300">&lt;body&gt;</code>. The <code class="text-gray-300">.icon</code> class sizes to <code class="text-gray-300">1em × 1em</code> so it scales with the surrounding font-size; color follows <code class="text-gray-300">currentColor</code> (just set <code class="text-gray-300">color</code> on the parent).</p>
+
+          <div class="ds-row flex-wrap gap-4 my-4">
+            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
+              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-arrow-up"/></svg>arrow-up
+            </span>
+            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
+              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-arrow-down"/></svg>arrow-down
+            </span>
+            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
+              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-arrow-left"/></svg>arrow-left
+            </span>
+            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
+              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-arrow-right"/></svg>arrow-right
+            </span>
+            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
+              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-chevron-up"/></svg>chevron-up
+            </span>
+            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
+              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-chevron-down"/></svg>chevron-down
+            </span>
+            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
+              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-chevron-left"/></svg>chevron-left
+            </span>
+            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
+              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-chevron-right"/></svg>chevron-right
+            </span>
+            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
+              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-x"/></svg>x
+            </span>
+            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
+              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-rotate-cw"/></svg>rotate-cw
+            </span>
+            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
+              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-rotate-ccw"/></svg>rotate-ccw
+            </span>
+            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
+              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-undo"/></svg>undo
+            </span>
+            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
+              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-redo"/></svg>redo
+            </span>
+            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
+              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-trash"/></svg>trash
+            </span>
+            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
+              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-copy"/></svg>copy
+            </span>
+            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
+              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-download"/></svg>download
+            </span>
+            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
+              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-search"/></svg>search
+            </span>
+          </div>
+
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;!-- 1. Include sprite once at top of &lt;body&gt; --&gt;
+&lt;include src="_partials/icons.html"&gt;&lt;/include&gt;
+
+&lt;!-- 2. Render an icon (sizes to 1em of surrounding font-size) --&gt;
+&lt;svg class="icon" aria-hidden="true"&gt;
+  &lt;use href="#icon-rotate-cw"/&gt;
+&lt;/svg&gt;
+
+&lt;!-- 3. Control color via CSS `color` on the parent --&gt;
+&lt;span class="text-red-400"&gt;
+  &lt;svg class="icon" aria-hidden="true"&gt;&lt;use href="#icon-trash"/&gt;&lt;/svg&gt;
+&lt;/span&gt;
+
+&lt;!-- 4. Inside btn-icon (color comes from variant class) --&gt;
+&lt;button class="btn-icon ghost" title="Rotate clockwise"&gt;
+  &lt;svg class="icon" aria-hidden="true"&gt;&lt;use href="#icon-rotate-cw"/&gt;&lt;/svg&gt;
+&lt;/button&gt;
+&lt;button class="btn-icon danger" title="Delete"&gt;
+  &lt;svg class="icon" aria-hidden="true"&gt;&lt;use href="#icon-trash"/&gt;&lt;/svg&gt;
+&lt;/button&gt;</pre>
           </div>
         </section>
 
@@ -1083,6 +1174,8 @@ loaderEl.classList.add('hidden');</pre>
     </div>
 
   </main>
+
+  <script type="module" src="design-system.js"></script>
 
   <script>
     // Mobile TOC: collapsible toggle. On md+, the toggle is hidden by CSS

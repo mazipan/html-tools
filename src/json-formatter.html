@@ -34,6 +34,7 @@
 
 </head>
 <body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+  <include src="_partials/icons.html"></include>
 
   <!-- Site header -->
   <header class="border-b border-gray-800 px-6 py-4">
@@ -99,8 +100,8 @@
                  onkeydown="onSearchKey(event)"
                  class="flex-1 bg-transparent text-gray-200 font-mono text-[0.78rem] outline-none placeholder-gray-600 min-w-0">
           <span id="search-count" class="text-[0.7rem] text-gray-500 whitespace-nowrap select-none"></span>
-          <button onclick="navigateSearch(-1)" title="Previous (Shift+Enter)" class="btn-icon btn-icon-sm ghost">↑</button>
-          <button onclick="navigateSearch(1)" title="Next (Enter)" class="btn-icon btn-icon-sm ghost">↓</button>
+          <button onclick="navigateSearch(-1)" title="Previous (Shift+Enter)" class="btn-icon btn-icon-sm ghost"><svg class="icon" aria-hidden="true"><use href="#icon-arrow-up"/></svg></button>
+          <button onclick="navigateSearch(1)" title="Next (Enter)" class="btn-icon btn-icon-sm ghost"><svg class="icon" aria-hidden="true"><use href="#icon-arrow-down"/></svg></button>
           <button onclick="closeSearch()" title="Close (Esc)"
                   class="btn btn-danger btn-sm
                          bg-gray-800 border-gray-600 text-gray-400 hover:border-red-400 hover:text-red-400">✕</button>
