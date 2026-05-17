@@ -111,15 +111,6 @@
       justify-content: center;
     }
 
-    .pg-actions .btn,
-    .pg-arrow-btns .btn {
-      padding: 0.35rem 0.6rem;
-      font-size: 0.8rem;
-      min-height: 2rem;
-      min-width: 2rem;
-      flex: 1;
-    }
-
     @media (max-width: 640px) {
       .pg-arrow-btns { display: flex; }
     }
@@ -170,7 +161,7 @@
       <!-- Info bar -->
       <div class="flex items-center justify-between mb-4">
         <span id="info-bar" class="text-sm text-gray-400 font-mono truncate mr-4"></span>
-        <button id="clear-btn" class="btn btn-sm shrink-0 text-gray-500 hover:text-red-400">🗑️ Clear</button>
+        <button id="clear-btn" class="btn shrink-0 text-gray-500 hover:text-red-400">🗑️ Clear</button>
       </div>
 
       <!-- Toolbar -->
@@ -184,9 +175,9 @@
         </div>
 
         <div class="flex gap-1">
-          <button id="undo-btn" class="btn btn-sm" disabled title="Undo (Ctrl/Cmd+Z)">↩ Undo</button>
-          <button id="redo-btn" class="btn btn-sm" disabled title="Redo (Ctrl/Cmd+Shift+Z)">↪ Redo</button>
-          <button id="reset-btn" class="btn btn-sm">↺ Reset</button>
+          <button id="undo-btn" class="btn" disabled title="Undo (Ctrl/Cmd+Z)">↩ Undo</button>
+          <button id="redo-btn" class="btn" disabled title="Redo (Ctrl/Cmd+Shift+Z)">↪ Redo</button>
+          <button id="reset-btn" class="btn">↺ Reset</button>
         </div>
 
         <div class="flex items-center gap-2 ml-auto">
