@@ -1,12 +1,13 @@
 import { PDFDocument } from 'pdf-lib';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
-import workerUrl from 'url:./pdf-worker-entry.js';
 
 // buildStoreZip and formatBytes are classic-script globals from image-utils.js
 
-// url:./pdf-worker-entry.js (a .js shim) always gets a named .js output from
-// Parcel. url: on bare .mjs files emits extensionless chunks on some hosts.
-pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+// The pdfjs worker is copied to dist/ as a static hashed .js file by
+// scripts/build.mjs and its URL is injected into the HTML at build time.
+// Reading it from window avoids any Parcel url: / new URL() bundling quirks
+// that produce extensionless filenames on some CI hosts.
+pdfjsLib.GlobalWorkerOptions.workerSrc = window.__PDF_WORKER_URL__;
 
 // ── State ──────────────────────────────────────────────────────────────────
 let srcDoc = null;
