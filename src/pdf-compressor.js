@@ -66,6 +66,7 @@ function updateVisibility() {
   optsWrap.classList.toggle('hidden', !has);
   actionWrap.classList.toggle('hidden', !has);
   fileCount.textContent = has ? `(${items.length})` : '';
+  compressBtn.textContent = items.length === 1 ? '🗜️ Compress' : '🗜️ Compress all';
 }
 
 function outFilename(srcName) {
@@ -171,8 +172,13 @@ async function downloadZip() {
 }
 
 function refreshActionState() {
-  const anyDone = items.some(i => i.status === 'done');
-  downloadZipBtn.classList.toggle('hidden', !anyDone || items.filter(i => i.status === 'done').length < 2);
+  const doneCount = items.filter(i => i.status === 'done').length;
+  if (doneCount === 0) {
+    downloadZipBtn.classList.add('hidden');
+  } else {
+    downloadZipBtn.classList.remove('hidden');
+    downloadZipBtn.textContent = doneCount === 1 ? '⬇️ Download' : '⬇️ Download all (zip)';
+  }
 }
 
 function escAttr(s) {
@@ -509,4 +515,9 @@ clearAll.addEventListener('click', () => {
 });
 
 compressBtn.addEventListener('click', runQueue);
-downloadZipBtn.addEventListener('click', downloadZip);
+downloadZipBtn.addEventListener('click', () => {
+  const done = items.filter(i => i.status === 'done' && i.compressedBlob);
+  if (done.length === 0) return;
+  if (done.length === 1) downloadOne(done[0]);
+  else downloadZip();
+});
