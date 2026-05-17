@@ -1049,6 +1049,68 @@
       "maxWidth": "1200px"
     },
     {
+      "slug": "pdf-splitter",
+      "name": "PDF Splitter",
+      "icon": "✂️",
+      "category": "PDF",
+      "card": "Extract selected pages into one PDF or split to per-page files as a zip.",
+      "description": "Drop a PDF, pick pages from a grid, then extract them as a single combined PDF or split into per-page files bundled as a zip. Selection order is preserved in Extract mode. Runs in your browser — no upload, no server, no tracking.",
+      "maxWidth": "1200px",
+      "faqs": [
+        {
+          "q": "Do my PDFs ever leave my computer?",
+          "a": "No. All processing happens locally in your browser using pdf-lib — no upload, no server, no third-party API."
+        },
+        {
+          "q": "What's the difference between Extract and Split mode?",
+          "a": "Extract combines your selected pages into a single output PDF in the order you selected them. Split creates one PDF per page (or one per consecutive range if 'Group consecutive pages' is on) and bundles them all into a zip file."
+        },
+        {
+          "q": "Does Extract mode preserve my selection order?",
+          "a": "Yes. If you select pages 5, then 2, then 9 (in that order), the output PDF will have those pages in exactly that order — not the source order."
+        },
+        {
+          "q": "What does 'Group consecutive pages' do in Split mode?",
+          "a": "When on, consecutive selected pages are grouped into one file per run — so selecting 1, 2, 3, 7, 9, 10 produces three files: pages-1-3.pdf, page-7.pdf, pages-9-10.pdf. When off, every selected page becomes its own file."
+        },
+        {
+          "q": "Why do the page tiles show a placeholder instead of page content?",
+          "a": "Rendering actual PDF page previews requires PDF.js, which currently can't be bundled with this project's build setup. The tiles show page numbers so you can still identify and select the right pages."
+        }
+      ]
+    },
+    {
+      "slug": "pdf-page-manager",
+      "name": "PDF Page Manager",
+      "icon": "🗂️",
+      "category": "PDF",
+      "card": "Reorder, rotate, and delete PDF pages — text stays selectable, undo/redo included.",
+      "description": "Drag to reorder, rotate 90°/180°/270°, and delete pages from any PDF — all via pdf-lib page edits so text stays selectable. Undo/redo up to 50 steps. Runs in your browser — no upload, no server, no tracking.",
+      "maxWidth": "1200px",
+      "faqs": [
+        {
+          "q": "Do my PDFs ever leave my computer?",
+          "a": "No. All processing happens locally in your browser using pdf-lib — no upload, no server, no third-party API."
+        },
+        {
+          "q": "Does rotating a page affect the text?",
+          "a": "No. Rotation is applied through pdf-lib's page.setRotation() API, which writes a rotation angle into the page dictionary. Text, fonts, and annotations are untouched — the output stays searchable and selectable in any PDF viewer."
+        },
+        {
+          "q": "How many undo levels are supported?",
+          "a": "Up to 50 operations. After 50, the oldest entry is dropped to keep memory use bounded."
+        },
+        {
+          "q": "Can I reorder pages on a touch device?",
+          "a": "HTML5 drag-and-drop is unreliable on mobile touch screens. Use the ↑ Up and ↓ Down arrow buttons on each page card to reorder pages on mobile."
+        },
+        {
+          "q": "What does Reset do?",
+          "a": "It restores the grid to the original page order and original rotations from the source PDF, and clears the undo and redo stacks."
+        }
+      ]
+    },
+    {
       "slug": "design-system",
       "name": "Design System",
       "icon": "🎛️",
