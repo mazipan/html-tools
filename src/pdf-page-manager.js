@@ -200,12 +200,12 @@ function renderGrid() {
       </div>
       ${rot ? `<div class="pg-rot-label">${rot}</div>` : ''}
       <div class="pg-actions">
-        <button class="btn pg-rotate-btn" title="Rotate 90° clockwise" aria-label="Rotate page ${idx + 1} clockwise">↻</button>
-        <button class="btn pg-delete-btn" title="Delete this page" aria-label="Delete page ${idx + 1}"${pages.length <= 1 ? ' disabled' : ''}>✕</button>
+        <button class="btn btn-icon pg-rotate-btn" title="Rotate 90° clockwise" aria-label="Rotate page ${idx + 1} clockwise">↻</button>
+        <button class="btn btn-icon pg-delete-btn" title="Delete this page" aria-label="Delete page ${idx + 1}"${pages.length <= 1 ? ' disabled' : ''}>✕</button>
       </div>
       <div class="pg-arrow-btns">
-        <button class="btn pg-up-btn" title="Move up" aria-label="Move page ${idx + 1} up"${idx === 0 ? ' disabled' : ''}>↑</button>
-        <button class="btn pg-down-btn" title="Move down" aria-label="Move page ${idx + 1} down"${idx === pages.length - 1 ? ' disabled' : ''}>↓</button>
+        <button class="btn btn-icon pg-up-btn" title="Move up" aria-label="Move page ${idx + 1} up"${idx === 0 ? ' disabled' : ''}>↑</button>
+        <button class="btn btn-icon pg-down-btn" title="Move down" aria-label="Move page ${idx + 1} down"${idx === pages.length - 1 ? ' disabled' : ''}>↓</button>
       </div>`;
 
     tile.querySelector('.pg-rotate-btn').addEventListener('click', e => { e.stopPropagation(); rotatePage(idx, 90); });

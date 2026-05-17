@@ -326,7 +326,7 @@
         <!-- Buttons -->
         <section id="buttons" class="ds-section">
           <h2>Buttons</h2>
-          <p class="lead">Three variants — primary (page's main action), secondary (everything else / toggle groups), danger (destructive). Three sizes: regular (default), <code class="text-gray-300">btn-sm</code> for compact rows, <code class="text-gray-300">btn-xs</code> for genuinely tight density.</p>
+          <p class="lead">Three variants — primary (page's main action), secondary (everything else / toggle groups), danger (destructive). Three sizes: regular (default), <code class="text-gray-300">btn-sm</code> for compact rows, <code class="text-gray-300">btn-xs</code> for genuinely tight density. Add <code class="text-gray-300">btn-icon</code> for icon-only square buttons.</p>
 
           <span class="ds-state-label">Variants</span>
           <div class="ds-row">
@@ -357,6 +357,17 @@
             <button class="btn btn-danger btn-xs" type="button">Danger</button>
           </div>
 
+          <span class="ds-state-label">Icon-only square (<code class="text-gray-300">btn-icon</code>)</span>
+          <div class="ds-row">
+            <button class="btn btn-secondary btn-icon" type="button" title="Rotate">↻</button>
+            <button class="btn btn-secondary btn-icon" type="button" title="Move up">↑</button>
+            <button class="btn btn-secondary btn-icon" type="button" title="Move down">↓</button>
+            <button class="btn btn-danger btn-icon" type="button" title="Delete">✕</button>
+            <button class="btn btn-secondary btn-sm btn-icon" type="button" title="Previous">↑</button>
+            <button class="btn btn-secondary btn-sm btn-icon" type="button" title="Next">↓</button>
+            <button class="btn btn-danger btn-sm btn-icon" type="button" title="Close">✕</button>
+          </div>
+
           <span class="ds-state-label">Tab strip</span>
           <div class="ds-row border-b border-gray-800 pb-0 gap-0">
             <button class="tab-btn tab-btn-active" type="button">Active tab</button>
@@ -371,7 +382,11 @@
 &lt;button class="btn btn-secondary btn-active"&gt;Selected&lt;/button&gt;
 &lt;button class="btn btn-danger"&gt;Danger&lt;/button&gt;
 &lt;button class="btn btn-primary btn-sm"&gt;Compact&lt;/button&gt;
-&lt;button class="btn btn-primary btn-xs"&gt;Tight&lt;/button&gt;</pre>
+&lt;button class="btn btn-primary btn-xs"&gt;Tight&lt;/button&gt;
+&lt;!-- Icon-only: equal padding, square aspect --&gt;
+&lt;button class="btn btn-secondary btn-icon" title="Rotate"&gt;↻&lt;/button&gt;
+&lt;button class="btn btn-danger btn-icon" title="Delete"&gt;✕&lt;/button&gt;
+&lt;button class="btn btn-secondary btn-sm btn-icon" title="Previous"&gt;↑&lt;/button&gt;</pre>
           </div>
         </section>
 
