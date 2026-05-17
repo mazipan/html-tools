@@ -747,6 +747,103 @@ input[type="range"].range:disabled { opacity: 0.4; cursor: not-allowed; }
 .delta-bad  { color: #f87171; }
 .delta-neutral { color: #9ca3af; }
 
+/* ── Stats panel (multi-row results list) ────────────────────────
+   Used by batch tools (PDF Compressor, future converters) where the
+   action button sits below a long queue and the user needs the
+   per-file before/after summary close at hand. One row per file:
+   `name · before → after · delta chip`. No thumbnails — compact so
+   a 25-row list stays readable.
+
+   Markup:
+     <section class="stats-panel">
+       <div class="stats-panel-head">
+         <h2>Results</h2>
+         <span class="stats-panel-total">N files · saved …</span>
+       </div>
+       <div class="stats-panel-rows">
+         <div class="summary-row">
+           <span class="name">file.pdf</span>
+           <span class="sizes">
+             <span class="before">3.8 MB</span>
+             <span class="arrow">→</span>
+             <span class="after">412 KB</span>
+           </span>
+           <span class="delta good">−89%</span>
+         </div>
+         …
+       </div>
+     </section>
+
+   Delta classes: good / bad / neutral / skipped / error.
+*/
+.stats-panel {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #1f2937;
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, #111827 60%, transparent);
+}
+.stats-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+.stats-panel-head h2 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #d1d5db;
+  margin: 0;
+}
+.stats-panel-total {
+  font-size: 0.7rem;
+  color: #6b7280;
+}
+.summary-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.35rem 0;
+  border-top: 1px solid rgba(31, 41, 55, 0.6);
+  font-size: 0.75rem;
+}
+.summary-row:first-child { border-top: none; }
+.summary-row .name {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: #e5e7eb;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.summary-row .sizes {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  color: #9ca3af;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+.summary-row .sizes .arrow { color: #4b5563; margin: 0 0.25rem; }
+.summary-row .sizes .after { color: #e5e7eb; font-weight: 600; }
+.summary-row .delta {
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border-radius: 0.25rem;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.summary-row .delta.good    { background: color-mix(in srgb, #22c55e 18%, transparent); color: #86efac; }
+.summary-row .delta.bad     { background: color-mix(in srgb, #ef4444 18%, transparent); color: #fca5a5; }
+.summary-row .delta.neutral { background: #1f2937; color: #9ca3af; }
+.summary-row .delta.skipped { background: color-mix(in srgb, #d97706 18%, transparent); color: #fbbf24; }
+.summary-row .delta.error   { background: color-mix(in srgb, #ef4444 18%, transparent); color: #fca5a5; }
+
+html[data-theme="light"] .stats-panel { background: #f9fafb; border-color: #e5e7eb; }
+html[data-theme="light"] .stats-panel-head h2 { color: #374151; }
+html[data-theme="light"] .summary-row { border-top-color: #e5e7eb; }
+html[data-theme="light"] .summary-row .name  { color: #111827; }
+html[data-theme="light"] .summary-row .sizes { color: #6b7280; }
+html[data-theme="light"] .summary-row .sizes .after { color: #111827; }
+
 /* ── Error bar (inline error banner) ─────────────────────────── */
 .error-bar {
   padding: 0.75rem 1rem;
