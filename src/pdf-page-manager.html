@@ -63,6 +63,18 @@
       color: #4b5563;
       position: relative;
       margin-bottom: 0.3rem;
+      overflow: hidden;
+    }
+
+    .pg-thumb {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: inherit;
+      transform-origin: center;
+      transition: transform 0.15s ease;
     }
 
     .pg-badge {

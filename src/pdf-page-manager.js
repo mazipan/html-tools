@@ -1,13 +1,19 @@
 import { PDFDocument, degrees } from 'pdf-lib';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import workerUrl from 'url:pdfjs-dist/legacy/build/pdf.worker.min.mjs';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 // ── State ──────────────────────────────────────────────────────────────────
 let srcDoc = null;
+let pdfJsDoc = null;
 let srcFile = null;
 let pages = [];     // Array<{ sourceIndex: number, rotation: 0|90|180|270 }>
 let origPages = []; // snapshot for reset
 let undoStack = [];
 let redoStack = [];
 let dragSrcIdx = null;
+const thumbCache = new Map(); // 0-based sourceIndex → dataURL
 
 // ── DOM refs ───────────────────────────────────────────────────────────────
 const dropZone  = document.getElementById('drop-zone');
@@ -116,15 +122,71 @@ function resetPages() {
   renderGrid();
 }
 
+// ── Thumbnail rendering ────────────────────────────────────────────────────
+async function renderThumb(sourceIdx, faceEl, rotation) {
+  const cacheKey = sourceIdx;
+  if (thumbCache.has(cacheKey)) {
+    applyThumb(faceEl, thumbCache.get(cacheKey), rotation);
+    return;
+  }
+  if (!pdfJsDoc) return;
+  try {
+    const page = await pdfJsDoc.getPage(sourceIdx + 1);
+    const viewport = page.getViewport({ scale: 1 });
+    const scale = 120 / viewport.width;
+    const scaledViewport = page.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+    canvas.width = scaledViewport.width;
+    canvas.height = scaledViewport.height;
+    const ctx = canvas.getContext('2d');
+    await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
+    page.cleanup();
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    thumbCache.set(cacheKey, dataUrl);
+    applyThumb(faceEl, dataUrl, rotation);
+  } catch {
+    // keep placeholder on error
+  }
+}
+
+function applyThumb(faceEl, dataUrl, rotation) {
+  const img = document.createElement('img');
+  img.src = dataUrl;
+  img.className = 'pg-thumb';
+  img.alt = '';
+  img.draggable = false;
+  if (rotation) img.style.transform = `rotate(${rotation}deg)`;
+  const emojiSpan = faceEl.querySelector('span:first-child');
+  if (emojiSpan) faceEl.replaceChild(img, emojiSpan);
+}
+
 // ── Grid rendering ─────────────────────────────────────────────────────────
+let thumbObserver = null;
+
 function renderGrid() {
+  if (thumbObserver) { thumbObserver.disconnect(); thumbObserver = null; }
   pageGrid.innerHTML = '';
+
+  thumbObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const tile = entry.target;
+      const sourceIdx = parseInt(tile.dataset.sourceIdx, 10);
+      const rotation = parseInt(tile.dataset.rotation, 10) || 0;
+      const faceEl = tile.querySelector('.pg-face');
+      if (faceEl) renderThumb(sourceIdx, faceEl, rotation);
+      thumbObserver.unobserve(tile);
+    });
+  }, { rootMargin: '300px' });
+
   pages.forEach((pg, idx) => {
     const tile = document.createElement('div');
     tile.className = 'pg-tile';
     tile.draggable = true;
     tile.tabIndex = 0;
     tile.dataset.idx = idx;
+    tile.dataset.sourceIdx = pg.sourceIndex;
+    tile.dataset.rotation = pg.rotation;
     tile.setAttribute('role', 'listitem');
     tile.setAttribute('aria-label', `Page ${idx + 1}${pg.rotation ? `, rotated ${pg.rotation}°` : ''}`);
 
@@ -188,6 +250,14 @@ function renderGrid() {
       dragSrcIdx = null;
     });
 
+    // Show cached thumb immediately; otherwise observe for lazy load
+    if (thumbCache.has(pg.sourceIndex)) {
+      const faceEl = tile.querySelector('.pg-face');
+      if (faceEl) applyThumb(faceEl, thumbCache.get(pg.sourceIndex), pg.rotation);
+    } else {
+      thumbObserver.observe(tile);
+    }
+
     pageGrid.appendChild(tile);
   });
 }
@@ -202,6 +272,7 @@ async function loadPdf(file) {
     srcDoc = await PDFDocument.load(buf, { ignoreEncryption: true });
     srcFile = file;
     const pageCount = srcDoc.getPageCount();
+    thumbCache.clear();
 
     pages = Array.from({ length: pageCount }, (_, i) => {
       const rawAngle = srcDoc.getPage(i).getRotation().angle;
@@ -211,6 +282,10 @@ async function loadPdf(file) {
     origPages = pages.map(p => ({ ...p }));
     undoStack = [];
     redoStack = [];
+
+    // Load pdfjs doc for thumbnails
+    if (pdfJsDoc) { pdfJsDoc.destroy(); pdfJsDoc = null; }
+    pdfJsDoc = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
 
     const stem = file.name.replace(/\.pdf$/i, '');
     outName.value = `${stem}-reordered.pdf`;
@@ -274,6 +349,9 @@ fileInput.addEventListener('change', () => {
 });
 
 clearBtn.addEventListener('click', () => {
+  if (pdfJsDoc) { pdfJsDoc.destroy(); pdfJsDoc = null; }
+  thumbCache.clear();
+  if (thumbObserver) { thumbObserver.disconnect(); thumbObserver = null; }
   srcDoc = null; srcFile = null; pages = []; origPages = [];
   undoStack = []; redoStack = [];
   pageGrid.innerHTML = '';

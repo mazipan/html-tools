@@ -1,14 +1,20 @@
 import { PDFDocument } from 'pdf-lib';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import workerUrl from 'url:pdfjs-dist/legacy/build/pdf.worker.min.mjs';
 
 // buildStoreZip and formatBytes are classic-script globals from image-utils.js
 
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+
 // ── State ──────────────────────────────────────────────────────────────────
 let srcDoc = null;
+let pdfJsDoc = null;
 let srcFile = null;
 let pageCount = 0;
 let selectionOrder = []; // 1-based page numbers in the order they were selected
 let lastClickedPage = null;
 let mode = 'extract';
+const thumbCache = new Map(); // 0-based sourceIndex → dataURL
 
 // ── DOM refs ───────────────────────────────────────────────────────────────
 const dropZone      = document.getElementById('drop-zone');
@@ -89,9 +95,62 @@ function parseRangeString(str, max) {
   return pages;
 }
 
+// ── Thumbnail rendering ────────────────────────────────────────────────────
+async function renderThumb(sourceIdx, faceEl) {
+  if (thumbCache.has(sourceIdx)) {
+    applyThumb(faceEl, thumbCache.get(sourceIdx));
+    return;
+  }
+  if (!pdfJsDoc) return;
+  try {
+    const page = await pdfJsDoc.getPage(sourceIdx + 1);
+    const viewport = page.getViewport({ scale: 1 });
+    // Scale to fit ~120px wide (tile width)
+    const scale = 120 / viewport.width;
+    const scaledViewport = page.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+    canvas.width = scaledViewport.width;
+    canvas.height = scaledViewport.height;
+    const ctx = canvas.getContext('2d');
+    await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
+    page.cleanup();
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    thumbCache.set(sourceIdx, dataUrl);
+    applyThumb(faceEl, dataUrl);
+  } catch {
+    // keep placeholder on error
+  }
+}
+
+function applyThumb(faceEl, dataUrl) {
+  const img = document.createElement('img');
+  img.src = dataUrl;
+  img.className = 'pg-thumb';
+  img.alt = '';
+  img.draggable = false;
+  // replace the emoji span child (keep the badge)
+  const emojiSpan = faceEl.querySelector('span:first-child');
+  if (emojiSpan) faceEl.replaceChild(img, emojiSpan);
+}
+
 // ── Grid rendering ─────────────────────────────────────────────────────────
+let thumbObserver = null;
+
 function renderGrid() {
+  if (thumbObserver) { thumbObserver.disconnect(); thumbObserver = null; }
   pageGrid.innerHTML = '';
+
+  thumbObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const tile = entry.target;
+      const sourceIdx = parseInt(tile.dataset.sourceIdx, 10);
+      const faceEl = tile.querySelector('.pg-face');
+      if (faceEl) renderThumb(sourceIdx, faceEl);
+      thumbObserver.unobserve(tile);
+    });
+  }, { rootMargin: '300px' });
+
   for (let p = 1; p <= pageCount; p++) {
     const sel = selectionOrder.includes(p);
     const tile = document.createElement('div');
@@ -101,6 +160,7 @@ function renderGrid() {
     tile.setAttribute('aria-checked', sel ? 'true' : 'false');
     tile.setAttribute('aria-label', `Page ${p}`);
     tile.dataset.page = p;
+    tile.dataset.sourceIdx = p - 1;
     tile.innerHTML = `
       <div class="pg-face">
         <span>📄</span>
@@ -121,6 +181,14 @@ function renderGrid() {
         if (prev) prev.focus();
       }
     });
+
+    // If already cached, show immediately; otherwise observe for lazy load
+    if (thumbCache.has(p - 1)) {
+      const faceEl = tile.querySelector('.pg-face');
+      if (faceEl) applyThumb(faceEl, thumbCache.get(p - 1));
+    } else {
+      thumbObserver.observe(tile);
+    }
 
     pageGrid.appendChild(tile);
   }
@@ -183,11 +251,18 @@ async function loadPdf(file) {
   errorBar.classList.add('hidden');
   try {
     const buf = await file.arrayBuffer();
+
+    // Load with pdf-lib for extraction/splitting
     srcDoc = await PDFDocument.load(buf, { ignoreEncryption: true });
     srcFile = file;
     pageCount = srcDoc.getPageCount();
     selectionOrder = [];
     lastClickedPage = null;
+    thumbCache.clear();
+
+    // Load with pdfjs for thumbnails (use a copy of the buffer)
+    if (pdfJsDoc) { pdfJsDoc.destroy(); pdfJsDoc = null; }
+    pdfJsDoc = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
 
     const stem = file.name.replace(/\.pdf$/i, '');
     extractName.value = `${stem}-extract.pdf`;
@@ -296,6 +371,9 @@ fileInput.addEventListener('change', () => {
 });
 
 clearFileBtn.addEventListener('click', () => {
+  if (pdfJsDoc) { pdfJsDoc.destroy(); pdfJsDoc = null; }
+  thumbCache.clear();
+  if (thumbObserver) { thumbObserver.disconnect(); thumbObserver = null; }
   srcDoc = null; srcFile = null; pageCount = 0; selectionOrder = []; lastClickedPage = null;
   pageGrid.innerHTML = '';
   controls.classList.add('hidden');

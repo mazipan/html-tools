@@ -1074,8 +1074,8 @@
           "a": "When on, consecutive selected pages are grouped into one file per run — so selecting 1, 2, 3, 7, 9, 10 produces three files: pages-1-3.pdf, page-7.pdf, pages-9-10.pdf. When off, every selected page becomes its own file."
         },
         {
-          "q": "Why do the page tiles show a placeholder instead of page content?",
-          "a": "Rendering actual PDF page previews requires PDF.js, which currently can't be bundled with this project's build setup. The tiles show page numbers so you can still identify and select the right pages."
+          "q": "Do the page tiles show real PDF content?",
+          "a": "Yes. Each tile renders a live thumbnail of the actual PDF page using PDF.js (rendered locally in your browser). Thumbnails load lazily as you scroll so large documents open instantly."
         }
       ]
     },
