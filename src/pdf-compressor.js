@@ -173,12 +173,16 @@ async function downloadZip() {
 
 function refreshActionState() {
   const doneCount = items.filter(i => i.status === 'done').length;
-  if (doneCount === 0) {
+  const inFlight = items.some(i => i.status === 'queued' || i.status === 'working');
+  // Only surface the Download button once the queue has settled — otherwise
+  // the label would flicker between "Download" and "Download all (zip)" as
+  // each file finishes mid-run.
+  if (doneCount === 0 || inFlight) {
     downloadZipBtn.classList.add('hidden');
-  } else {
-    downloadZipBtn.classList.remove('hidden');
-    downloadZipBtn.textContent = doneCount === 1 ? '⬇️ Download' : '⬇️ Download all (zip)';
+    return;
   }
+  downloadZipBtn.classList.remove('hidden');
+  downloadZipBtn.textContent = doneCount === 1 ? '⬇️ Download' : '⬇️ Download all (zip)';
 }
 
 function escAttr(s) {
