@@ -1,4 +1,5 @@
 import { Parcel } from '@parcel/core';
+import { createHash } from 'crypto';
 import { writeFileSync, readFileSync, rmSync, copyFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
@@ -38,6 +39,16 @@ const bundler = new Parcel({
 
 await bundler.run();
 
+// Copy pdfjs worker as a static hashed .js file so its URL is always valid.
+// Parcel's url: / new URL() bundling of .mjs files produces extensionless
+// output chunks on some CI hosts; bypassing Parcel entirely is the safe path.
+const pdfjsWorkerSrc = resolve(root, 'node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs');
+const pdfjsWorkerContent = readFileSync(pdfjsWorkerSrc);
+const pdfjsWorkerHash = createHash('sha1').update(pdfjsWorkerContent).digest('hex').slice(0, 8);
+const pdfjsWorkerDstName = `pdf.worker.${pdfjsWorkerHash}.js`;
+writeFileSync(resolve(distDir, pdfjsWorkerDstName), pdfjsWorkerContent);
+log(`📋 copied pdfjs worker → ${pdfjsWorkerDstName} (${(pdfjsWorkerContent.length / 1024).toFixed(0)} kB)`);
+
 // Post-process each HTML: replace __BUILD_TIME__ / __COMMIT_SHA__ and fix
 // absolute asset paths. COMMIT_REF is set by Netlify on every build; for
 // local `npm run build` it is undefined and the SHA link is omitted.
@@ -50,6 +61,7 @@ for (const html of htmlFiles) {
   const updated = readFileSync(htmlPath, 'utf8')
     .replace('"__BUILD_TIME__"', buildTime)
     .replace('"__COMMIT_SHA__"', commitSha)
+    .replace('"__PDF_WORKER_URL__"', JSON.stringify(pdfjsWorkerDstName))
     .replace(/src="\/([^"]+)"/g, 'src="./$1"')
     .replace(/href="\/([^"]+)"/g, 'href="./$1"')
     .replace(/href=("?)index\.html\1(?=[ >])/g, 'href="/"')

@@ -36,7 +36,9 @@ Current tools (all under `src/`):
 - `json-utils.js` — shared JSON parsing/validation helpers used by the JSON tools (separate hashed bundle, long-cached)
 - `image-utils.js` — shared image helpers (`supportsMime`, `formatBytes`, `formatPct`, `computeTargetSize`, `sourceHasAlpha`, `swapExtension`, `FORMAT_INFO`, `buildStoreZip`); separate hashed bundle, long-cached. `computeTargetSize(srcW, srcH, opts)` understands three modes via `opts.mode`: `'max'` (default — fit inside maxW × maxH; converter uses this), `'exact'` (return `opts.targetW × opts.targetH`), and `'percent'` (scale by `opts.scale`).
 - `image-encode-worker.js` — Web Worker that decodes a file with `createImageBitmap`, optionally resizes / applies a contain-cover-stretch fit, and encodes the result via `OffscreenCanvas.convertToBlob`. Used by the converter, resizer, compressor, and cropper. Default `encode` path handles resize + format conversion; the `crop` message type (used by the cropper) takes a source rect `(sx, sy, sw, sh)` and renders that region to a new canvas in a single draw. When `opts.targetKB` is set on the encode path, the worker runs a binary search on quality (capped at 8 iterations, default ±5% tolerance) and returns `{ blob, finalQuality, iterations, hitTarget }` so the page can surface the search detail.
-- `pdf-merger.html` + `pdf-merger.js` — PDF merger: drop 2+ PDFs (and optionally PNG/JPEG/WebP images promoted to A4 pages) onto a drop zone; each file becomes a card in a horizontally-scrollable strip showing filename, page count, file size, a per-file page range input (e.g. `1-3, 7, 9-`), and a drag handle for reordering. Output controls: editable filename, "Add bookmarks per source" toggle (writes a top-level outline entry per input file via pdf-lib's low-level context API), "Strip metadata" toggle (clears Title/Author/Creator/Producer/Subject/Keywords). Uses `pdf-lib` (MIT) for all PDF reads/writes. Sibling-module pattern (pdf-lib bare-specifier import). Note: `pdfjs-dist` was evaluated for first-page thumbnails but its webpack-bundled build embeds Node.js-specific code (`process.getBuiltinModule`) that Parcel's resolver can't handle in browser mode; the tool uses placeholder emoji icons instead and resolves page counts from pdf-lib.
+- `pdf-splitter.html` + `pdf-splitter.js` — PDF splitter / page extractor: drop one PDF, click-select pages from a live thumbnail grid (shift-click range, ctrl-click add/remove, text range input synced bidirectionally), then Extract (selected pages → one PDF in selection order) or Split (one PDF per page or per consecutive range group, zipped via `buildStoreZip`). Page thumbnails rendered by `pdfjs-dist/legacy/build/pdf.mjs` with IntersectionObserver lazy loading (rootMargin 300 px) and a `thumbCache` Map keyed by 0-based sourceIndex. Worker URL: `scripts/build.mjs` copies `pdfjs-dist/legacy/build/pdf.worker.min.mjs` to `dist/pdf.worker.HASH.js` (content-hashed, bypassing Parcel entirely) and injects the filename into each HTML page via a `window.__PDF_WORKER_URL__ = "__PDF_WORKER_URL__"` placeholder — the same `__BUILD_TIME__` replacement mechanism. The JS reads `pdfjsLib.GlobalWorkerOptions.workerSrc = window.__PDF_WORKER_URL__`. **Do not use Parcel's `url:` scheme or `new URL()` for the pdfjs worker**: both produce extensionless chunk filenames on Netlify CI (fresh builds), which fail MIME-type validation when the browser tries to import them as modules. Sibling-module pattern; `image-utils.js` loaded as classic script for `buildStoreZip`.
+- `pdf-page-manager.html` + `pdf-page-manager.js` — PDF page manager: drop one PDF, drag-to-reorder pages (HTML5 drag-and-drop; mobile: ↑/↓ arrow buttons per card), rotate per page via ↻ button (cycles 0→90→180→270°, keyboard R) or rotate-all toolbar pills, delete pages (✕ button or Delete key), undo/redo stack capped at 50 (Ctrl/Cmd+Z / Ctrl/Cmd+Shift+Z), Reset clears stack and restores source state. State model: `{ sourceIndex, rotation }[]`; output uses `page.setRotation(degrees(r))` so text stays selectable. Page thumbnails rendered by `pdfjs-dist/legacy/build/pdf.mjs` with IntersectionObserver lazy loading and CSS `transform: rotate()` to reflect user-applied rotation state visually. Uses the same `window.__PDF_WORKER_URL__` pattern as pdf-splitter for the pdfjs worker URL (see that entry). Sibling-module pattern; `pdf-lib` + `pdfjs-dist`.
+- `pdf-merger.html` + `pdf-merger.js` — PDF merger: drop 2+ PDFs (and optionally PNG/JPEG/WebP images promoted to A4 pages) onto a drop zone; each file becomes a card in a horizontally-scrollable strip showing filename, page count, file size, a per-file page range input (e.g. `1-3, 7, 9-`), and a drag handle for reordering. Output controls: editable filename, "Add bookmarks per source" toggle (writes a top-level outline entry per input file via pdf-lib's low-level context API), "Strip metadata" toggle (clears Title/Author/Creator/Producer/Subject/Keywords). Uses `pdf-lib` (MIT) for all PDF reads/writes. Sibling-module pattern (pdf-lib bare-specifier import). Note: `pdfjs-dist` is used by `pdf-splitter` and `pdf-page-manager` for thumbnails (see those entries). The merger uses placeholder emoji instead because cards only need the page count, not a visual preview — this keeps the bundle smaller and the cards load faster. If thumbnails are ever added here, use `pdfjs-dist/legacy/build/pdf.mjs` (non-legacy build has embedded webpack source-map paths Parcel can't resolve) and set `workerSrc` via `window.__PDF_WORKER_URL__` — see the pdf-splitter entry for the full `scripts/build.mjs` copy + placeholder-injection pattern. Do not use `url:` or `new URL()` for the worker.
 - `image-to-pdf.html` + `image-to-pdf.js` — Image to PDF: drop 1+ PNG / JPEG / WebP images into a drag-reorderable grid; each becomes one PDF page. Toolbar pills cover page size (Auto / A4 / Letter / Legal / Custom with pt/mm/in unit toggle), orientation (Auto / Portrait / Landscape — Auto matches each image's longer edge), fit (Contain / Cover / Stretch), margin (0 / 10 / 20 mm / Custom mm), background (White / Transparent, with a warn-bar reminding viewers render transparent pages as black), and an editable filename. Auto page mode treats each image at 72 DPI so 1 px == 1 pt and ignores fit/margin (each page is exactly the image size). pdf-lib only — JPEG → `embedJpg` (lossless), PNG → `embedPng` (lossless), WebP → re-encoded to PNG via `<canvas>` (browsers can decode WebP but pdf-lib doesn't accept it natively). Sibling-module pattern.
 - `pdf-compressor.html` + `pdf-compressor.js` — PDF compressor: drop up to 25 PDFs into a horizontally-scrollable queue; each card shows filename, original size, a status badge (queued / working / done / skipped / error), and after running, a before/after stats row with a `.delta-good`/`.delta-bad` chip. Quality preset pills (Lossless q=0.92 / Visually identical q=0.85 default / Smaller q=0.70 / Smallest q=0.50), a "Downscale large images" switch with a long-edge pixel threshold (default 2000 px), a "Strip metadata" switch (default on — clears Title/Author/Subject/Keywords/Creator/Producer), and a filename pattern select (`{name}.pdf` overwrite or `{name}-compressed.pdf`). Per-file Download + Download all (zip) via the shared `buildStoreZip` helper. **v1 implementation**: walks pdf-lib's indirect-object map (`ctx.enumerateIndirectObjects()`), finds every `PDFRawStream` whose `/Subtype` is `/Image` and whose last `/Filter` is `/DCTDecode`, decodes with `createImageBitmap`, re-encodes via `OffscreenCanvas.convertToBlob('image/jpeg', q)`, and assigns the replacement stream back to the same `PDFRef` so an image deduplicated across pages is only re-encoded once. Skips CMYK / DeviceN JPEGs (`createImageBitmap` support is unreliable), image masks, and any stream where the re-encode came out larger than the source. Save uses `{ useObjectStreams: true }`. Text glyphs, fonts, content streams, and annotations are untouched — output text stays selectable. Sibling-module pattern, pdf-lib only (no pdfjs-dist). **Out of scope for v1**: target-size binary search, page rasterization (Path B), FlateDecode+raw-RGB image streams, and JBIG2/JPX/CCITT re-encoding.
 
@@ -131,7 +133,7 @@ Shared UI components live in `src/styles.css` (the "Shared components" block at 
 
 When building a new tool:
 
-1. **Reach for the catalogued classes first** — `.btn` / `.btn-primary` / `.btn-secondary` / `.btn-danger` / `.btn-active` / `.btn-sm`, `.tab-btn`, `.pill` / `.pill-sm` / `.pill.on`, `.chip`, `.input` / `.input-mono`, `.textarea`, `.num-input`, `.select`, `.switch` (pill toggle — `<label class="switch"><input type="checkbox"><span>Label</span></label>`; use for a single binary state, not multi-select option lists — those stay regular checkboxes), `.range`, `.swatch`, `.drop-zone` (with `.compact` and `.dragover`), `.card` / `.card-lift`, `.file-card`, `.toolbar` (options strip — flex row of `<label>`s wrapping `.select` / `.num-input` / checkbox controls), `.disclosure` (markup: `<details class="disclosure"><summary>…</summary><div class="disclosure-content"><div class="disclosure-body">…</div></div></details>`), `.tooltip` (markup: `<span class="tooltip" tabindex="0"><span class="tooltip-trigger" aria-hidden="true">i</span><span class="tooltip-text" role="tooltip">…</span></span>` — keep popups under ~240 px, one or two sentences), `.cheat-table`, `.error-bar` / `.warn-bar`, `.stats` + `.delta-good` / `.delta-bad` / `.delta-neutral`, `.thumb-box` / `.thumb-label`, `.diff-wrap` / `.diff-handle` / `.diff-slider` / `.diff-tag`, plus the JSON tree primitives (`.json-key`, `.json-string`, `.json-number`, `.json-bool`, `.json-null`, `.json-punct`, `.tree-row`, `.toggle-btn`, `.tree-children`).
+1. **Reach for the catalogued classes first** — `.btn` / `.btn-primary` / `.btn-secondary` / `.btn-danger` / `.btn-active` / `.btn-sm`, `.btn-icon` (standalone icon-only square button — fixed `2rem × 2rem`, no padding; always pair with a variant: `ghost` subtle outline primary danger; add `.btn-icon-sm` for `1.5rem` compact size; use SVG icons inside — see Icons section below: `<button class="btn-icon ghost"><svg class="icon" aria-hidden="true"><use href="#icon-rotate-cw"/></svg></button>`), `.tab-btn`, `.pill` / `.pill-sm` / `.pill.on`, `.chip`, `.icon` (SVG icon from the sprite — `1em × 1em`, inherits `color` via `currentColor`; see "SVG icon sprite" below), `.input` / `.input-mono`, `.textarea`, `.num-input`, `.select`, `.switch` (pill toggle — `<label class="switch"><input type="checkbox"><span>Label</span></label>`; use for a single binary state, not multi-select option lists — those stay regular checkboxes), `.range`, `.swatch`, `.drop-zone` (with `.compact` and `.dragover`), `.card` / `.card-lift`, `.file-card`, `.toolbar` (options strip — flex row of `<label>`s wrapping `.select` / `.num-input` / checkbox controls), `.disclosure` (markup: `<details class="disclosure"><summary>…</summary><div class="disclosure-content"><div class="disclosure-body">…</div></div></details>`), `.tooltip` (markup: `<span class="tooltip" tabindex="0"><span class="tooltip-trigger" aria-hidden="true">i</span><span class="tooltip-text" role="tooltip">…</span></span>` — keep popups under ~240 px, one or two sentences), `.cheat-table`, `.loader` (pulsing SVG icon + cycling text + wave dots — markup: `<p class="loader hidden" role="status" aria-live="polite"><svg class="loader-icon" …><circle …/><circle … class="loader-pulse-ring"/></svg><span class="loader-msg">Loading</span><span class="loader-dots" aria-hidden="true"><span></span><span></span><span></span></span></p>`; show with `.classList.remove('hidden')`; cycle text with `startLoader(el, msgs)` helper which returns `{ stop() }` — see design-system.html for the full snippet), `.error-bar` / `.warn-bar`, `.stats` + `.delta-good` / `.delta-bad` / `.delta-neutral`, `.thumb-box` / `.thumb-label`, `.diff-wrap` / `.diff-handle` / `.diff-slider` / `.diff-tag`, plus the JSON tree primitives (`.json-key`, `.json-string`, `.json-number`, `.json-bool`, `.json-null`, `.json-punct`, `.tree-row`, `.toggle-btn`, `.tree-children`).
 2. **If the pattern doesn't exist yet**, decide whether it's *generic* or *tool-specific*:
    - **Generic primitives** (a toggle switch, a tabs strip, a tooltip, a modal — anything you'd reasonably expect a second tool to want) go into `src/styles.css` and `design-system.html` **the first time you build them**, even if only one tool uses them today. Document on day one rather than later.
    - **Tool-specific shapes** (the regex pattern row, the JSON tree, the wave generator's preview) stay inline. Promote them only once a second tool needs them.
@@ -140,6 +142,84 @@ When building a new tool:
 3. **Don't redefine a catalogued class inline.** If the existing definition doesn't fit, fix it in `styles.css` so every tool benefits — or open an issue to discuss before forking the pattern. In particular: never hardcode `#3b82f6` / `#1e3a8a` for "active" states — use `var(--accent)` / `var(--accent-h)` (or just inherit them via the shared class) so the accent swatch in the tweaks panel actually recolors the page.
 
 The textareas in the JSON-family tools still use ad-hoc Tailwind (`w-full h-[500px] … p-4 leading-relaxed`) instead of `.textarea` because the shared class has tighter padding/line-height suited for one-line inputs, not the code-editor surface those tools need. If a third tool adopts the same pattern, promote a `.textarea-code` (or similar) variant rather than continuing to inline.
+
+## SVG icon sprite
+
+A curated set of stroke-based SVG icons lives in `src/_partials/icons.html` as an inline `<svg style="display:none">` sprite. Include it **once per page** at the top of `<body>`:
+
+```html
+<body …>
+  <include src="_partials/icons.html"></include>
+  …
+```
+
+Render any icon using the `.icon` CSS class (sizes to `1em × 1em`, inherits `color` via `stroke="currentColor"`):
+
+```html
+<svg class="icon" aria-hidden="true"><use href="#icon-NAME"/></svg>
+```
+
+Available icon IDs (all `viewBox="0 0 24 24"`, stroke-based):
+
+| Category | IDs |
+|---|---|
+| Directional arrows | `icon-arrow-up` `icon-arrow-down` `icon-arrow-left` `icon-arrow-right` |
+| Chevrons | `icon-chevron-up` `icon-chevron-down` `icon-chevron-left` `icon-chevron-right` |
+| Close | `icon-x` |
+| Rotation | `icon-rotate-cw` `icon-rotate-ccw` |
+| History | `icon-undo` `icon-redo` |
+| Actions | `icon-trash` `icon-copy` `icon-download` `icon-search` |
+
+Rules:
+- **Add new icons to the sprite** — never inline a one-off `<svg>` path in tool markup. If a needed icon isn't in the table, add a `<symbol>` to `src/_partials/icons.html` and document it here.
+- **Always include the sprite** in any page that references icon IDs. Referencing `#icon-X` in JS-generated HTML works fine as long as the sprite is in the DOM.
+- **Use `aria-hidden="true"`** on the `<svg>` element; rely on the parent button's `title` or `aria-label` for the accessible name. Don't put text inside `.btn-icon` buttons — the icon is the whole content.
+
+## Syntax highlighting in code snippets
+
+Pages that need syntax-highlighted `<pre>` code blocks (contributor docs, design system, etc.) use **Shiki** (`@shikijs/core` + `@shikijs/engine-javascript`) via the **sibling-module pattern** — the highlighting logic must live in a separate `src/<slug>.js` file because Parcel won't resolve bare-specifier npm imports from inline `<script type="module">` blocks.
+
+**Step-by-step:**
+
+1. Create `src/<slug>.js` with Shiki initialization. Eager-import only the languages/themes your page actually needs; add a `fetchLang`/`fetchTheme` switch with dynamic `import()` if the page supports user-selectable options (like snippet-to-image). For a static page that only needs `html` + `javascript`:
+
+```js
+import { createHighlighterCore } from '@shikijs/core';
+import { createJavaScriptRegexEngine } from '@shikijs/engine-javascript';
+import langHtml from '@shikijs/langs/html';
+import langJs from '@shikijs/langs/javascript';
+import themeGithubDark from '@shikijs/themes/github-dark';
+
+(async () => {
+  const hl = await createHighlighterCore({
+    themes: [themeGithubDark], langs: [langHtml, langJs],
+    engine: createJavaScriptRegexEngine(),
+  });
+  document.querySelectorAll('pre').forEach(pre => {
+    const code = pre.textContent;
+    if (!code.trim()) return;
+    const lang = code.trimStart().startsWith('<') ? 'html' : 'javascript';
+    try {
+      const rendered = hl.codeToHtml(code, { lang, theme: 'github-dark' });
+      const tmp = document.createElement('div');
+      tmp.innerHTML = rendered;
+      const inner = tmp.querySelector('code');
+      if (inner) pre.innerHTML = inner.innerHTML; // keeps existing <pre> classes
+    } catch {}
+  });
+})();
+```
+
+2. Reference it in the HTML page **before** any regular `<script>` that modifies the DOM:
+
+```html
+<script type="module" src="<slug>.js"></script>
+<script>/* existing inline JS */</script>
+```
+
+3. Import from `@shikijs/core` (not `shiki/core`) — Parcel's resolver doesn't follow Shiki's conditional export map under the `unwasm` condition.
+
+4. `pre.textContent` after `innerHTML` replacement still returns the plain code text (the browser concatenates text nodes, ignoring `<span>` tags), so copy-to-clipboard logic that reads `pre.textContent` continues to work unmodified.
 
 ## Emoji conventions
 
