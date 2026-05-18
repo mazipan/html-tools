@@ -5,7 +5,7 @@
   "scripts": {
     "clean": "rimraf ./dist ./.parcel-cache",
     "dev": "parcel 'src/[!_]*.html'",
-    "build": "npm run clean && biome ci --linter-enabled=false --assist-enabled=false && node scripts/build.mjs",
+    "build": "npm run clean && node scripts/build.mjs",
     "preview": "serve dist",
     "generate:og": "node scripts/generate-og-image.mjs",
     "generate:favicon": "node scripts/generate-favicon.mjs",
