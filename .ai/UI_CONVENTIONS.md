@@ -48,9 +48,26 @@ import themeGithubDark from '@shikijs/themes/github-dark';
 
 ## Emoji conventions
 
-Emojis are a load-bearing part of this site's visual language — keep them.
+Emojis remain part of the site's visual language, but the **SVG sprite takes priority for action buttons**.
 
-- **Action buttons** prefix their label with a relevant emoji: 📋 Copy, ⬇️ Download, 🗑️ Clear, ↩️ Reset, ✨ Prettify, 🗜️ Minify, 🆚 Compare, 🔍 Search, 🌳 Tree, 📄 Raw, 📥 Load sample, 🔄 Re-encode, 🎲 Random, ▶️ Animate, 🔀 Shuffle. When adding a new action, pick a glyph that reads at-a-glance — the icon is a navigational anchor, not just decoration.
+### Action buttons — SVG first, emoji fallback
+
+1. **Check the sprite first.** If a suitable icon exists in `src/_partials/icons.html`, use it — even for labeled buttons:
+   ```html
+   <button class="btn btn-secondary">
+     <svg class="icon" aria-hidden="true"><use href="#icon-copy"/></svg> Copy
+   </button>
+   ```
+   Available action icons: `icon-copy`, `icon-download`, `icon-trash`, `icon-search`, `icon-rotate-cw`, `icon-rotate-ccw`, `icon-undo`, `icon-redo`.
+
+2. **If no sprite icon fits, use an emoji prefix** for the label: 📋 Copy, ⬇️ Download, 🗑️ Clear, ↩️ Reset, ✨ Prettify, 🗜️ Minify, 🆚 Compare, 🌳 Tree, 📄 Raw, 📥 Load sample, 🔄 Re-encode, 🎲 Random, ▶️ Animate, 🔀 Shuffle. When picking a new glyph, choose one that reads at-a-glance — it's a navigational anchor, not decoration.
+
+3. **Icon-only `btn-icon` buttons always use the SVG sprite** — never emoji. See the Design System section for `.btn-icon` usage.
+
+4. **Adding a new icon**: if the needed action has no sprite match and you'd use the same icon in more than one place, add a `<symbol>` to `src/_partials/icons.html` and update the icon table in `.ai/DESIGN_SYSTEM.md` rather than repeating the emoji across pages.
+
+### Other emoji rules
+
 - **Breadcrumbs and `<h1>`s** lead with the tool's icon (matches `tools.json` → `icon`).
 - **Disclosure summaries** with a clear "verb" use an emoji prefix (🔍 Explain, 📋 Copy as code, 📖 Cheat sheet). FAQ entries are body copy and stay plain.
 - **Sample chips** use category emojis (📧 Email, 🌐 IPv4, 🎨 Hex color, etc.).
