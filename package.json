@@ -14,7 +14,7 @@
     "format": "biome format --write",
     "lint": "biome lint",
     "check": "biome check --write",
-    "prepare": "husky"
+    "prepare": "lefthook install"
   },
   "license": "ISC",
   "devDependencies": {
@@ -31,8 +31,8 @@
     "@tailwindcss/typography": "^0.5.19",
     "@twemoji/svg": "^15.0.0",
     "buffer": "^6.0.3",
-    "husky": "^9.1.7",
     "js-yaml": "4.1.1",
+    "lefthook": "^2.1.6",
     "marked": "^18.0.3",
     "parcel": "^2.16.4",
     "posthtml-include": "2.0.1",
