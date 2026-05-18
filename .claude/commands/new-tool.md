@@ -30,12 +30,12 @@ Follow AGENTS.md "Adding a new tool" exactly — this command is a runner for th
    ```
    Both update every tool page that references the new tool — review the diff before continuing.
 
-7. **Update docs**: add a bullet to the "Current tools" list in `AGENTS.md` and a row in the tools table in `README.md`. Keep wording terse and consistent with neighbours.
+7. **Update docs**: add a bullet to the "Current tools" list in `.ai/TOOLS.md` and a row in the tools table in `README.md`. Keep wording terse and consistent with neighbours.
 
 8. **Sanity check**: `npm run build` must succeed before stopping. Run it.
 
 9. **Verify in browser**: start `npm run dev` in the background and load `http://localhost:1234/<slug>.html` to confirm the page renders, the breadcrumb works, the favicon loads, and the FAQ / "More tools" blocks appear. Test the golden path of the tool itself. Type checking is not a substitute — if you can't actually exercise the UI, say so explicitly.
 
-10. **Stop and report**: list the files changed and the umbrella issue (#27 for new tools) that needs its marker flipped. Don't commit — that's `/ship`'s job.
+10. **Stop and report**: list the files changed. Don't commit — that's `/ship`'s job.
 
 Emoji conventions matter on this site (action buttons get glyphs: 📋 Copy, ⬇️ Download, 🗑️ Clear, etc.). Re-read the "Emoji conventions" section of AGENTS.md before writing button labels.

@@ -11,6 +11,7 @@
     "generate:favicon": "node scripts/generate-favicon.mjs",
     "generate:sections": "node scripts/generate-sections.mjs",
     "generate:index": "node scripts/generate-index.mjs",
+    "generate:readme": "node scripts/generate-readme.mjs",
     "format": "biome format --write",
     "lint": "biome lint",
     "check": "biome check --write",
