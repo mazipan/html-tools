@@ -2,12 +2,12 @@ import { createHighlighterCore } from '@shikijs/core';
 import { createJavaScriptRegexEngine } from '@shikijs/engine-javascript';
 import langHtml from '@shikijs/langs/html';
 import langJs from '@shikijs/langs/javascript';
-import themeGithubDark from '@shikijs/themes/github-dark';
-import themeGithubLight from '@shikijs/themes/github-light';
+import themeDracula from '@shikijs/themes/dracula';
+import themeNightOwlLight from '@shikijs/themes/night-owl-light';
 
 (async () => {
   const hl = await createHighlighterCore({
-    themes: [themeGithubDark, themeGithubLight],
+    themes: [themeDracula, themeNightOwlLight],
     langs: [langHtml, langJs],
     engine: createJavaScriptRegexEngine(),
   });
@@ -19,7 +19,8 @@ import themeGithubLight from '@shikijs/themes/github-light';
     try {
       const rendered = hl.codeToHtml(code, {
         lang,
-        themes: { dark: 'github-dark', light: 'github-light' },
+        themes: { dark: 'dracula', light: 'night-owl-light' },
+        defaultColor: 'dark',
       });
       const tmp = document.createElement('div');
       tmp.innerHTML = rendered;
