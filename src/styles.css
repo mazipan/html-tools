@@ -577,6 +577,25 @@ input[type="radio"]:disabled { cursor: not-allowed; opacity: 0.5; }
 .chip:hover { border-color: #4b5563; color: #f9fafb; }
 .chip.on { background: color-mix(in srgb, var(--accent) 30%, transparent); border-color: var(--accent-h); color: #fff; }
 
+/* ── Badge ───────────────────────────────────────────────────── */
+/* Read-only status pill — not interactive, no hover/focus styles.
+   Always pair the base .badge with one semantic variant.
+   Usage: <span class="badge badge-done">done</span> */
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.badge-queued  { background: #1f2937;                                          color: #9ca3af; }
+.badge-working { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent-h); }
+.badge-done    { background: rgba(16, 185, 129, 0.15);                         color: #34d399; }
+.badge-warn    { background: rgba(217, 119,   6, 0.15);                        color: #fbbf24; }
+.badge-error   { background: rgba(239,  68,  68, 0.12);                        color: #f87171; }
+
 /* ── Text inputs / textarea ──────────────────────────────────── */
 .input,
 .textarea {
@@ -1228,6 +1247,12 @@ html[data-theme="light"] .chip.on {
   border-color: var(--accent);
   color: #111827;
 }
+
+html[data-theme="light"] .badge-queued  { background: #f3f4f6; color: #6b7280; }
+html[data-theme="light"] .badge-working { background: color-mix(in srgb, var(--accent) 12%, #ffffff); color: var(--accent); }
+html[data-theme="light"] .badge-done    { background: rgba(16, 185, 129, 0.12); color: #059669; }
+html[data-theme="light"] .badge-warn    { background: rgba(217, 119,   6, 0.12); color: #d97706; }
+html[data-theme="light"] .badge-error   { background: rgba(239,  68,  68, 0.10); color: #dc2626; }
 
 /* Text inputs / textarea / num-input / select */
 html[data-theme="light"] .input,
