@@ -117,6 +117,14 @@ Examples:
 - `docs: document semantic landmarks convention`
 - `refactor(build): extract jsonLdForPage helper`
 
+## Git hooks
+
+This project uses **lefthook** to run `biome format --write` as a pre-commit hook, and **GitHub Actions** to enforce formatting in CI.
+
+**Never use `--no-verify` (or `-n`) when committing.** The pre-commit hook runs the formatter — skipping it means unformatted code enters the repo and will fail the CI `Format check` job.
+
+If a commit fails because the hook reformatted files, stage the changes and commit again — do not bypass the hook to avoid that step.
+
 ## Conventions
 
 - All processing must stay client-side — never add a server dependency or external API call.
