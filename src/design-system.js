@@ -26,6 +26,15 @@ import themeNightOwlLight from '@shikijs/themes/night-owl-light';
       tmp.innerHTML = rendered;
       const inner = tmp.querySelector('code');
       if (inner) pre.innerHTML = inner.innerHTML;
+
+      const wrapper = pre.closest('.ds-snippet');
+      if (wrapper && !wrapper.querySelector('.ds-lang-badge')) {
+        const LANG_SHORT = { javascript: 'js', typescript: 'ts', markdown: 'md', python: 'py', ruby: 'rb', shellscript: 'sh' };
+        const badge = document.createElement('span');
+        badge.className = 'ds-lang-badge';
+        badge.textContent = LANG_SHORT[lang] ?? lang;
+        wrapper.appendChild(badge);
+      }
     } catch { /* keep plain text on error */ }
   });
 })();

@@ -116,7 +116,7 @@
     }
     .ds-snippet pre {
       margin: 0;
-      padding: 0.85rem 1rem;
+      padding: 2rem 1rem 0.85rem;
       font-family: 'IBM Plex Mono', ui-monospace, monospace;
       font-size: 0.75rem;
       line-height: 1.55;
@@ -124,6 +124,18 @@
       overflow-x: auto;
       white-space: pre;
       max-height: 18rem;
+    }
+    .ds-lang-badge {
+      position: absolute;
+      top: 0.4rem;
+      left: 0.6rem;
+      font-size: 0.62rem;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      color: #6b7280;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      user-select: none;
+      pointer-events: none;
     }
     .ds-snippet button.copy {
       position: absolute;
@@ -192,6 +204,7 @@
       border-color: #e5e7eb;
     }
     html[data-theme="light"] .ds-snippet pre { color: #111827; }
+    html[data-theme="light"] .ds-lang-badge { color: #9ca3af; }
     html[data-theme="light"] .ds-snippet button.copy {
       background: #ffffff;
       border-color: #d1d5db;
