@@ -19,7 +19,7 @@ function check() {
 
   const ver = semver.valid(raw);
   if (!ver) {
-    resultEl.classList.add('warn');
+    resultEl.classList.add('warn-bar');
     resultEl.textContent = `⚠️  "${raw || '(empty)'}" is not a valid semver version`;
     return;
   }
@@ -41,7 +41,7 @@ function check() {
   // Range expansion
   const expanded = semver.validRange(rawRange);
   if (expanded === null) {
-    resultEl.classList.add('warn');
+    resultEl.classList.add('warn-bar');
     resultEl.textContent = `⚠️  "${rawRange}" is not a valid semver range`;
     return;
   }
@@ -49,7 +49,7 @@ function check() {
 
   // Satisfies check
   const ok = semver.satisfies(ver, rawRange);
-  resultEl.classList.add(ok ? 'pass' : 'fail');
+  resultEl.classList.add(ok ? 'success-bar' : 'error-bar');
   resultEl.textContent = ok
     ? `✅  ${ver}  satisfies  ${rawRange}`
     : `❌  ${ver}  does not satisfy  ${rawRange}`;
