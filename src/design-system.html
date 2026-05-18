@@ -420,58 +420,75 @@
           <h2>Icons</h2>
           <p class="lead">Inline SVG icons via <code class="text-gray-300">&lt;use href="#icon-NAME"&gt;</code>. The sprite is inlined once via <code class="text-gray-300">&lt;include src="_partials/icons.html"&gt;</code> at the top of <code class="text-gray-300">&lt;body&gt;</code>. The <code class="text-gray-300">.icon</code> class sizes to <code class="text-gray-300">1em × 1em</code> so it scales with the surrounding font-size; color follows <code class="text-gray-300">currentColor</code> (just set <code class="text-gray-300">color</code> on the parent).</p>
 
-          <div class="ds-row flex-wrap gap-4 my-4">
-            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
-              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-arrow-up"/></svg>arrow-up
-            </span>
-            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
-              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-arrow-down"/></svg>arrow-down
-            </span>
-            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
-              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-arrow-left"/></svg>arrow-left
-            </span>
-            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
-              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-arrow-right"/></svg>arrow-right
-            </span>
-            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
-              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-chevron-up"/></svg>chevron-up
-            </span>
-            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
-              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-chevron-down"/></svg>chevron-down
-            </span>
-            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
-              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-chevron-left"/></svg>chevron-left
-            </span>
-            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
-              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-chevron-right"/></svg>chevron-right
-            </span>
-            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
-              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-x"/></svg>x
-            </span>
-            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
-              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-rotate-cw"/></svg>rotate-cw
-            </span>
-            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
-              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-rotate-ccw"/></svg>rotate-ccw
-            </span>
-            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
-              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-undo"/></svg>undo
-            </span>
-            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
-              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-redo"/></svg>redo
-            </span>
-            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
-              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-trash"/></svg>trash
-            </span>
-            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
-              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-copy"/></svg>copy
-            </span>
-            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
-              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-download"/></svg>download
-            </span>
-            <span class="flex flex-col items-center gap-1.5 text-[0.65rem] text-gray-500">
-              <svg class="icon text-gray-300" style="width:1.5rem;height:1.5rem" aria-hidden="true"><use href="#icon-search"/></svg>search
-            </span>
+          <div class="my-4" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:0.5rem">
+            <div class="flex flex-col items-center gap-2 p-3 rounded-lg bg-gray-900 border border-gray-800">
+              <svg style="width:1.25rem;height:1.25rem;flex-shrink:0" class="text-gray-300" aria-hidden="true"><use href="#icon-arrow-up"/></svg>
+              <span class="text-[0.6rem] text-gray-500 text-center font-mono">arrow-up</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 p-3 rounded-lg bg-gray-900 border border-gray-800">
+              <svg style="width:1.25rem;height:1.25rem;flex-shrink:0" class="text-gray-300" aria-hidden="true"><use href="#icon-arrow-down"/></svg>
+              <span class="text-[0.6rem] text-gray-500 text-center font-mono">arrow-down</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 p-3 rounded-lg bg-gray-900 border border-gray-800">
+              <svg style="width:1.25rem;height:1.25rem;flex-shrink:0" class="text-gray-300" aria-hidden="true"><use href="#icon-arrow-left"/></svg>
+              <span class="text-[0.6rem] text-gray-500 text-center font-mono">arrow-left</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 p-3 rounded-lg bg-gray-900 border border-gray-800">
+              <svg style="width:1.25rem;height:1.25rem;flex-shrink:0" class="text-gray-300" aria-hidden="true"><use href="#icon-arrow-right"/></svg>
+              <span class="text-[0.6rem] text-gray-500 text-center font-mono">arrow-right</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 p-3 rounded-lg bg-gray-900 border border-gray-800">
+              <svg style="width:1.25rem;height:1.25rem;flex-shrink:0" class="text-gray-300" aria-hidden="true"><use href="#icon-chevron-up"/></svg>
+              <span class="text-[0.6rem] text-gray-500 text-center font-mono">chevron-up</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 p-3 rounded-lg bg-gray-900 border border-gray-800">
+              <svg style="width:1.25rem;height:1.25rem;flex-shrink:0" class="text-gray-300" aria-hidden="true"><use href="#icon-chevron-down"/></svg>
+              <span class="text-[0.6rem] text-gray-500 text-center font-mono">chevron-down</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 p-3 rounded-lg bg-gray-900 border border-gray-800">
+              <svg style="width:1.25rem;height:1.25rem;flex-shrink:0" class="text-gray-300" aria-hidden="true"><use href="#icon-chevron-left"/></svg>
+              <span class="text-[0.6rem] text-gray-500 text-center font-mono">chevron-left</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 p-3 rounded-lg bg-gray-900 border border-gray-800">
+              <svg style="width:1.25rem;height:1.25rem;flex-shrink:0" class="text-gray-300" aria-hidden="true"><use href="#icon-chevron-right"/></svg>
+              <span class="text-[0.6rem] text-gray-500 text-center font-mono">chevron-right</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 p-3 rounded-lg bg-gray-900 border border-gray-800">
+              <svg style="width:1.25rem;height:1.25rem;flex-shrink:0" class="text-gray-300" aria-hidden="true"><use href="#icon-x"/></svg>
+              <span class="text-[0.6rem] text-gray-500 text-center font-mono">x</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 p-3 rounded-lg bg-gray-900 border border-gray-800">
+              <svg style="width:1.25rem;height:1.25rem;flex-shrink:0" class="text-gray-300" aria-hidden="true"><use href="#icon-rotate-cw"/></svg>
+              <span class="text-[0.6rem] text-gray-500 text-center font-mono">rotate-cw</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 p-3 rounded-lg bg-gray-900 border border-gray-800">
+              <svg style="width:1.25rem;height:1.25rem;flex-shrink:0" class="text-gray-300" aria-hidden="true"><use href="#icon-rotate-ccw"/></svg>
+              <span class="text-[0.6rem] text-gray-500 text-center font-mono">rotate-ccw</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 p-3 rounded-lg bg-gray-900 border border-gray-800">
+              <svg style="width:1.25rem;height:1.25rem;flex-shrink:0" class="text-gray-300" aria-hidden="true"><use href="#icon-undo"/></svg>
+              <span class="text-[0.6rem] text-gray-500 text-center font-mono">undo</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 p-3 rounded-lg bg-gray-900 border border-gray-800">
+              <svg style="width:1.25rem;height:1.25rem;flex-shrink:0" class="text-gray-300" aria-hidden="true"><use href="#icon-redo"/></svg>
+              <span class="text-[0.6rem] text-gray-500 text-center font-mono">redo</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 p-3 rounded-lg bg-gray-900 border border-gray-800">
+              <svg style="width:1.25rem;height:1.25rem;flex-shrink:0" class="text-gray-300" aria-hidden="true"><use href="#icon-trash"/></svg>
+              <span class="text-[0.6rem] text-gray-500 text-center font-mono">trash</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 p-3 rounded-lg bg-gray-900 border border-gray-800">
+              <svg style="width:1.25rem;height:1.25rem;flex-shrink:0" class="text-gray-300" aria-hidden="true"><use href="#icon-copy"/></svg>
+              <span class="text-[0.6rem] text-gray-500 text-center font-mono">copy</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 p-3 rounded-lg bg-gray-900 border border-gray-800">
+              <svg style="width:1.25rem;height:1.25rem;flex-shrink:0" class="text-gray-300" aria-hidden="true"><use href="#icon-download"/></svg>
+              <span class="text-[0.6rem] text-gray-500 text-center font-mono">download</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 p-3 rounded-lg bg-gray-900 border border-gray-800">
+              <svg style="width:1.25rem;height:1.25rem;flex-shrink:0" class="text-gray-300" aria-hidden="true"><use href="#icon-search"/></svg>
+              <span class="text-[0.6rem] text-gray-500 text-center font-mono">search</span>
+            </div>
           </div>
 
           <div class="ds-snippet">
