@@ -276,7 +276,7 @@
           <a href="#json-tree">JSON tree</a>
           <h3>Feedback</h3>
           <a href="#loader">Loader</a>
-          <a href="#error-bar">Error / warn bars</a>
+          <a href="#error-bar">Error / warn / success bars</a>
           <a href="#stats">Stats &amp; deltas</a>
           <a href="#diff-slider">Diff slider</a>
           <h3>Use cases</h3>
@@ -1038,18 +1038,20 @@ loaderEl.classList.add('hidden');</pre>
           </div>
         </section>
 
-        <!-- Error / warn bars -->
+        <!-- Error / warn / success bars -->
         <section id="error-bar" class="ds-section">
-          <h2>Error &amp; warning bars</h2>
+          <h2>Error, warning &amp; success bars</h2>
           <p class="lead">Inline banners surfaced above content. Keep messages short and actionable.</p>
           <div class="space-y-3 my-3">
             <div class="error-bar">Decode failed: file is not a valid PNG.</div>
             <div class="warn-bar">Skipped 2 files: not images.</div>
+            <div class="success-bar">Version 1.2.3 satisfies ^1.0.0.</div>
           </div>
           <div class="ds-snippet">
             <button class="copy" type="button">Copy</button>
 <pre>&lt;div class="error-bar"&gt;Something went wrong.&lt;/div&gt;
-&lt;div class="warn-bar"&gt;Heads up — non-blocking.&lt;/div&gt;</pre>
+&lt;div class="warn-bar"&gt;Heads up — non-blocking.&lt;/div&gt;
+&lt;div class="success-bar"&gt;Done — all good.&lt;/div&gt;</pre>
           </div>
         </section>
 

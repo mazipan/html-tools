@@ -926,6 +926,14 @@ html[data-theme="light"] .summary-row .sizes .after { color: #111827; }
   color: #fde68a;
   font-size: 0.78rem;
 }
+.success-bar {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, #22c55e 40%, transparent);
+  background: color-mix(in srgb, #22c55e 10%, transparent);
+  color: #86efac;
+  font-size: 0.78rem;
+}
 
 /* ── Loader (pulsing icon + cycling text + wave dots) ────────
    Markup:
@@ -1298,8 +1306,9 @@ html[data-theme="light"] .cheat-table td:nth-child(2) { color: #374151; }
 html[data-theme="light"] .delta-neutral { color: #6b7280; }
 
 /* Error / warn bars — darken the text so it reads on near-white */
-html[data-theme="light"] .error-bar { color: #b91c1c; }
-html[data-theme="light"] .warn-bar  { color: #92400e; }
+html[data-theme="light"] .error-bar   { color: #b91c1c; }
+html[data-theme="light"] .warn-bar    { color: #92400e; }
+html[data-theme="light"] .success-bar { background: color-mix(in srgb, #22c55e 15%, transparent); border-color: color-mix(in srgb, #22c55e 60%, transparent); color: #15803d; }
 
 /* Image thumbnail + diff slider checker patterns */
 html[data-theme="light"] .thumb-box,
