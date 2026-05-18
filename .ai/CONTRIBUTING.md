@@ -8,7 +8,7 @@
 4. Include the shared site header at the top of `<body>` with a `<nav aria-label="Breadcrumb">` linking back to `index.html` — copy the header block from an existing tool. Mark the current page span with `aria-current="page"`. See "Semantic landmarks" in `.ai/UI_CONVENTIONS.md`.
 5. Wrap the tool UI in `<main class="…">` (exactly one `<main>` per page). Inside, the page heading goes in an `<h1>` that matches the tool name.
 6. The template already contains the correct footer markup and `<include src="_partials/footer-script.html"></include>`. Do not move them — the required order is: `</main>` → optional module `<script>` → `footer-script` include → FAQ sentinel → more-tools sentinel → `<footer>`. The footer-script partial uses a `"__BUILD_TIME__"` placeholder that `scripts/build.mjs` replaces with the real ISO timestamp.
-7. Run `npm run generate:index` to insert the tool card into `index.html` automatically (the script reads `tools.json` and regenerates the sentinel-wrapped grid). Update the "Current tools" list in `.ai/TOOLS.md` and add a row for the new tool in the tools table in `README.md`.
+7. Run `npm run generate:index` to insert the tool card into `index.html` automatically. Run `npm run generate:readme` to regenerate the tools table in `README.md`. Both scripts read `tools.json` and replace sentinel-wrapped regions in place. Update the "Current tools" list in `.ai/TOOLS.md`.
 8. Use `<link rel="stylesheet" href="styles.css">` for shared styles.
 9. Keep all logic inline in a `<script>` tag at the bottom of the file.
 

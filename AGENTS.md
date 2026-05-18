@@ -25,6 +25,7 @@ npm run generate:og         # regenerate src/og-image.png from src/og-image.svg
 npm run generate:favicon    # regenerate src/favicon*.png from tools.json emojis
 npm run generate:index      # rewrite the tool-grid sentinel in src/index.html from src/tools.json
 npm run generate:sections   # rewrite FAQ / More tools / JSON-LD blocks in src/*.html from src/tools.json
+npm run generate:readme     # rewrite the tools table in README.md from src/tools.json
 ```
 
 ## Further reading
