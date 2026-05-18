@@ -24,8 +24,8 @@ import themeNightOwlLight from '@shikijs/themes/night-owl-light';
       });
       const tmp = document.createElement('div');
       tmp.innerHTML = rendered;
-      const inner = tmp.querySelector('code');
-      if (inner) pre.innerHTML = inner.innerHTML;
+      const innerPre = tmp.querySelector('pre');
+      if (innerPre) pre.innerHTML = innerPre.innerHTML;
 
       const wrapper = pre.closest('.ds-snippet');
       if (wrapper && !wrapper.querySelector('.ds-lang-badge')) {
