@@ -24,7 +24,7 @@ Before running this command, `/preflight` should have passed. If you're not sure
 
 5. **Open the PR** via `mcp__github__create_pull_request` (repo `mazipan/html-tools`, base `main`, head = current branch). Title follows the same Conventional Commit format as the commit. **Never set base to anything other than `main`** — see AGENTS.md on stacked PRs.
 
-6. **Update the umbrella issue** if this PR closes a child of one (e.g. #27 for new tools, #13 for SEO). Flip the marker to `✅ shipped` only after merge — for now, ensure it's `📝 spec'd` with the PR linked. Use `mcp__github__issue_write` to edit the umbrella body.
+6. **Update the umbrella issue** if this PR closes a child of one. Check the child issue body for an `Umbrella: #N` line — if present, flip its marker to `📝 spec'd` with the PR linked (flip to `✅ shipped` only happens after merge). Use `mcp__github__issue_write` to edit the umbrella body. If no umbrella is referenced, skip this step.
 
 7. **Report** the PR URL and ask the user whether to subscribe to PR activity (`mcp__github__subscribe_pr_activity`) so CI failures and review comments wake the session. Don't subscribe without consent.
 

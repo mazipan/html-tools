@@ -36,6 +36,6 @@ Follow AGENTS.md "Adding a new tool" exactly — this command is a runner for th
 
 9. **Verify in browser**: start `npm run dev` in the background and load `http://localhost:1234/<slug>.html` to confirm the page renders, the breadcrumb works, the favicon loads, and the FAQ / "More tools" blocks appear. Test the golden path of the tool itself. Type checking is not a substitute — if you can't actually exercise the UI, say so explicitly.
 
-10. **Stop and report**: list the files changed and the umbrella issue (#27 for new tools) that needs its marker flipped. Don't commit — that's `/ship`'s job.
+10. **Stop and report**: list the files changed. Don't commit — that's `/ship`'s job.
 
 Emoji conventions matter on this site (action buttons get glyphs: 📋 Copy, ⬇️ Download, 🗑️ Clear, etc.). Re-read the "Emoji conventions" section of AGENTS.md before writing button labels.

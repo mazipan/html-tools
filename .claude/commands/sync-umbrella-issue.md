@@ -6,7 +6,7 @@ allowed-tools: Bash, Read, TodoWrite, mcp__github__issue_read, mcp__github__pull
 
 Sync the umbrella issue **#$ARGUMENTS** in `mazipan/html-tools` so its markers and links match reality. Umbrellas drift fast — child issues close, PRs merge, files land — and AGENTS.md "Tracking issues" is strict that they stay honest. This command is the reconciliation pass.
 
-If `$ARGUMENTS` is empty, ask the user which umbrella to sync (typical: #27 new tools, #13 SEO). Don't guess.
+If `$ARGUMENTS` is empty, ask the user which umbrella to sync. Don't guess.
 
 1. **Read the umbrella.** `mcp__github__issue_read` on `mazipan/html-tools` #$ARGUMENTS. Bail out early if:
    - The issue is closed (umbrellas should stay open while tracking work — surface this and stop).
@@ -45,7 +45,7 @@ If `$ARGUMENTS` is empty, ask the user which umbrella to sync (typical: #27 new 
 
 Rules:
 
-- **One umbrella per run.** If the user wants both #27 and #13 synced, call `/sync-umbrella-issue` twice — keeps each diff scrutable.
+- **One umbrella per run.** If the user wants multiple umbrellas synced, call `/sync-umbrella-issue` once per umbrella — keeps each diff scrutable.
 - **Never invent links.** If the search doesn't return a confident match, leave the bullet alone and flag it.
 - **Never flip `📝` → `✅` without a merged PR.** A closed-completed issue alone isn't enough — work only counts as shipped when code landed.
 - **Never rewrite untouched bullets.** Surgical edits only. The umbrella's history matters; don't churn it.
