@@ -14,7 +14,7 @@
     "format": "biome format --write",
     "lint": "biome lint",
     "check": "biome check --write",
-    "prepare": "lefthook install"
+    "prepare": "[ -n \"$CI\" ] || lefthook install"
   },
   "license": "ISC",
   "devDependencies": {
