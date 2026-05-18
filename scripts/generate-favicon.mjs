@@ -23,7 +23,7 @@ const FALLBACK_EMOJI = '🛠️';
 // variation selector unless the sequence contains a zero-width joiner
 // (U+200D). None of our icons use ZWJ, so we always strip FE0F.
 function toTwemojiBase(emoji) {
-  const hasZwj = [...emoji].some(c => c.codePointAt(0) === 0x200d);
+  const hasZwj = [...emoji].some((c) => c.codePointAt(0) === 0x200d);
   const cps = [];
   for (const ch of emoji) {
     const cp = ch.codePointAt(0);
@@ -37,9 +37,7 @@ function loadTwemojiSvg(emoji) {
   const base = toTwemojiBase(emoji);
   const svgPath = resolve(root, 'node_modules/@twemoji/svg', `${base}.svg`);
   if (!existsSync(svgPath)) {
-    throw new Error(
-      `No Twemoji SVG for "${emoji}" (codepoints "${base}") at ${svgPath}`,
-    );
+    throw new Error(`No Twemoji SVG for "${emoji}" (codepoints "${base}") at ${svgPath}`);
   }
   return readFileSync(svgPath, 'utf8');
 }
@@ -58,7 +56,7 @@ const tools = JSON.parse(readFileSync(resolve(root, 'src/tools.json'), 'utf8'));
 // src/favicon.png so meta-base.html can reference it without per-page wiring.
 const targets = [
   { outFile: 'favicon.png', emoji: FALLBACK_EMOJI, label: 'fallback' },
-  ...tools.tools.map(t => ({
+  ...tools.tools.map((t) => ({
     outFile: `favicon-${t.slug}.png`,
     emoji: t.icon,
     label: t.slug,

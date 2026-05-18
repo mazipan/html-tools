@@ -17,19 +17,20 @@ const log = (...args) => console.log('[build]', ...args);
 const tools = JSON.parse(readFileSync(resolve(root, 'src/tools.json'), 'utf8'));
 const SITE = tools.site;
 const SITE_URL = SITE.url;
-log(`📋 tools.json loaded — ${tools.tools.length} tools: ${tools.tools.map(t => t.slug).join(', ')}`);
+log(
+  `📋 tools.json loaded — ${tools.tools.length} tools: ${tools.tools.map((t) => t.slug).join(', ')}`,
+);
 
-const entries = (await Array.fromAsync(glob('src/*.html', { cwd: root })))
-  .filter(f => !f.split('/').pop().startsWith('_'));
+const entries = (await Array.fromAsync(glob('src/*.html', { cwd: root }))).filter(
+  (f) => !f.split('/').pop().startsWith('_'),
+);
 log(`📦 Parcel entries — ${entries.length} HTML files`);
 
 const bundler = new Parcel({
-  entries: entries.map(f => resolve(root, f)),
+  entries: entries.map((f) => resolve(root, f)),
   defaultConfig: '@parcel/config-default',
   mode: 'production',
-  additionalReporters: [
-    { packageName: '@parcel/reporter-cli', resolveFrom: root },
-  ],
+  additionalReporters: [{ packageName: '@parcel/reporter-cli', resolveFrom: root }],
   defaultTargetOptions: {
     distDir,
     sourceMaps: false,
@@ -47,7 +48,9 @@ const pdfjsWorkerContent = readFileSync(pdfjsWorkerSrc);
 const pdfjsWorkerHash = createHash('sha1').update(pdfjsWorkerContent).digest('hex').slice(0, 8);
 const pdfjsWorkerDstName = `pdf.worker.${pdfjsWorkerHash}.js`;
 writeFileSync(resolve(distDir, pdfjsWorkerDstName), pdfjsWorkerContent);
-log(`📋 copied pdfjs worker → ${pdfjsWorkerDstName} (${(pdfjsWorkerContent.length / 1024).toFixed(0)} kB)`);
+log(
+  `📋 copied pdfjs worker → ${pdfjsWorkerDstName} (${(pdfjsWorkerContent.length / 1024).toFixed(0)} kB)`,
+);
 
 // Post-process each HTML: replace __BUILD_TIME__ / __COMMIT_SHA__ and fix
 // absolute asset paths. COMMIT_REF is set by Netlify on every build; for
@@ -67,15 +70,21 @@ for (const html of htmlFiles) {
     .replace(/href=("?)index\.html\1(?=[ >])/g, 'href="/"')
     // Strip .html from any remaining relative href="*.html" links so
     // internal links never cause redirect chains in production.
-    .replace(/href="([^"#?:/][^"#?:]*?)\.html(#[^"]*)?"/g, (_, path, hash) => `href="/${path}${hash ?? ''}"`);
+    .replace(
+      /href="([^"#?:/][^"#?:]*?)\.html(#[^"]*)?"/g,
+      (_, path, hash) => `href="/${path}${hash ?? ''}"`,
+    );
   writeFileSync(htmlPath, updated);
 }
-log(`🔧 post-process pass — replaced __BUILD_TIME__ / __COMMIT_SHA__ and rewrote relative paths in ${htmlFiles.length} files`);
+log(
+  `🔧 post-process pass — replaced __BUILD_TIME__ / __COMMIT_SHA__ and rewrote relative paths in ${htmlFiles.length} files`,
+);
 
 // Remove source maps.
 const mapFiles = await Array.fromAsync(glob('*.map', { cwd: distDir }));
 for (const f of mapFiles) rmSync(resolve(distDir, f));
-if (mapFiles.length) log(`🗑️  removed ${mapFiles.length} source map file${mapFiles.length === 1 ? '' : 's'}`);
+if (mapFiles.length)
+  log(`🗑️  removed ${mapFiles.length} source map file${mapFiles.length === 1 ? '' : 's'}`);
 
 // Copy static assets at the dist root. og-image.png is pre-generated and
 // committed; rerun `npm run generate:og` to refresh it from src/og-image.svg.
@@ -103,22 +112,18 @@ if (existsFile(yamlPagePath)) {
   }
 }
 
-const cleanPath = f => f === 'index.html' ? '/' : `/${f.replace(/\.html$/, '')}`;
+const cleanPath = (f) => (f === 'index.html' ? '/' : `/${f.replace(/\.html$/, '')}`);
 // Internal pages (e.g. the design-system contributor reference) are routable
 // — so the clean URL works for direct visits — but excluded from the sitemap.
 // The FAQ / More tools / JSON-LD blocks are also skipped for them; see the
 // matching filter in scripts/generate-sections.mjs. robots.txt also disallows
 // them. The source of truth is the `internal: true` flag in tools.json.
-const INTERNAL_PAGES = new Set(
-  tools.tools.filter(t => t.internal).map(t => `${t.slug}.html`),
-);
-const routable = htmlFiles.filter(f => !f.startsWith('google') && !f.startsWith('_')).sort();
-const sitemapPages = routable.filter(f => !INTERNAL_PAGES.has(f));
+const INTERNAL_PAGES = new Set(tools.tools.filter((t) => t.internal).map((t) => `${t.slug}.html`));
+const routable = htmlFiles.filter((f) => !f.startsWith('google') && !f.startsWith('_')).sort();
+const sitemapPages = routable.filter((f) => !INTERNAL_PAGES.has(f));
 
 // Generate _redirects: 301 .html paths to their clean form so old links keep working.
-const redirects = routable
-  .map(f => `/${f}  ${cleanPath(f)}  301!`)
-  .join('\n');
+const redirects = routable.map((f) => `/${f}  ${cleanPath(f)}  301!`).join('\n');
 writeFileSync(resolve(distDir, '_redirects'), redirects + '\n');
 log(`🔀 generated _redirects — ${routable.length} entries`);
 
@@ -127,7 +132,7 @@ const today = new Date().toISOString().split('T')[0];
 // development (see issue #63's update). The homepage gets `priority` 1.0 and
 // tool pages 0.8 so crawlers know which to prioritise.
 const sitemapUrls = sitemapPages
-  .map(f => {
+  .map((f) => {
     const loc = `${SITE_URL}${cleanPath(f)}`;
     const priority = f === 'index.html' ? '1.0' : '0.8';
     return [

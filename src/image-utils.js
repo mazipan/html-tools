@@ -4,7 +4,8 @@
 function supportsMime(mime) {
   try {
     const c = document.createElement('canvas');
-    c.width = 1; c.height = 1;
+    c.width = 1;
+    c.height = 1;
     return c.toDataURL(mime).indexOf(`data:${mime}`) === 0;
   } catch (_) {
     return false;
@@ -67,14 +68,19 @@ function computeTargetSize(srcW, srcH, opts) {
   }
   let w = isFinite(maxW) ? maxW : srcW;
   let h = isFinite(maxH) ? maxH : srcH;
-  if (noUpscale) { w = Math.min(srcW, w); h = Math.min(srcH, h); }
+  if (noUpscale) {
+    w = Math.min(srcW, w);
+    h = Math.min(srcH, h);
+  }
   return { w: Math.max(1, Math.round(w)), h: Math.max(1, Math.round(h)) };
 }
 
 // Source MIME types that may carry alpha — used to decide whether a JPEG
 // output needs an opaque background fill.
 function sourceHasAlpha(mime) {
-  return mime === 'image/png' || mime === 'image/webp' || mime === 'image/avif' || mime === 'image/gif';
+  return (
+    mime === 'image/png' || mime === 'image/webp' || mime === 'image/avif' || mime === 'image/gif'
+  );
 }
 
 function swapExtension(filename, newExt) {
@@ -84,8 +90,8 @@ function swapExtension(filename, newExt) {
 }
 
 const FORMAT_INFO = {
-  png:  { mime: 'image/png',  ext: 'png',  lossless: true  },
-  jpeg: { mime: 'image/jpeg', ext: 'jpg',  lossless: false },
+  png: { mime: 'image/png', ext: 'png', lossless: true },
+  jpeg: { mime: 'image/jpeg', ext: 'jpg', lossless: false },
   webp: { mime: 'image/webp', ext: 'webp', lossless: false },
   avif: { mime: 'image/avif', ext: 'avif', lossless: false },
 };
@@ -99,15 +105,15 @@ async function buildStoreZip(entries) {
     const t = new Uint32Array(256);
     for (let n = 0; n < 256; n++) {
       let c = n;
-      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
       t[n] = c >>> 0;
     }
     return t;
   })();
   function crc32(buf) {
-    let c = 0xFFFFFFFF;
-    for (let i = 0; i < buf.length; i++) c = crcTable[(c ^ buf[i]) & 0xFF] ^ (c >>> 8);
-    return (c ^ 0xFFFFFFFF) >>> 0;
+    let c = 0xffffffff;
+    for (let i = 0; i < buf.length; i++) c = crcTable[(c ^ buf[i]) & 0xff] ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
   }
 
   const localParts = [];
@@ -122,25 +128,25 @@ async function buildStoreZip(entries) {
 
     const local = new Uint8Array(30 + nameBytes.length);
     const lv = new DataView(local.buffer);
-    lv.setUint32(0, 0x04034b50, true);   // local file header signature
-    lv.setUint16(4, 20, true);           // version needed
-    lv.setUint16(6, 0, true);            // flags
-    lv.setUint16(8, 0, true);            // method (0 = store)
-    lv.setUint16(10, 0, true);           // mod time
-    lv.setUint16(12, 0, true);           // mod date
-    lv.setUint32(14, crc, true);         // crc-32
-    lv.setUint32(18, size, true);        // compressed size
-    lv.setUint32(22, size, true);        // uncompressed size
+    lv.setUint32(0, 0x04034b50, true); // local file header signature
+    lv.setUint16(4, 20, true); // version needed
+    lv.setUint16(6, 0, true); // flags
+    lv.setUint16(8, 0, true); // method (0 = store)
+    lv.setUint16(10, 0, true); // mod time
+    lv.setUint16(12, 0, true); // mod date
+    lv.setUint32(14, crc, true); // crc-32
+    lv.setUint32(18, size, true); // compressed size
+    lv.setUint32(22, size, true); // uncompressed size
     lv.setUint16(26, nameBytes.length, true);
-    lv.setUint16(28, 0, true);           // extra length
+    lv.setUint16(28, 0, true); // extra length
     local.set(nameBytes, 30);
     localParts.push(local, data);
 
     const central = new Uint8Array(46 + nameBytes.length);
     const cv = new DataView(central.buffer);
-    cv.setUint32(0, 0x02014b50, true);   // central dir signature
-    cv.setUint16(4, 20, true);           // version made by
-    cv.setUint16(6, 20, true);           // version needed
+    cv.setUint32(0, 0x02014b50, true); // central dir signature
+    cv.setUint16(4, 20, true); // version made by
+    cv.setUint16(6, 20, true); // version needed
     cv.setUint16(8, 0, true);
     cv.setUint16(10, 0, true);
     cv.setUint16(12, 0, true);

@@ -13,7 +13,9 @@ const svg = readFileSync(resolve(root, 'src/og-image.svg'));
 const png = new Resvg(svg, {
   fitTo: { mode: 'width', value: 1200 },
   font: { loadSystemFonts: true },
-}).render().asPng();
+})
+  .render()
+  .asPng();
 
 const outPath = resolve(root, 'src/og-image.png');
 writeFileSync(outPath, png);

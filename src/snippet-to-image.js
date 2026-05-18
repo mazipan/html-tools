@@ -56,62 +56,88 @@ const THEMES = [
 
 async function fetchLang(name) {
   switch (name) {
-    case 'typescript':  return (await import('@shikijs/langs/typescript')).default;
-    case 'javascript':  return (await import('@shikijs/langs/javascript')).default;
-    case 'tsx':         return (await import('@shikijs/langs/tsx')).default;
-    case 'jsx':         return (await import('@shikijs/langs/jsx')).default;
-    case 'html':        return (await import('@shikijs/langs/html')).default;
-    case 'css':         return (await import('@shikijs/langs/css')).default;
-    case 'json':        return (await import('@shikijs/langs/json')).default;
-    case 'yaml':        return (await import('@shikijs/langs/yaml')).default;
-    case 'markdown':    return (await import('@shikijs/langs/markdown')).default;
-    case 'python':      return (await import('@shikijs/langs/python')).default;
-    case 'go':          return (await import('@shikijs/langs/go')).default;
-    case 'rust':        return (await import('@shikijs/langs/rust')).default;
-    case 'ruby':        return (await import('@shikijs/langs/ruby')).default;
-    case 'java':        return (await import('@shikijs/langs/java')).default;
-    case 'shellscript': return (await import('@shikijs/langs/shellscript')).default;
-    case 'sql':         return (await import('@shikijs/langs/sql')).default;
-    default:            return null;
+    case 'typescript':
+      return (await import('@shikijs/langs/typescript')).default;
+    case 'javascript':
+      return (await import('@shikijs/langs/javascript')).default;
+    case 'tsx':
+      return (await import('@shikijs/langs/tsx')).default;
+    case 'jsx':
+      return (await import('@shikijs/langs/jsx')).default;
+    case 'html':
+      return (await import('@shikijs/langs/html')).default;
+    case 'css':
+      return (await import('@shikijs/langs/css')).default;
+    case 'json':
+      return (await import('@shikijs/langs/json')).default;
+    case 'yaml':
+      return (await import('@shikijs/langs/yaml')).default;
+    case 'markdown':
+      return (await import('@shikijs/langs/markdown')).default;
+    case 'python':
+      return (await import('@shikijs/langs/python')).default;
+    case 'go':
+      return (await import('@shikijs/langs/go')).default;
+    case 'rust':
+      return (await import('@shikijs/langs/rust')).default;
+    case 'ruby':
+      return (await import('@shikijs/langs/ruby')).default;
+    case 'java':
+      return (await import('@shikijs/langs/java')).default;
+    case 'shellscript':
+      return (await import('@shikijs/langs/shellscript')).default;
+    case 'sql':
+      return (await import('@shikijs/langs/sql')).default;
+    default:
+      return null;
   }
 }
 async function fetchTheme(name) {
   switch (name) {
-    case 'github-dark':   return (await import('@shikijs/themes/github-dark')).default;
-    case 'github-light':  return (await import('@shikijs/themes/github-light')).default;
-    case 'dracula':       return (await import('@shikijs/themes/dracula')).default;
-    case 'nord':          return (await import('@shikijs/themes/nord')).default;
-    case 'monokai':       return (await import('@shikijs/themes/monokai')).default;
-    case 'one-dark-pro':  return (await import('@shikijs/themes/one-dark-pro')).default;
-    case 'vitesse-dark':  return (await import('@shikijs/themes/vitesse-dark')).default;
-    case 'vitesse-light': return (await import('@shikijs/themes/vitesse-light')).default;
-    default:              return null;
+    case 'github-dark':
+      return (await import('@shikijs/themes/github-dark')).default;
+    case 'github-light':
+      return (await import('@shikijs/themes/github-light')).default;
+    case 'dracula':
+      return (await import('@shikijs/themes/dracula')).default;
+    case 'nord':
+      return (await import('@shikijs/themes/nord')).default;
+    case 'monokai':
+      return (await import('@shikijs/themes/monokai')).default;
+    case 'one-dark-pro':
+      return (await import('@shikijs/themes/one-dark-pro')).default;
+    case 'vitesse-dark':
+      return (await import('@shikijs/themes/vitesse-dark')).default;
+    case 'vitesse-light':
+      return (await import('@shikijs/themes/vitesse-light')).default;
+    default:
+      return null;
   }
 }
 
 // ── Curated gradient palette (subset of gradients.html) ──────
 // angle 90 = horizontal left→right; 0 = top→bottom (canvas convention).
 const GRADIENTS = [
-  { name: 'Midnight',  angle: 90, stops: ['#1e3a8a', '#0f172a'] },
-  { name: 'Charcoal',  angle: 90, stops: ['#374151', '#030712'] },
-  { name: 'Plum',      angle: 90, stops: ['#7e22ce', '#1e1b4b'] },
-  { name: 'Forest',    angle: 90, stops: ['#065f46', '#042f2e'] },
-  { name: 'Wine',      angle: 90, stops: ['#831843', '#18181b'] },
-  { name: 'Ocean',     angle: 90, stops: ['#06b6d4', '#1e40af'] },
-  { name: 'Twilight',  angle: 90, stops: ['#1e40af', '#7c3aed'] },
-  { name: 'Aurora',    angle: 90, stops: ['#10b981', '#3b82f6'] },
-  { name: 'Cosmic',    angle: 90, stops: ['#7c3aed', '#ec4899'] },
-  { name: 'Copper',    angle: 90, stops: ['#7c2d12', '#f59e0b'] },
-  { name: 'Sunset',    angle: 90, stops: ['#f97316', '#db2777'] },
-  { name: 'Volcano',   angle: 90, stops: ['#7f1d1d', '#f59e0b'] },
-  { name: 'Hyper',     angle: 90, stops: ['#ec4899', '#ef4444', '#facc15'] },
-  { name: 'Cherry',    angle: 90, stops: ['#f43f5e', '#b91c1c'] },
+  { name: 'Midnight', angle: 90, stops: ['#1e3a8a', '#0f172a'] },
+  { name: 'Charcoal', angle: 90, stops: ['#374151', '#030712'] },
+  { name: 'Plum', angle: 90, stops: ['#7e22ce', '#1e1b4b'] },
+  { name: 'Forest', angle: 90, stops: ['#065f46', '#042f2e'] },
+  { name: 'Wine', angle: 90, stops: ['#831843', '#18181b'] },
+  { name: 'Ocean', angle: 90, stops: ['#06b6d4', '#1e40af'] },
+  { name: 'Twilight', angle: 90, stops: ['#1e40af', '#7c3aed'] },
+  { name: 'Aurora', angle: 90, stops: ['#10b981', '#3b82f6'] },
+  { name: 'Cosmic', angle: 90, stops: ['#7c3aed', '#ec4899'] },
+  { name: 'Copper', angle: 90, stops: ['#7c2d12', '#f59e0b'] },
+  { name: 'Sunset', angle: 90, stops: ['#f97316', '#db2777'] },
+  { name: 'Volcano', angle: 90, stops: ['#7f1d1d', '#f59e0b'] },
+  { name: 'Hyper', angle: 90, stops: ['#ec4899', '#ef4444', '#facc15'] },
+  { name: 'Cherry', angle: 90, stops: ['#f43f5e', '#b91c1c'] },
   { name: 'Tangerine', angle: 90, stops: ['#f97316', '#fde047'] },
-  { name: 'Lime',      angle: 90, stops: ['#84cc16', '#059669'] },
-  { name: 'Pacific',   angle: 90, stops: ['#0ea5e9', '#22d3ee'] },
-  { name: 'Sky',       angle: 90, stops: ['#bae6fd', '#38bdf8'] },
-  { name: 'Sakura',    angle: 90, stops: ['#fb7185', '#f9a8d4'] },
-  { name: 'Cream',     angle: 90, stops: ['#fed7aa', '#fef3c7'] },
+  { name: 'Lime', angle: 90, stops: ['#84cc16', '#059669'] },
+  { name: 'Pacific', angle: 90, stops: ['#0ea5e9', '#22d3ee'] },
+  { name: 'Sky', angle: 90, stops: ['#bae6fd', '#38bdf8'] },
+  { name: 'Sakura', angle: 90, stops: ['#fb7185', '#f9a8d4'] },
+  { name: 'Cream', angle: 90, stops: ['#fed7aa', '#fef3c7'] },
 ];
 
 // ── State ────────────────────────────────────────────────────
@@ -134,34 +160,33 @@ const state = {
   code: SAMPLE,
   lang: 'typescript',
   theme: 'github-dark',
-  chrome: 'dots',          // 'none' | 'dots' | 'title'
+  chrome: 'dots', // 'none' | 'dots' | 'title'
   filename: 'example.ts',
   radius: 12,
   shadow: true,
   shadowIntensity: 55,
-  bgMode: 'gradient',      // 'gradient' | 'solid' | 'transparent'
-  bgGradient: 10,          // Sunset (orange → pink) — index into GRADIENTS
+  bgMode: 'gradient', // 'gradient' | 'solid' | 'transparent'
+  bgGradient: 10, // Sunset (orange → pink) — index into GRADIENTS
   bgSolid: '#0b1220',
   padOuter: 14,
   padInner: 14,
   fontSize: 14,
   lineHeight: 1.5,
-  fontFamily: 'ibm-plex-mono',  // key into FONT_STACK
+  fontFamily: 'ibm-plex-mono', // key into FONT_STACK
   lineNumbers: false,
-  widthPreset: 'auto',     // 'auto' | '1600' | '1080'
+  widthPreset: 'auto', // 'auto' | '1600' | '1080'
 };
 
 const FONT_STACK = {
-  'ibm-plex-mono':   `'IBM Plex Mono', ui-monospace, monospace`,
-  'jetbrains-mono':  `'JetBrains Mono', ui-monospace, monospace`,
-  'fira-code':       `'Fira Code', ui-monospace, monospace`,
+  'ibm-plex-mono': `'IBM Plex Mono', ui-monospace, monospace`,
+  'jetbrains-mono': `'JetBrains Mono', ui-monospace, monospace`,
+  'fira-code': `'Fira Code', ui-monospace, monospace`,
 };
 // Google Fonts URL for non-default fonts; loaded lazily on selection.
 const FONT_HREF = {
   'jetbrains-mono':
     'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap',
-  'fira-code':
-    'https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap',
+  'fira-code': 'https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap',
 };
 const loadedFontLinks = new Set();
 async function ensureFont(key) {
@@ -174,7 +199,7 @@ async function ensureFont(key) {
   // and canvas keeps rendering the monospace fallback.
   if (href && !loadedFontLinks.has(href)) {
     loadedFontLinks.add(href);
-    await new Promise(resolve => {
+    await new Promise((resolve) => {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = href;
@@ -189,7 +214,9 @@ async function ensureFont(key) {
       document.fonts.load(`bold ${state.fontSize}px '${family}'`),
       document.fonts.load(`italic ${state.fontSize}px '${family}'`),
     ]);
-  } catch { /* fonts.load throws on garbage; let the canvas fall back */ }
+  } catch {
+    /* fonts.load throws on garbage; let the canvas fall back */
+  }
 }
 
 // ── Highlighter ──────────────────────────────────────────────
@@ -246,13 +273,13 @@ function tokenize() {
 function composeFont(size, familyKey, fontStyleFlag) {
   const stack = FONT_STACK[familyKey] || FONT_STACK['ibm-plex-mono'];
   // Shiki's fontStyle bitmask: 1=italic, 2=bold, 4=underline (we ignore underline).
-  const italic = (fontStyleFlag & 1) ? 'italic ' : '';
-  const bold   = (fontStyleFlag & 2) ? 'bold '   : '';
+  const italic = fontStyleFlag & 1 ? 'italic ' : '';
+  const bold = fontStyleFlag & 2 ? 'bold ' : '';
   return `${italic}${bold}${size}px ${stack}`;
 }
 
 function colorOr(value, fallback) {
-  return (value && typeof value === 'string') ? value : fallback;
+  return value && typeof value === 'string' ? value : fallback;
 }
 
 function drawAll(c, opts = {}) {
@@ -274,7 +301,7 @@ function drawAll(c, opts = {}) {
   }, 0);
 
   const gutterDigits = String(lines.length).length;
-  const gutterW = state.lineNumbers ? (gutterDigits * charW + 16) : 0;
+  const gutterW = state.lineNumbers ? gutterDigits * charW + 16 : 0;
   const innerPad = state.padInner;
   const outerPad = state.padOuter;
 
@@ -314,10 +341,11 @@ function drawAll(c, opts = {}) {
   // ── Paint outer background ─────────────────────────────────
   if (state.bgMode === 'gradient') {
     const g = GRADIENTS[state.bgGradient];
-    const rad = (g.angle - 90) * Math.PI / 180;
-    const cx = wCss / 2, cy = hCss / 2;
-    const dx = Math.cos(rad) * wCss / 2;
-    const dy = Math.sin(rad) * hCss / 2;
+    const rad = ((g.angle - 90) * Math.PI) / 180;
+    const cx = wCss / 2,
+      cy = hCss / 2;
+    const dx = (Math.cos(rad) * wCss) / 2;
+    const dy = (Math.sin(rad) * hCss) / 2;
     const grad = c.createLinearGradient(cx - dx, cy - dy, cx + dx, cy + dy);
     const n = g.stops.length;
     g.stops.forEach((col, i) => grad.addColorStop(i / (n - 1), col));
@@ -390,11 +418,7 @@ function drawAll(c, opts = {}) {
       c.globalAlpha = 0.35;
       const num = String(i + 1);
       const gutterTextW = c.measureText(num).width;
-      c.fillText(
-        num,
-        winX + innerPad + gutterW - gutterTextW - 8,
-        baselineY,
-      );
+      c.fillText(num, winX + innerPad + gutterW - gutterTextW - 8, baselineY);
       c.globalAlpha = 1;
     }
 
@@ -503,43 +527,45 @@ function hideLoading() {
 }
 
 // ── DOM wiring ───────────────────────────────────────────────
-const $ = id => document.getElementById(id);
-const codeInput   = $('code-input');
-const langSelect  = $('lang-select');
+const $ = (id) => document.getElementById(id);
+const codeInput = $('code-input');
+const langSelect = $('lang-select');
 const themeSelect = $('theme-select');
-const chromeSelect= $('chrome-select');
+const chromeSelect = $('chrome-select');
 const filenameRow = $('filename-row');
 const filenameInput = $('filename-input');
 const radiusSelect = $('radius-select');
 const shadowToggle = $('shadow-toggle');
-const shadowRange  = $('shadow-range');
-const shadowVal    = $('shadow-val');
-const padOuter     = $('pad-outer');
-const padOuterVal  = $('pad-outer-val');
-const padInner     = $('pad-inner');
-const padInnerVal  = $('pad-inner-val');
-const fontSize     = $('font-size');
-const fontSizeVal  = $('font-size-val');
-const lineHeight   = $('line-height');
-const fontFamily   = $('font-family');
-const lineNumbers  = $('line-numbers');
-const widthPreset  = $('width-preset');
+const shadowRange = $('shadow-range');
+const shadowVal = $('shadow-val');
+const padOuter = $('pad-outer');
+const padOuterVal = $('pad-outer-val');
+const padInner = $('pad-inner');
+const padInnerVal = $('pad-inner-val');
+const fontSize = $('font-size');
+const fontSizeVal = $('font-size-val');
+const lineHeight = $('line-height');
+const fontFamily = $('font-family');
+const lineNumbers = $('line-numbers');
+const widthPreset = $('width-preset');
 const bgSolidColor = $('bg-solid-color');
-const bgSolidText  = $('bg-solid-text');
-const gradGrid     = $('grad-grid');
-const tabGrad      = $('tab-bg-grad');
-const tabSolid     = $('tab-bg-solid');
-const tabNone      = $('tab-bg-none');
+const bgSolidText = $('bg-solid-text');
+const gradGrid = $('grad-grid');
+const tabGrad = $('tab-bg-grad');
+const tabSolid = $('tab-bg-solid');
+const tabNone = $('tab-bg-none');
 const exportStatus = $('export-status');
 
 for (const [val, label] of LANGS) {
   const opt = document.createElement('option');
-  opt.value = val; opt.textContent = label;
+  opt.value = val;
+  opt.textContent = label;
   langSelect.appendChild(opt);
 }
 for (const [val, label] of THEMES) {
   const opt = document.createElement('option');
-  opt.value = val; opt.textContent = label;
+  opt.value = val;
+  opt.textContent = label;
   themeSelect.appendChild(opt);
 }
 langSelect.value = state.lang;
@@ -554,7 +580,7 @@ GRADIENTS.forEach((g, i) => {
   tile.style.background = css;
   tile.addEventListener('click', () => {
     state.bgGradient = i;
-    gradGrid.querySelectorAll('.grad-tile').forEach(el => el.classList.remove('on'));
+    gradGrid.querySelectorAll('.grad-tile').forEach((el) => el.classList.remove('on'));
     tile.classList.add('on');
     scheduleRepaint();
   });
@@ -569,7 +595,7 @@ function syncFilenameRow() {
 syncFilenameRow();
 filenameInput.value = state.filename;
 
-codeInput.addEventListener('keydown', e => {
+codeInput.addEventListener('keydown', (e) => {
   if (e.key === 'Tab') {
     e.preventDefault();
     const start = codeInput.selectionStart;
@@ -585,10 +611,22 @@ codeInput.addEventListener('input', () => {
 });
 
 const EXT_BY_LANG = {
-  typescript: 'ts', javascript: 'js', tsx: 'tsx', jsx: 'jsx',
-  html: 'html', css: 'css', json: 'json', yaml: 'yaml',
-  markdown: 'md', python: 'py', go: 'go', rust: 'rs',
-  ruby: 'rb', java: 'java', shellscript: 'sh', sql: 'sql',
+  typescript: 'ts',
+  javascript: 'js',
+  tsx: 'tsx',
+  jsx: 'jsx',
+  html: 'html',
+  css: 'css',
+  json: 'json',
+  yaml: 'yaml',
+  markdown: 'md',
+  python: 'py',
+  go: 'go',
+  rust: 'rs',
+  ruby: 'rb',
+  java: 'java',
+  shellscript: 'sh',
+  sql: 'sql',
 };
 const EXT_PATTERN = /^example\.(ts|js|tsx|jsx|html|css|json|yaml|md|py|go|rs|rb|java|sh|sql)$/;
 
@@ -684,9 +722,15 @@ bgSolidText.addEventListener('change', () => {
   const v = bgSolidText.value.trim();
   if (/^#[0-9a-fA-F]{6}$/.test(v) || /^#[0-9a-fA-F]{3}$/.test(v)) {
     state.bgSolid = v;
-    bgSolidColor.value = v.length === 4
-      ? '#' + v.slice(1).split('').map(ch => ch + ch).join('')
-      : v;
+    bgSolidColor.value =
+      v.length === 4
+        ? '#' +
+          v
+            .slice(1)
+            .split('')
+            .map((ch) => ch + ch)
+            .join('')
+        : v;
     scheduleRepaint();
   } else {
     bgSolidText.value = state.bgSolid;
@@ -695,7 +739,9 @@ bgSolidText.addEventListener('change', () => {
 
 const SAMPLES = [
   ['typescript', SAMPLE],
-  ['python', `# Greet by name and squareroot.
+  [
+    'python',
+    `# Greet by name and squareroot.
 import math
 
 def greet(name: str) -> str:
@@ -703,15 +749,21 @@ def greet(name: str) -> str:
 
 print(greet("world"))
 print(math.sqrt(2))
-`],
-  ['rust', `// Sum a vector with iterators.
+`,
+  ],
+  [
+    'rust',
+    `// Sum a vector with iterators.
 fn main() {
     let xs: Vec<i32> = (1..=10).collect();
     let total: i32 = xs.iter().sum();
     println!("sum = {}", total);
 }
-`],
-  ['css', `.btn {
+`,
+  ],
+  [
+    'css',
+    `.btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -720,8 +772,11 @@ fn main() {
   background: linear-gradient(180deg, #6366f1, #4338ca);
   color: white;
 }
-`],
-  ['json', `{
+`,
+  ],
+  [
+    'json',
+    `{
   "name": "html-tools",
   "version": "1.0.0",
   "private": true,
@@ -730,7 +785,8 @@ fn main() {
     "build": "parcel build 'src/*.html'"
   }
 }
-`],
+`,
+  ],
 ];
 let sampleIdx = -1;
 $('btn-sample').addEventListener('click', async () => {
@@ -762,14 +818,19 @@ $('btn-reset').addEventListener('click', () => {
 function flashStatus(msg, ms = 2000) {
   exportStatus.textContent = msg;
   if (flashStatus._t) clearTimeout(flashStatus._t);
-  flashStatus._t = setTimeout(() => { exportStatus.textContent = ''; }, ms);
+  flashStatus._t = setTimeout(() => {
+    exportStatus.textContent = '';
+  }, ms);
 }
 
 function downloadPNG() {
   const result = renderForExport();
   if (!result) return;
-  result.canvas.toBlob(blob => {
-    if (!blob) { flashStatus('Export failed', 3000); return; }
+  result.canvas.toBlob((blob) => {
+    if (!blob) {
+      flashStatus('Export failed', 3000);
+      return;
+    }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -788,8 +849,11 @@ function copyPNG() {
     flashStatus('Clipboard not supported — downloading instead', 2500);
     return downloadPNG();
   }
-  result.canvas.toBlob(async blob => {
-    if (!blob) { flashStatus('Copy failed', 3000); return; }
+  result.canvas.toBlob(async (blob) => {
+    if (!blob) {
+      flashStatus('Copy failed', 3000);
+      return;
+    }
     try {
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
       flashStatus('Copied ✓');

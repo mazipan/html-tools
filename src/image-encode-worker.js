@@ -28,7 +28,7 @@
 //   { id, w, h, blob } | { id, error }
 
 const FORMAT_INFO = {
-  png:  { mime: 'image/png',  lossless: true  },
+  png: { mime: 'image/png', lossless: true },
   jpeg: { mime: 'image/jpeg', lossless: false },
   webp: { mime: 'image/webp', lossless: false },
   avif: { mime: 'image/avif', lossless: false },
@@ -71,7 +71,10 @@ function computeTargetSize(srcW, srcH, opts) {
   }
   let w = isFinite(maxW) ? maxW : srcW;
   let h = isFinite(maxH) ? maxH : srcH;
-  if (noUpscale) { w = Math.min(srcW, w); h = Math.min(srcH, h); }
+  if (noUpscale) {
+    w = Math.min(srcW, w);
+    h = Math.min(srcH, h);
+  }
   return { w: Math.max(1, Math.round(w)), h: Math.max(1, Math.round(h)) };
 }
 
@@ -126,9 +129,10 @@ async function compressToTarget(canvas, mime, targetBytes, tolerance, maxIter) {
   const cap = Math.max(1, maxIter || 8);
   const upper = targetBytes * (1 + tol);
   const lower = targetBytes * (1 - tol);
-  let lo = 0.30, hi = 1.00;
-  let best = null;      // last blob ≤ upper
-  let smallest = null;  // smallest tried, regardless of target
+  let lo = 0.3,
+    hi = 1.0;
+  let best = null; // last blob ≤ upper
+  let smallest = null; // smallest tried, regardless of target
   let iterations = 0;
   for (let i = 0; i < cap; i++) {
     iterations = i + 1;
@@ -167,7 +171,8 @@ async function runCrop(id, file, opts) {
     const canvas = new OffscreenCanvas(sw, sh);
     const ctx = canvas.getContext('2d');
     if (opts.format === 'jpeg') {
-      ctx.fillStyle = opts.background && opts.background !== 'transparent' ? opts.background : '#ffffff';
+      ctx.fillStyle =
+        opts.background && opts.background !== 'transparent' ? opts.background : '#ffffff';
       ctx.fillRect(0, 0, sw, sh);
     }
     if (opts.circle) {
@@ -212,10 +217,13 @@ self.onmessage = async (e) => {
     // when the user picked an opaque background instead of transparent.
     const needsBg =
       opts.format === 'jpeg' ||
-      (opts.mode === 'exact' && (opts.fit || 'contain') === 'contain' &&
-        opts.background && opts.background !== 'transparent');
+      (opts.mode === 'exact' &&
+        (opts.fit || 'contain') === 'contain' &&
+        opts.background &&
+        opts.background !== 'transparent');
     if (needsBg) {
-      ctx.fillStyle = (opts.background && opts.background !== 'transparent') ? opts.background : '#ffffff';
+      ctx.fillStyle =
+        opts.background && opts.background !== 'transparent' ? opts.background : '#ffffff';
       ctx.fillRect(0, 0, dstW, dstH);
     }
 
@@ -227,11 +235,17 @@ self.onmessage = async (e) => {
     // route lossless presets to a non-target encode path.
     if (opts.targetKB && !info.lossless) {
       const result = await compressToTarget(
-        canvas, info.mime, opts.targetKB * 1024,
-        opts.tolerance, opts.maxIterations,
+        canvas,
+        info.mime,
+        opts.targetKB * 1024,
+        opts.tolerance,
+        opts.maxIterations,
       );
       self.postMessage({
-        id, w: dstW, h: dstH, blob: result.blob,
+        id,
+        w: dstW,
+        h: dstH,
+        blob: result.blob,
         finalQuality: result.finalQuality,
         iterations: result.iterations,
         hitTarget: result.hitTarget,

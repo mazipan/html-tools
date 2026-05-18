@@ -10,10 +10,15 @@
     "generate:og": "node scripts/generate-og-image.mjs",
     "generate:favicon": "node scripts/generate-favicon.mjs",
     "generate:sections": "node scripts/generate-sections.mjs",
-    "generate:index": "node scripts/generate-index.mjs"
+    "generate:index": "node scripts/generate-index.mjs",
+    "format": "biome format --write",
+    "lint": "biome lint",
+    "check": "biome check --write",
+    "prepare": "[ -n \"$CI\" ] || lefthook install"
   },
   "license": "ISC",
   "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
     "@parcel/packager-raw-url": "^2.16.4",
     "@parcel/transformer-jsonld": "^2.16.4",
     "@parcel/transformer-posthtml": "2.16.4",
@@ -27,6 +32,7 @@
     "@twemoji/svg": "^15.0.0",
     "buffer": "^6.0.3",
     "js-yaml": "4.1.1",
+    "lefthook": "^2.1.6",
     "marked": "^18.0.3",
     "parcel": "^2.16.4",
     "posthtml-include": "2.0.1",

@@ -116,7 +116,7 @@
     }
     .ds-snippet pre {
       margin: 0;
-      padding: 0.85rem 1rem;
+      padding: 2rem 1rem 0.85rem;
       font-family: 'IBM Plex Mono', ui-monospace, monospace;
       font-size: 0.75rem;
       line-height: 1.55;
@@ -124,6 +124,18 @@
       overflow-x: auto;
       white-space: pre;
       max-height: 18rem;
+    }
+    .ds-lang-badge {
+      position: absolute;
+      top: 0.4rem;
+      left: 0.6rem;
+      font-size: 0.62rem;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      color: #6b7280;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      user-select: none;
+      pointer-events: none;
     }
     .ds-snippet button.copy {
       position: absolute;
@@ -192,6 +204,7 @@
       border-color: #e5e7eb;
     }
     html[data-theme="light"] .ds-snippet pre { color: #111827; }
+    html[data-theme="light"] .ds-lang-badge { color: #9ca3af; }
     html[data-theme="light"] .ds-snippet button.copy {
       background: #ffffff;
       border-color: #d1d5db;
@@ -214,6 +227,7 @@
     html[data-theme="light"] .ds-color-tile .name { color: #111827; }
     html[data-theme="light"] .ds-color-tile .val { color: #6b7280; }
     html[data-theme="light"] .ds-banner { color: #92400e; }
+    html[data-theme="light"] .ds-snippet pre span { color: var(--shiki-light) !important; }
   </style>
   <include src="_partials/head-theme.html"></include>
 </head>
@@ -276,7 +290,7 @@
           <a href="#json-tree">JSON tree</a>
           <h3>Feedback</h3>
           <a href="#loader">Loader</a>
-          <a href="#error-bar">Error / warn bars</a>
+          <a href="#error-bar">Error / warn / success bars</a>
           <a href="#stats">Stats &amp; deltas</a>
           <a href="#diff-slider">Diff slider</a>
           <h3>Use cases</h3>
@@ -1038,18 +1052,20 @@ loaderEl.classList.add('hidden');</pre>
           </div>
         </section>
 
-        <!-- Error / warn bars -->
+        <!-- Error / warn / success bars -->
         <section id="error-bar" class="ds-section">
-          <h2>Error &amp; warning bars</h2>
+          <h2>Error, warning &amp; success bars</h2>
           <p class="lead">Inline banners surfaced above content. Keep messages short and actionable.</p>
           <div class="space-y-3 my-3">
             <div class="error-bar">Decode failed: file is not a valid PNG.</div>
             <div class="warn-bar">Skipped 2 files: not images.</div>
+            <div class="success-bar">Version 1.2.3 satisfies ^1.0.0.</div>
           </div>
           <div class="ds-snippet">
             <button class="copy" type="button">Copy</button>
 <pre>&lt;div class="error-bar"&gt;Something went wrong.&lt;/div&gt;
-&lt;div class="warn-bar"&gt;Heads up — non-blocking.&lt;/div&gt;</pre>
+&lt;div class="warn-bar"&gt;Heads up — non-blocking.&lt;/div&gt;
+&lt;div class="success-bar"&gt;Done — all good.&lt;/div&gt;</pre>
           </div>
         </section>
 
@@ -1291,6 +1307,7 @@ loaderEl.classList.add('hidden');</pre>
     <div>&copy; <span id="year"></span> <a href="https://mazipan.space" rel="noreferrer noopener" target="_blank" class="text-blue-400 transition-colors">Irfan Maulana</a> &amp; Claude</div>
       <div><span id="deploy-time"></span></div>
       <div><span id="commit-sha"></span><a href="https://github.com/mazipan/html-tools" rel="noreferrer noopener" target="_blank" class="text-blue-400 transition-colors">Source</a></div>
+    <div><a href="design-system.html" rel="nofollow" class="text-blue-400 transition-colors">Design system</a></div>
   </footer>
 
 </body>
