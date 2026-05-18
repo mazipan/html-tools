@@ -9,7 +9,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = window.__PDF_WORKER_URL__;
 let srcDoc = null;
 let pdfJsDoc = null;
 let srcFile = null;
-let pages = [];     // Array<{ sourceIndex: number, rotation: 0|90|180|270 }>
+let pages = []; // Array<{ sourceIndex: number, rotation: 0|90|180|270 }>
 let origPages = []; // snapshot for reset
 let undoStack = [];
 let redoStack = [];
@@ -17,19 +17,19 @@ let dragSrcIdx = null;
 const thumbCache = new Map(); // 0-based sourceIndex → dataURL
 
 // ── DOM refs ───────────────────────────────────────────────────────────────
-const dropZone  = document.getElementById('drop-zone');
+const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
-const controls  = document.getElementById('controls');
-const infoBar   = document.getElementById('info-bar');
-const pageGrid  = document.getElementById('page-grid');
-const undoBtn   = document.getElementById('undo-btn');
-const redoBtn   = document.getElementById('redo-btn');
-const resetBtn  = document.getElementById('reset-btn');
-const clearBtn  = document.getElementById('clear-btn');
-const outName   = document.getElementById('out-name');
-const dlBtn     = document.getElementById('dl-btn');
-const dlStatus  = document.getElementById('dl-status');
-const errorBar  = document.getElementById('error-bar');
+const controls = document.getElementById('controls');
+const infoBar = document.getElementById('info-bar');
+const pageGrid = document.getElementById('page-grid');
+const undoBtn = document.getElementById('undo-btn');
+const redoBtn = document.getElementById('redo-btn');
+const resetBtn = document.getElementById('reset-btn');
+const clearBtn = document.getElementById('clear-btn');
+const outName = document.getElementById('out-name');
+const dlBtn = document.getElementById('dl-btn');
+const dlStatus = document.getElementById('dl-status');
+const errorBar = document.getElementById('error-bar');
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function showError(msg) {
@@ -41,7 +41,9 @@ function showError(msg) {
 function triggerDownload(blob, name) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = name; a.click();
+  a.href = url;
+  a.download = name;
+  a.click();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
@@ -60,7 +62,7 @@ function rotLabel(r) {
 
 // ── Undo / Redo ────────────────────────────────────────────────────────────
 function snapshot() {
-  undoStack.push(pages.map(p => ({ ...p })));
+  undoStack.push(pages.map((p) => ({ ...p })));
   if (undoStack.length > 50) undoStack.shift();
   redoStack = [];
   syncUndoRedo();
@@ -73,7 +75,7 @@ function syncUndoRedo() {
 
 function undo() {
   if (!undoStack.length) return;
-  redoStack.push(pages.map(p => ({ ...p })));
+  redoStack.push(pages.map((p) => ({ ...p })));
   pages = undoStack.pop();
   syncUndoRedo();
   renderGrid();
@@ -81,7 +83,7 @@ function undo() {
 
 function redo() {
   if (!redoStack.length) return;
-  undoStack.push(pages.map(p => ({ ...p })));
+  undoStack.push(pages.map((p) => ({ ...p })));
   pages = redoStack.pop();
   syncUndoRedo();
   renderGrid();
@@ -95,7 +97,10 @@ function rotatePage(idx, delta) {
 }
 
 function deletePage(idx) {
-  if (pages.length <= 1) { showError('Cannot delete the only remaining page.'); return; }
+  if (pages.length <= 1) {
+    showError('Cannot delete the only remaining page.');
+    return;
+  }
   snapshot();
   pages.splice(idx, 1);
   renderGrid();
@@ -111,12 +116,12 @@ function movePage(fromIdx, toIdx) {
 
 function rotateAll(delta) {
   snapshot();
-  pages = pages.map(p => ({ ...p, rotation: (p.rotation + delta + 360) % 360 }));
+  pages = pages.map((p) => ({ ...p, rotation: (p.rotation + delta + 360) % 360 }));
   renderGrid();
 }
 
 function resetPages() {
-  pages = origPages.map(p => ({ ...p }));
+  pages = origPages.map((p) => ({ ...p }));
   undoStack = [];
   redoStack = [];
   syncUndoRedo();
@@ -165,20 +170,26 @@ function applyThumb(faceEl, dataUrl, rotation) {
 let thumbObserver = null;
 
 function renderGrid() {
-  if (thumbObserver) { thumbObserver.disconnect(); thumbObserver = null; }
+  if (thumbObserver) {
+    thumbObserver.disconnect();
+    thumbObserver = null;
+  }
   pageGrid.innerHTML = '';
 
-  thumbObserver = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      const tile = entry.target;
-      const sourceIdx = parseInt(tile.dataset.sourceIdx, 10);
-      const rotation = parseInt(tile.dataset.rotation, 10) || 0;
-      const faceEl = tile.querySelector('.pg-face');
-      if (faceEl) renderThumb(sourceIdx, faceEl, rotation);
-      thumbObserver.unobserve(tile);
-    });
-  }, { rootMargin: '300px' });
+  thumbObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const tile = entry.target;
+        const sourceIdx = parseInt(tile.dataset.sourceIdx, 10);
+        const rotation = parseInt(tile.dataset.rotation, 10) || 0;
+        const faceEl = tile.querySelector('.pg-face');
+        if (faceEl) renderThumb(sourceIdx, faceEl, rotation);
+        thumbObserver.unobserve(tile);
+      });
+    },
+    { rootMargin: '300px' },
+  );
 
   pages.forEach((pg, idx) => {
     const tile = document.createElement('div');
@@ -189,7 +200,10 @@ function renderGrid() {
     tile.dataset.sourceIdx = pg.sourceIndex;
     tile.dataset.rotation = pg.rotation;
     tile.setAttribute('role', 'listitem');
-    tile.setAttribute('aria-label', `Page ${idx + 1}${pg.rotation ? `, rotated ${pg.rotation}°` : ''}`);
+    tile.setAttribute(
+      'aria-label',
+      `Page ${idx + 1}${pg.rotation ? `, rotated ${pg.rotation}°` : ''}`,
+    );
 
     const rot = rotLabel(pg.rotation);
     tile.innerHTML = `
@@ -208,14 +222,32 @@ function renderGrid() {
         <button class="btn-icon ghost pg-down-btn" title="Move down" aria-label="Move page ${idx + 1} down"${idx === pages.length - 1 ? ' disabled' : ''}><svg class="icon" aria-hidden="true"><use href="#icon-arrow-down"/></svg></button>
       </div>`;
 
-    tile.querySelector('.pg-rotate-btn').addEventListener('click', e => { e.stopPropagation(); rotatePage(idx, 90); });
-    tile.querySelector('.pg-delete-btn').addEventListener('click', e => { e.stopPropagation(); deletePage(idx); });
-    tile.querySelector('.pg-up-btn').addEventListener('click', e => { e.stopPropagation(); movePage(idx, idx - 1); });
-    tile.querySelector('.pg-down-btn').addEventListener('click', e => { e.stopPropagation(); movePage(idx, idx + 1); });
+    tile.querySelector('.pg-rotate-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      rotatePage(idx, 90);
+    });
+    tile.querySelector('.pg-delete-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      deletePage(idx);
+    });
+    tile.querySelector('.pg-up-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      movePage(idx, idx - 1);
+    });
+    tile.querySelector('.pg-down-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      movePage(idx, idx + 1);
+    });
 
-    tile.addEventListener('keydown', e => {
-      if (e.key === 'r' || e.key === 'R') { e.preventDefault(); rotatePage(idx, 90); }
-      if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deletePage(idx); }
+    tile.addEventListener('keydown', (e) => {
+      if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        rotatePage(idx, 90);
+      }
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault();
+        deletePage(idx);
+      }
       if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
         e.preventDefault();
         const prev = pageGrid.querySelector(`[data-idx="${idx - 1}"]`);
@@ -229,22 +261,22 @@ function renderGrid() {
     });
 
     // HTML5 drag-and-drop reorder
-    tile.addEventListener('dragstart', e => {
+    tile.addEventListener('dragstart', (e) => {
       dragSrcIdx = idx;
       tile.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
     });
     tile.addEventListener('dragend', () => {
       tile.classList.remove('dragging');
-      pageGrid.querySelectorAll('.pg-tile').forEach(t => t.classList.remove('drag-over'));
+      pageGrid.querySelectorAll('.pg-tile').forEach((t) => t.classList.remove('drag-over'));
     });
-    tile.addEventListener('dragover', e => {
+    tile.addEventListener('dragover', (e) => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
       if (dragSrcIdx !== idx) tile.classList.add('drag-over');
     });
     tile.addEventListener('dragleave', () => tile.classList.remove('drag-over'));
-    tile.addEventListener('drop', e => {
+    tile.addEventListener('drop', (e) => {
       e.preventDefault();
       tile.classList.remove('drag-over');
       if (dragSrcIdx != null && dragSrcIdx !== idx) movePage(dragSrcIdx, idx);
@@ -280,12 +312,15 @@ async function loadPdf(file) {
       const rot = ((rawAngle % 360) + 360) % 360;
       return { sourceIndex: i, rotation: [0, 90, 180, 270].includes(rot) ? rot : 0 };
     });
-    origPages = pages.map(p => ({ ...p }));
+    origPages = pages.map((p) => ({ ...p }));
     undoStack = [];
     redoStack = [];
 
     // Load pdfjs doc for thumbnails
-    if (pdfJsDoc) { pdfJsDoc.destroy(); pdfJsDoc = null; }
+    if (pdfJsDoc) {
+      pdfJsDoc.destroy();
+      pdfJsDoc = null;
+    }
     pdfJsDoc = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
 
     const stem = file.name.replace(/\.pdf$/i, '');
@@ -317,7 +352,10 @@ async function buildAndDownload() {
       out.addPage(copied);
     }
     const bytes = await out.save();
-    triggerDownload(new Blob([bytes], { type: 'application/pdf' }), outName.value.trim() || 'reordered.pdf');
+    triggerDownload(
+      new Blob([bytes], { type: 'application/pdf' }),
+      outName.value.trim() || 'reordered.pdf',
+    );
     dlStatus.textContent = `Done — ${formatBytes(bytes.length)}`;
   } catch (err) {
     showError(err.message || String(err));
@@ -330,15 +368,23 @@ async function buildAndDownload() {
 
 // ── Event wiring ───────────────────────────────────────────────────────────
 dropZone.addEventListener('click', () => fileInput.click());
-dropZone.addEventListener('keydown', e => {
-  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+dropZone.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    fileInput.click();
+  }
 });
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropZone.classList.add('dragover');
+});
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop', e => {
+dropZone.addEventListener('drop', (e) => {
   e.preventDefault();
   dropZone.classList.remove('dragover');
-  const f = [...e.dataTransfer.files].find(f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'));
+  const f = [...e.dataTransfer.files].find(
+    (f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'),
+  );
   if (f) loadPdf(f);
   else showError('Please drop a PDF file.');
 });
@@ -349,11 +395,21 @@ fileInput.addEventListener('change', () => {
 });
 
 clearBtn.addEventListener('click', () => {
-  if (pdfJsDoc) { pdfJsDoc.destroy(); pdfJsDoc = null; }
+  if (pdfJsDoc) {
+    pdfJsDoc.destroy();
+    pdfJsDoc = null;
+  }
   thumbCache.clear();
-  if (thumbObserver) { thumbObserver.disconnect(); thumbObserver = null; }
-  srcDoc = null; srcFile = null; pages = []; origPages = [];
-  undoStack = []; redoStack = [];
+  if (thumbObserver) {
+    thumbObserver.disconnect();
+    thumbObserver = null;
+  }
+  srcDoc = null;
+  srcFile = null;
+  pages = [];
+  origPages = [];
+  undoStack = [];
+  redoStack = [];
   pageGrid.innerHTML = '';
   controls.classList.add('hidden');
   dlStatus.textContent = '';
@@ -371,7 +427,13 @@ document.getElementById('rotate-all-n90').addEventListener('click', () => rotate
 
 dlBtn.addEventListener('click', buildAndDownload);
 
-document.addEventListener('keydown', e => {
-  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'z') { e.preventDefault(); undo(); }
-  if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) { e.preventDefault(); redo(); }
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'z') {
+    e.preventDefault();
+    undo();
+  }
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) {
+    e.preventDefault();
+    redo();
+  }
 });

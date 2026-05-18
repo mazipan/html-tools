@@ -1,13 +1,13 @@
 import semver from 'semver';
 
-const versionEl   = document.getElementById('sv-version');
-const rangeEl     = document.getElementById('sv-range');
-const resultEl    = document.getElementById('sv-result');
+const versionEl = document.getElementById('sv-version');
+const rangeEl = document.getElementById('sv-range');
+const resultEl = document.getElementById('sv-result');
 const breakdownEl = document.getElementById('sv-breakdown');
 const expansionEl = document.getElementById('sv-expansion');
 
 function check() {
-  const raw     = versionEl.value.trim();
+  const raw = versionEl.value.trim();
   const rawRange = rangeEl.value.trim();
 
   resultEl.className = 'sv-result';
@@ -27,14 +27,17 @@ function check() {
   // Version breakdown
   const parsed = semver.parse(ver);
   breakdownEl.innerHTML = [
-    ['Major',          parsed.major],
-    ['Minor',          parsed.minor],
-    ['Patch',          parsed.patch],
-    ['Pre-release',    parsed.prerelease.length ? parsed.prerelease.join('.') : '—'],
-    ['Build metadata', parsed.build.length      ? parsed.build.join('.')      : '—'],
-  ].map(([label, val]) =>
-    `<div class="sv-chip"><span class="sv-chip-label">${label}</span><strong>${val}</strong></div>`
-  ).join('');
+    ['Major', parsed.major],
+    ['Minor', parsed.minor],
+    ['Patch', parsed.patch],
+    ['Pre-release', parsed.prerelease.length ? parsed.prerelease.join('.') : '—'],
+    ['Build metadata', parsed.build.length ? parsed.build.join('.') : '—'],
+  ]
+    .map(
+      ([label, val]) =>
+        `<div class="sv-chip"><span class="sv-chip-label">${label}</span><strong>${val}</strong></div>`,
+    )
+    .join('');
 
   if (!rawRange) return;
 
@@ -59,7 +62,7 @@ versionEl.addEventListener('input', check);
 rangeEl.addEventListener('input', check);
 
 // Sample chips
-document.querySelectorAll('[data-range]').forEach(chip => {
+document.querySelectorAll('[data-range]').forEach((chip) => {
   chip.addEventListener('click', () => {
     rangeEl.value = chip.dataset.range;
     check();

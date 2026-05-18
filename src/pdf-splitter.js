@@ -20,24 +20,24 @@ let mode = 'extract';
 const thumbCache = new Map(); // 0-based sourceIndex → dataURL
 
 // ── DOM refs ───────────────────────────────────────────────────────────────
-const dropZone      = document.getElementById('drop-zone');
-const fileInput     = document.getElementById('file-input');
-const controls      = document.getElementById('controls');
-const infoBar       = document.getElementById('info-bar');
-const rangeInput    = document.getElementById('range-input');
-const pageGrid      = document.getElementById('page-grid');
-const modeExtract   = document.getElementById('mode-extract');
-const modeSplit     = document.getElementById('mode-split');
-const groupWrap     = document.getElementById('group-wrap');
-const toggleGroup   = document.getElementById('toggle-group');
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+const controls = document.getElementById('controls');
+const infoBar = document.getElementById('info-bar');
+const rangeInput = document.getElementById('range-input');
+const pageGrid = document.getElementById('page-grid');
+const modeExtract = document.getElementById('mode-extract');
+const modeSplit = document.getElementById('mode-split');
+const groupWrap = document.getElementById('group-wrap');
+const toggleGroup = document.getElementById('toggle-group');
 const extractFnWrap = document.getElementById('extract-fn-wrap');
-const splitFnWrap   = document.getElementById('split-fn-wrap');
-const extractName   = document.getElementById('extract-name');
-const splitName     = document.getElementById('split-name');
-const dlBtn         = document.getElementById('dl-btn');
-const dlStatus      = document.getElementById('dl-status');
-const errorBar      = document.getElementById('error-bar');
-const clearFileBtn  = document.getElementById('clear-file-btn');
+const splitFnWrap = document.getElementById('split-fn-wrap');
+const extractName = document.getElementById('extract-name');
+const splitName = document.getElementById('split-name');
+const dlBtn = document.getElementById('dl-btn');
+const dlStatus = document.getElementById('dl-status');
+const errorBar = document.getElementById('error-bar');
+const clearFileBtn = document.getElementById('clear-file-btn');
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function showError(msg) {
@@ -49,7 +49,9 @@ function showError(msg) {
 function triggerDownload(blob, name) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = name; a.click();
+  a.href = url;
+  a.download = name;
+  a.click();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
@@ -60,7 +62,10 @@ function groupConsecutive(pages) {
   let run = [pages[0]];
   for (let i = 1; i < pages.length; i++) {
     if (pages[i] === pages[i - 1] + 1) run.push(pages[i]);
-    else { groups.push(run); run = [pages[i]]; }
+    else {
+      groups.push(run);
+      run = [pages[i]];
+    }
   }
   groups.push(run);
   return groups;
@@ -71,7 +76,7 @@ function selectionToRangeString() {
   const sorted = [...selectionOrder].sort((a, b) => a - b);
   if (!sorted.length) return '';
   return groupConsecutive(sorted)
-    .map(g => g.length === 1 ? `${g[0]}` : `${g[0]}-${g[g.length - 1]}`)
+    .map((g) => (g.length === 1 ? `${g[0]}` : `${g[0]}-${g[g.length - 1]}`))
     .join(', ');
 }
 
@@ -80,14 +85,18 @@ function parseRangeString(str, max) {
   str = str.trim();
   if (!str) return new Set();
   const pages = new Set();
-  for (const part of str.split(',').map(s => s.trim()).filter(Boolean)) {
+  for (const part of str
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)) {
     if (/^\d+$/.test(part)) {
       const n = parseInt(part, 10);
       if (n < 1 || n > max) throw new Error(`Page ${n} out of range (1–${max})`);
       pages.add(n);
     } else if (/^(\d+)-(\d*)$/.test(part)) {
       const [, a, b] = part.match(/^(\d+)-(\d*)$/);
-      const from = parseInt(a, 10), to = b ? parseInt(b, 10) : max;
+      const from = parseInt(a, 10),
+        to = b ? parseInt(b, 10) : max;
       if (from < 1 || from > max) throw new Error(`Page ${from} out of range (1–${max})`);
       if (to < from || to > max) throw new Error(`Range "${part}" is invalid (max: ${max})`);
       for (let i = from; i <= to; i++) pages.add(i);
@@ -140,19 +149,25 @@ function applyThumb(faceEl, dataUrl) {
 let thumbObserver = null;
 
 function renderGrid() {
-  if (thumbObserver) { thumbObserver.disconnect(); thumbObserver = null; }
+  if (thumbObserver) {
+    thumbObserver.disconnect();
+    thumbObserver = null;
+  }
   pageGrid.innerHTML = '';
 
-  thumbObserver = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      const tile = entry.target;
-      const sourceIdx = parseInt(tile.dataset.sourceIdx, 10);
-      const faceEl = tile.querySelector('.pg-face');
-      if (faceEl) renderThumb(sourceIdx, faceEl);
-      thumbObserver.unobserve(tile);
-    });
-  }, { rootMargin: '300px' });
+  thumbObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const tile = entry.target;
+        const sourceIdx = parseInt(tile.dataset.sourceIdx, 10);
+        const faceEl = tile.querySelector('.pg-face');
+        if (faceEl) renderThumb(sourceIdx, faceEl);
+        thumbObserver.unobserve(tile);
+      });
+    },
+    { rootMargin: '300px' },
+  );
 
   for (let p = 1; p <= pageCount; p++) {
     const sel = selectionOrder.includes(p);
@@ -170,9 +185,12 @@ function renderGrid() {
         <span class="pg-badge">${p}</span>
       </div>`;
 
-    tile.addEventListener('click', e => handleTileClick(p, e));
-    tile.addEventListener('keydown', e => {
-      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); handleTileClick(p, e); }
+    tile.addEventListener('click', (e) => handleTileClick(p, e));
+    tile.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        handleTileClick(p, e);
+      }
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
         e.preventDefault();
         const next = pageGrid.querySelector(`[data-page="${p + 1}"]`);
@@ -198,7 +216,7 @@ function renderGrid() {
 }
 
 function updateTileClasses() {
-  pageGrid.querySelectorAll('.pg-tile').forEach(tile => {
+  pageGrid.querySelectorAll('.pg-tile').forEach((tile) => {
     const p = parseInt(tile.dataset.page, 10);
     const sel = selectionOrder.includes(p);
     tile.classList.toggle('selected', sel);
@@ -264,7 +282,10 @@ async function loadPdf(file) {
     thumbCache.clear();
 
     // Load with pdfjs for thumbnails (use a copy of the buffer)
-    if (pdfJsDoc) { pdfJsDoc.destroy(); pdfJsDoc = null; }
+    if (pdfJsDoc) {
+      pdfJsDoc.destroy();
+      pdfJsDoc = null;
+    }
     pdfJsDoc = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
 
     const stem = file.name.replace(/\.pdf$/i, '');
@@ -285,7 +306,10 @@ async function loadPdf(file) {
 // ── Download logic ─────────────────────────────────────────────────────────
 async function doDownload() {
   if (!srcDoc) return;
-  if (selectionOrder.length === 0) { showError('Select at least one page first.'); return; }
+  if (selectionOrder.length === 0) {
+    showError('Select at least one page first.');
+    return;
+  }
 
   dlBtn.disabled = true;
   errorBar.classList.add('hidden');
@@ -294,16 +318,18 @@ async function doDownload() {
     if (mode === 'extract') {
       dlStatus.textContent = 'Extracting…';
       const out = await PDFDocument.create();
-      const indices = selectionOrder.map(p => p - 1);
+      const indices = selectionOrder.map((p) => p - 1);
       const copied = await out.copyPages(srcDoc, indices);
-      copied.forEach(p => out.addPage(p));
+      copied.forEach((p) => out.addPage(p));
       const bytes = await out.save();
-      triggerDownload(new Blob([bytes], { type: 'application/pdf' }), extractName.value.trim() || 'extract.pdf');
+      triggerDownload(
+        new Blob([bytes], { type: 'application/pdf' }),
+        extractName.value.trim() || 'extract.pdf',
+      );
       dlStatus.textContent = `Done — ${formatBytes(bytes.length)}`;
-
     } else {
       const sorted = [...selectionOrder].sort((a, b) => a - b);
-      const groups = toggleGroup.checked ? groupConsecutive(sorted) : sorted.map(p => [p]);
+      const groups = toggleGroup.checked ? groupConsecutive(sorted) : sorted.map((p) => [p]);
       const stem = splitName.value.trim() || 'document';
 
       dlStatus.textContent = `Building ${groups.length} file${groups.length !== 1 ? 's' : ''}…`;
@@ -311,14 +337,15 @@ async function doDownload() {
 
       for (const group of groups) {
         const out = await PDFDocument.create();
-        const indices = group.map(p => p - 1);
+        const indices = group.map((p) => p - 1);
         const copied = await out.copyPages(srcDoc, indices);
-        copied.forEach(p => out.addPage(p));
+        copied.forEach((p) => out.addPage(p));
         const bytes = await out.save();
         const blob = new Blob([bytes], { type: 'application/pdf' });
-        const name = group.length === 1
-          ? `${stem}-page-${group[0]}.pdf`
-          : `${stem}-pages-${group[0]}-${group[group.length - 1]}.pdf`;
+        const name =
+          group.length === 1
+            ? `${stem}-page-${group[0]}.pdf`
+            : `${stem}-pages-${group[0]}-${group[group.length - 1]}.pdf`;
         entries.push({ name, blob });
       }
 
@@ -354,15 +381,23 @@ function setMode(m) {
 
 // ── Event wiring ───────────────────────────────────────────────────────────
 dropZone.addEventListener('click', () => fileInput.click());
-dropZone.addEventListener('keydown', e => {
-  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+dropZone.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    fileInput.click();
+  }
 });
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropZone.classList.add('dragover');
+});
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop', e => {
+dropZone.addEventListener('drop', (e) => {
   e.preventDefault();
   dropZone.classList.remove('dragover');
-  const f = [...e.dataTransfer.files].find(f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'));
+  const f = [...e.dataTransfer.files].find(
+    (f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'),
+  );
   if (f) loadPdf(f);
   else showError('Please drop a PDF file.');
 });
@@ -373,10 +408,20 @@ fileInput.addEventListener('change', () => {
 });
 
 clearFileBtn.addEventListener('click', () => {
-  if (pdfJsDoc) { pdfJsDoc.destroy(); pdfJsDoc = null; }
+  if (pdfJsDoc) {
+    pdfJsDoc.destroy();
+    pdfJsDoc = null;
+  }
   thumbCache.clear();
-  if (thumbObserver) { thumbObserver.disconnect(); thumbObserver = null; }
-  srcDoc = null; srcFile = null; pageCount = 0; selectionOrder = []; lastClickedPage = null;
+  if (thumbObserver) {
+    thumbObserver.disconnect();
+    thumbObserver = null;
+  }
+  srcDoc = null;
+  srcFile = null;
+  pageCount = 0;
+  selectionOrder = [];
+  lastClickedPage = null;
   pageGrid.innerHTML = '';
   controls.classList.add('hidden');
   dlStatus.textContent = '';
@@ -389,7 +434,7 @@ document.getElementById('btn-select-all').addEventListener('click', () => {
 });
 document.getElementById('btn-invert').addEventListener('click', () => {
   const allPages = Array.from({ length: pageCount }, (_, i) => i + 1);
-  selectionOrder = allPages.filter(p => !selectionOrder.includes(p));
+  selectionOrder = allPages.filter((p) => !selectionOrder.includes(p));
   syncFromSelection();
 });
 document.getElementById('btn-clear-sel').addEventListener('click', () => {

@@ -1,12 +1,4 @@
-import {
-  PDFDocument,
-  PDFName,
-  PDFString,
-  PDFArray,
-  PDFDict,
-  PDFNull,
-  PDFNumber,
-} from 'pdf-lib';
+import { PDFDocument, PDFName, PDFString, PDFArray, PDFDict, PDFNull, PDFNumber } from 'pdf-lib';
 
 // ── State ──────────────────────────────────────────────────────────────────
 let items = []; // { id, file, type:'pdf'|'image', pageCount, pagesInput }
@@ -14,19 +6,19 @@ let idSeq = 0;
 let dragSrcId = null;
 
 // ── DOM refs ──────────────────────────────────────────────────────────────
-const dropZone    = document.getElementById('drop-zone');
-const fileInput   = document.getElementById('file-input');
-const stripWrap   = document.getElementById('strip-wrap');
-const fileStrip   = document.getElementById('file-strip');
-const fileCount   = document.getElementById('file-count');
-const optWrap     = document.getElementById('options-wrap');
-const actionWrap  = document.getElementById('action-wrap');
-const mergeBtn    = document.getElementById('merge-btn');
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+const stripWrap = document.getElementById('strip-wrap');
+const fileStrip = document.getElementById('file-strip');
+const fileCount = document.getElementById('file-count');
+const optWrap = document.getElementById('options-wrap');
+const actionWrap = document.getElementById('action-wrap');
+const mergeBtn = document.getElementById('merge-btn');
 const mergeStatus = document.getElementById('merge-status');
-const errorBar    = document.getElementById('error-bar');
-const outName     = document.getElementById('out-name');
-const toggleBkm   = document.getElementById('toggle-bookmarks');
-const toggleMeta  = document.getElementById('toggle-strip-meta');
+const errorBar = document.getElementById('error-bar');
+const outName = document.getElementById('out-name');
+const toggleBkm = document.getElementById('toggle-bookmarks');
+const toggleMeta = document.getElementById('toggle-strip-meta');
 const clearAllBtn = document.getElementById('clear-all-btn');
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -57,7 +49,10 @@ function parsePageRange(str, maxPage) {
   if (!str) return null;
 
   const indices = new Set();
-  const parts = str.split(',').map(s => s.trim()).filter(Boolean);
+  const parts = str
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
 
   for (const part of parts) {
     if (/^\d+$/.test(part)) {
@@ -67,9 +62,10 @@ function parsePageRange(str, maxPage) {
     } else if (/^(\d+)-(\d*)$/.test(part)) {
       const [, a, b] = part.match(/^(\d+)-(\d*)$/);
       const from = parseInt(a, 10);
-      const to   = b ? parseInt(b, 10) : maxPage;
+      const to = b ? parseInt(b, 10) : maxPage;
       if (from < 1 || from > maxPage) throw new Error(`Page ${from} out of range (1–${maxPage})`);
-      if (to < from || to > maxPage)  throw new Error(`Range "${part}" is invalid (max page: ${maxPage})`);
+      if (to < from || to > maxPage)
+        throw new Error(`Range "${part}" is invalid (max page: ${maxPage})`);
       for (let i = from; i <= to; i++) indices.add(i - 1);
     } else {
       throw new Error(`Cannot parse "${part}" — use e.g. "1-3, 7, 9-"`);
@@ -80,8 +76,12 @@ function parsePageRange(str, maxPage) {
 }
 
 function validatePageRange(str, maxPage) {
-  try { parsePageRange(str, maxPage); return ''; }
-  catch (e) { return e.message; }
+  try {
+    parsePageRange(str, maxPage);
+    return '';
+  } catch (e) {
+    return e.message;
+  }
 }
 
 // ── Page count via pdf-lib ─────────────────────────────────────────────────
@@ -128,27 +128,27 @@ function renderCard(item) {
   `;
 
   // Drag to reorder
-  card.addEventListener('dragstart', e => {
+  card.addEventListener('dragstart', (e) => {
     dragSrcId = item.id;
     card.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
   });
   card.addEventListener('dragend', () => {
     card.classList.remove('dragging');
-    document.querySelectorAll('.pdf-card').forEach(c => c.classList.remove('drag-over'));
+    document.querySelectorAll('.pdf-card').forEach((c) => c.classList.remove('drag-over'));
   });
-  card.addEventListener('dragover', e => {
+  card.addEventListener('dragover', (e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     if (dragSrcId !== item.id) card.classList.add('drag-over');
   });
   card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
-  card.addEventListener('drop', e => {
+  card.addEventListener('drop', (e) => {
     e.preventDefault();
     card.classList.remove('drag-over');
     if (dragSrcId == null || dragSrcId === item.id) return;
-    const srcIdx = items.findIndex(i => i.id === dragSrcId);
-    const dstIdx = items.findIndex(i => i.id === item.id);
+    const srcIdx = items.findIndex((i) => i.id === dragSrcId);
+    const dstIdx = items.findIndex((i) => i.id === item.id);
     if (srcIdx < 0 || dstIdx < 0) return;
     const [moved] = items.splice(srcIdx, 1);
     items.splice(dstIdx, 0, moved);
@@ -157,7 +157,7 @@ function renderCard(item) {
 
   // Remove
   card.querySelector('.pdf-card-remove').addEventListener('click', () => {
-    items = items.filter(i => i.id !== item.id);
+    items = items.filter((i) => i.id !== item.id);
     reRenderStrip();
     updateVisibility();
   });
@@ -179,7 +179,7 @@ function renderCard(item) {
 
 function reRenderStrip() {
   fileStrip.innerHTML = '';
-  items.forEach(item => {
+  items.forEach((item) => {
     fileStrip.appendChild(renderCard(item));
     if (item.type === 'image') renderImageThumb(item.file, item.id);
   });
@@ -196,11 +196,14 @@ function updateCardMeta(item) {
 
 // ── File ingestion ─────────────────────────────────────────────────────────
 async function ingestFiles(files) {
-  const accepted = [...files].filter(f => {
+  const accepted = [...files].filter((f) => {
     const name = f.name.toLowerCase();
     return (
-      f.type === 'application/pdf' || name.endsWith('.pdf') ||
-      f.type === 'image/png' || f.type === 'image/jpeg' || f.type === 'image/webp'
+      f.type === 'application/pdf' ||
+      name.endsWith('.pdf') ||
+      f.type === 'image/png' ||
+      f.type === 'image/jpeg' ||
+      f.type === 'image/webp'
     );
   });
 
@@ -209,14 +212,16 @@ async function ingestFiles(files) {
     return;
   }
   if (accepted.length < files.length) {
-    showError(`${files.length - accepted.length} file(s) skipped — only PDF, PNG, JPEG, and WebP are accepted.`);
+    showError(
+      `${files.length - accepted.length} file(s) skipped — only PDF, PNG, JPEG, and WebP are accepted.`,
+    );
   }
 
   for (const file of accepted) {
     const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-    const type  = isPdf ? 'pdf' : 'image';
-    const id    = ++idSeq;
-    const item  = { id, file, type, pageCount: type === 'image' ? 1 : 0, pagesInput: '' };
+    const type = isPdf ? 'pdf' : 'image';
+    const id = ++idSeq;
+    const item = { id, file, type, pageCount: type === 'image' ? 1 : 0, pagesInput: '' };
     items.push(item);
     fileStrip.appendChild(renderCard(item));
 
@@ -225,7 +230,7 @@ async function ingestFiles(files) {
     } else {
       // Resolve page count asynchronously so the card appears immediately.
       getPdfPageCount(file)
-        .then(count => {
+        .then((count) => {
           item.pageCount = count;
           updateCardMeta(item);
           // Re-validate any page range the user may have typed while waiting.
@@ -254,7 +259,7 @@ async function merge() {
   try {
     const out = await PDFDocument.create();
     const addBookmarks = toggleBkm.checked;
-    const stripMeta    = toggleMeta.checked;
+    const stripMeta = toggleMeta.checked;
     const outlineEntries = []; // { title, pageIndex }
     let totalPages = 0;
 
@@ -263,10 +268,10 @@ async function merge() {
       const firstPage = totalPages;
 
       if (item.type === 'pdf') {
-        const buf      = await item.file.arrayBuffer();
-        const src      = await PDFDocument.load(buf, { ignoreEncryption: true });
+        const buf = await item.file.arrayBuffer();
+        const src = await PDFDocument.load(buf, { ignoreEncryption: true });
         const srcCount = src.getPageCount();
-        const maxPage  = item.pageCount || srcCount;
+        const maxPage = item.pageCount || srcCount;
 
         let indices;
         try {
@@ -277,12 +282,11 @@ async function merge() {
         if (indices === null) indices = Array.from({ length: srcCount }, (_, i) => i);
 
         const copied = await out.copyPages(src, indices);
-        copied.forEach(p => out.addPage(p));
+        copied.forEach((p) => out.addPage(p));
         totalPages += copied.length;
-
       } else {
         // Image → A4 PDF page
-        const buf  = await item.file.arrayBuffer();
+        const buf = await item.file.arrayBuffer();
         let embedded;
         if (item.file.type === 'image/png') {
           embedded = await out.embedPng(buf);
@@ -292,15 +296,16 @@ async function merge() {
           embedded = await out.embedJpg(buf);
         }
 
-        const A4_W = 595, A4_H = 842;
+        const A4_W = 595,
+          A4_H = 842;
         const scale = Math.min(A4_W / embedded.width, A4_H / embedded.height);
-        const imgW  = embedded.width  * scale;
-        const imgH  = embedded.height * scale;
-        const page  = out.addPage([A4_W, A4_H]);
+        const imgW = embedded.width * scale;
+        const imgH = embedded.height * scale;
+        const page = out.addPage([A4_W, A4_H]);
         page.drawImage(embedded, {
-          x:      (A4_W - imgW) / 2,
-          y:      (A4_H - imgH) / 2,
-          width:  imgW,
+          x: (A4_W - imgW) / 2,
+          y: (A4_H - imgH) / 2,
+          width: imgW,
           height: imgH,
         });
         totalPages += 1;
@@ -325,12 +330,12 @@ async function merge() {
     }
 
     mergeStatus.textContent = 'Saving…';
-    const bytes    = await out.save();
-    const blob     = new Blob([bytes], { type: 'application/pdf' });
-    const url      = URL.createObjectURL(blob);
-    const a        = document.createElement('a');
-    a.href         = url;
-    a.download     = outName.value.trim() || 'merged.pdf';
+    const bytes = await out.save();
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = outName.value.trim() || 'merged.pdf';
     a.click();
     URL.revokeObjectURL(url);
     mergeStatus.textContent = `Done — ${formatBytes(bytes.length)}`;
@@ -349,10 +354,10 @@ async function merge() {
 function addOutline(doc, entries) {
   try {
     const context = doc.context;
-    const pages   = doc.getPages();
+    const pages = doc.getPages();
 
     const itemRefs = entries
-      .map(e => {
+      .map((e) => {
         const page = pages[e.pageIndex];
         return page ? { ref: context.nextRef(), title: e.title, page } : null;
       })
@@ -371,18 +376,18 @@ function addOutline(doc, entries) {
       dest.push(PDFNull);
 
       const dict = PDFDict.withContext(context);
-      dict.set(PDFName.of('Title'),  PDFString.of(item.title));
+      dict.set(PDFName.of('Title'), PDFString.of(item.title));
       dict.set(PDFName.of('Parent'), outlinesRef);
-      dict.set(PDFName.of('Dest'),   dest);
-      if (idx > 0)                   dict.set(PDFName.of('Prev'), itemRefs[idx - 1].ref);
+      dict.set(PDFName.of('Dest'), dest);
+      if (idx > 0) dict.set(PDFName.of('Prev'), itemRefs[idx - 1].ref);
       if (idx < itemRefs.length - 1) dict.set(PDFName.of('Next'), itemRefs[idx + 1].ref);
       context.assign(item.ref, dict);
     });
 
     const outlinesDict = PDFDict.withContext(context);
-    outlinesDict.set(PDFName.of('Type'),  PDFName.of('Outlines'));
+    outlinesDict.set(PDFName.of('Type'), PDFName.of('Outlines'));
     outlinesDict.set(PDFName.of('First'), itemRefs[0].ref);
-    outlinesDict.set(PDFName.of('Last'),  itemRefs[itemRefs.length - 1].ref);
+    outlinesDict.set(PDFName.of('Last'), itemRefs[itemRefs.length - 1].ref);
     outlinesDict.set(PDFName.of('Count'), PDFNumber.of(itemRefs.length));
     context.assign(outlinesRef, outlinesDict);
 
@@ -400,28 +405,40 @@ function webpToPngBuffer(file) {
     const url = URL.createObjectURL(file);
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      canvas.width  = img.naturalWidth;
+      canvas.width = img.naturalWidth;
       canvas.height = img.naturalHeight;
       canvas.getContext('2d').drawImage(img, 0, 0);
       URL.revokeObjectURL(url);
-      canvas.toBlob(blob => {
-        if (!blob) { reject(new Error('WebP → PNG conversion failed')); return; }
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error('WebP → PNG conversion failed'));
+          return;
+        }
         blob.arrayBuffer().then(resolve).catch(reject);
       }, 'image/png');
     };
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not load image')); };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Could not load image'));
+    };
     img.src = url;
   });
 }
 
 // ── Event wiring ───────────────────────────────────────────────────────────
 dropZone.addEventListener('click', () => fileInput.click());
-dropZone.addEventListener('keydown', e => {
-  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+dropZone.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    fileInput.click();
+  }
 });
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropZone.classList.add('dragover');
+});
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop', e => {
+dropZone.addEventListener('drop', (e) => {
   e.preventDefault();
   dropZone.classList.remove('dragover');
   if (e.dataTransfer.files.length) ingestFiles(e.dataTransfer.files);

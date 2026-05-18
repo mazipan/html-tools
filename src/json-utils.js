@@ -5,17 +5,22 @@ function sanitizeJson(input) {
   let i = 0;
   const n = input.length;
   const isIdStart = (c) => /[A-Za-z_$]/.test(c);
-  const isIdPart  = (c) => /[A-Za-z0-9_$]/.test(c);
+  const isIdPart = (c) => /[A-Za-z0-9_$]/.test(c);
 
   while (i < n) {
     const c = input[i];
 
     if (c === '"') {
-      out += c; i++;
+      out += c;
+      i++;
       while (i < n) {
         const ch = input[i];
         out += ch;
-        if (ch === '\\' && i + 1 < n) { out += input[i + 1]; i += 2; continue; }
+        if (ch === '\\' && i + 1 < n) {
+          out += input[i + 1];
+          i += 2;
+          continue;
+        }
         i++;
         if (ch === '"') break;
       }
@@ -23,15 +28,21 @@ function sanitizeJson(input) {
     }
 
     if (c === "'") {
-      out += '"'; i++;
+      out += '"';
+      i++;
       while (i < n) {
         const ch = input[i];
         if (ch === '\\' && i + 1 < n) {
           const nx = input[i + 1];
-          out += (nx === "'") ? "'" : '\\' + nx;
-          i += 2; continue;
+          out += nx === "'" ? "'" : '\\' + nx;
+          i += 2;
+          continue;
         }
-        if (ch === "'") { out += '"'; i++; break; }
+        if (ch === "'") {
+          out += '"';
+          i++;
+          break;
+        }
         if (ch === '"') out += '\\"';
         else out += ch;
         i++;
@@ -62,7 +73,8 @@ function sanitizeJson(input) {
       continue;
     }
 
-    out += c; i++;
+    out += c;
+    i++;
   }
 
   return out.replace(/,(\s*[}\]])/g, '$1');

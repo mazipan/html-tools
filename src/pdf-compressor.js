@@ -1,10 +1,4 @@
-import {
-  PDFDocument,
-  PDFName,
-  PDFArray,
-  PDFNumber,
-  PDFRawStream,
-} from 'pdf-lib';
+import { PDFDocument, PDFName, PDFArray, PDFNumber, PDFRawStream } from 'pdf-lib';
 
 // formatBytes / formatPct / buildStoreZip are loaded as classic-script globals
 // from image-utils.js (see <script src="image-utils.js"> in the HTML head).
@@ -14,9 +8,9 @@ const MAX_FILES = 25;
 
 const PRESET_QUALITY = {
   lossless: 0.92,
-  visual:   0.85,
-  smaller:  0.70,
-  smallest: 0.50,
+  visual: 0.85,
+  smaller: 0.7,
+  smallest: 0.5,
 };
 
 // ── State ────────────────────────────────────────────────────────────────
@@ -32,21 +26,21 @@ const opts = {
 };
 
 // ── DOM refs ─────────────────────────────────────────────────────────────
-const dropZone   = document.getElementById('drop-zone');
-const fileInput  = document.getElementById('file-input');
-const stripWrap  = document.getElementById('strip-wrap');
-const fileStrip  = document.getElementById('file-strip');
-const fileCount  = document.getElementById('file-count');
-const optsWrap   = document.getElementById('options-wrap');
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+const stripWrap = document.getElementById('strip-wrap');
+const fileStrip = document.getElementById('file-strip');
+const fileCount = document.getElementById('file-count');
+const optsWrap = document.getElementById('options-wrap');
 const actionWrap = document.getElementById('action-wrap');
-const compressBtn  = document.getElementById('compress-btn');
+const compressBtn = document.getElementById('compress-btn');
 const downloadZipBtn = document.getElementById('download-zip-btn');
-const statusEl   = document.getElementById('compress-status');
-const errorBar   = document.getElementById('error-bar');
-const clearAll   = document.getElementById('clear-all-btn');
+const statusEl = document.getElementById('compress-status');
+const errorBar = document.getElementById('error-bar');
+const clearAll = document.getElementById('clear-all-btn');
 const toggleDown = document.getElementById('toggle-downscale');
-const downInput  = document.getElementById('downscale-input');
-const downPx     = document.getElementById('downscale-px');
+const downInput = document.getElementById('downscale-input');
+const downPx = document.getElementById('downscale-px');
 const toggleMeta = document.getElementById('toggle-strip-meta');
 const filePattern = document.getElementById('filename-pattern');
 const summaryWrap = document.getElementById('compress-summary');
@@ -77,12 +71,18 @@ function outFilename(srcName) {
 // ── Card rendering ───────────────────────────────────────────────────────
 function statusLabel(item) {
   switch (item.status) {
-    case 'queued':  return 'Queued';
-    case 'working': return item.statusDetail || 'Compressing…';
-    case 'done':    return `Done — ${item.stats?.imagesReplaced ?? 0} image(s) re-encoded${item.stats?.imagesSkipped ? `, ${item.stats.imagesSkipped} skipped` : ''}`;
-    case 'skipped': return 'No JPEG images found — file unchanged';
-    case 'error':   return `Error — ${item.error || 'unknown'}`;
-    default:        return '';
+    case 'queued':
+      return 'Queued';
+    case 'working':
+      return item.statusDetail || 'Compressing…';
+    case 'done':
+      return `Done — ${item.stats?.imagesReplaced ?? 0} image(s) re-encoded${item.stats?.imagesSkipped ? `, ${item.stats.imagesSkipped} skipped` : ''}`;
+    case 'skipped':
+      return 'No JPEG images found — file unchanged';
+    case 'error':
+      return `Error — ${item.error || 'unknown'}`;
+    default:
+      return '';
   }
 }
 
@@ -102,7 +102,7 @@ function renderCard(item) {
   `;
 
   card.querySelector('.pdfc-card-remove').addEventListener('click', () => {
-    items = items.filter(i => i.id !== item.id);
+    items = items.filter((i) => i.id !== item.id);
     card.remove();
     fileCount.textContent = items.length ? `(${items.length})` : '';
     updateVisibility();
@@ -124,9 +124,9 @@ function updateCard(item) {
   result.innerHTML = '';
   if (item.status === 'done' && item.stats) {
     const before = item.stats.before;
-    const after  = item.stats.after;
+    const after = item.stats.after;
     const pctNum = before ? ((after - before) / before) * 100 : 0;
-    const cls = pctNum < -2 ? 'good' : (pctNum > 2 ? 'bad' : 'neutral');
+    const cls = pctNum < -2 ? 'good' : pctNum > 2 ? 'bad' : 'neutral';
     result.innerHTML = `
       <span class="before">${formatBytes(before)}</span>
       <span>→</span>
@@ -159,9 +159,9 @@ function downloadOne(item) {
 }
 
 async function downloadZip() {
-  const done = items.filter(i => i.status === 'done' && i.compressedBlob);
+  const done = items.filter((i) => i.status === 'done' && i.compressedBlob);
   if (done.length === 0) return;
-  const entries = done.map(i => ({ name: outFilename(i.file.name), blob: i.compressedBlob }));
+  const entries = done.map((i) => ({ name: outFilename(i.file.name), blob: i.compressedBlob }));
   const zip = await buildStoreZip(entries);
   const url = URL.createObjectURL(zip);
   const a = document.createElement('a');
@@ -172,8 +172,8 @@ async function downloadZip() {
 }
 
 function refreshActionState() {
-  const doneCount = items.filter(i => i.status === 'done').length;
-  const inFlight = items.some(i => i.status === 'queued' || i.status === 'working');
+  const doneCount = items.filter((i) => i.status === 'done').length;
+  const inFlight = items.some((i) => i.status === 'queued' || i.status === 'working');
   // Only surface the Download button once the queue has settled — otherwise
   // the label would flicker between "Download" and "Download all (zip)" as
   // each file finishes mid-run.
@@ -186,12 +186,16 @@ function refreshActionState() {
 }
 
 function escAttr(s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 function renderSummary() {
-  const processed = items.filter(i =>
-    i.status === 'done' || i.status === 'skipped' || i.status === 'error'
+  const processed = items.filter(
+    (i) => i.status === 'done' || i.status === 'skipped' || i.status === 'error',
   );
   if (processed.length === 0) {
     summaryWrap.classList.add('hidden');
@@ -202,33 +206,34 @@ function renderSummary() {
   summaryWrap.classList.remove('hidden');
 
   let totalBefore = 0;
-  let totalAfter  = 0;
+  let totalAfter = 0;
 
-  summaryRows.innerHTML = processed.map(i => {
-    if (i.status === 'error') {
-      return `<div class="summary-row">
+  summaryRows.innerHTML = processed
+    .map((i) => {
+      if (i.status === 'error') {
+        return `<div class="summary-row">
         <span class="name" title="${escAttr(i.file.name)}">${escAttr(i.file.name)}</span>
         <span class="sizes">${formatBytes(i.originalBytes)}</span>
         <span class="delta error" title="${escAttr(i.error || '')}">error</span>
       </div>`;
-    }
-    if (i.status === 'skipped' || !i.stats) {
-      // Treat the "no changes" path as zero savings on totals.
-      totalBefore += i.originalBytes;
-      totalAfter  += i.originalBytes;
-      return `<div class="summary-row">
+      }
+      if (i.status === 'skipped' || !i.stats) {
+        // Treat the "no changes" path as zero savings on totals.
+        totalBefore += i.originalBytes;
+        totalAfter += i.originalBytes;
+        return `<div class="summary-row">
         <span class="name" title="${escAttr(i.file.name)}">${escAttr(i.file.name)}</span>
         <span class="sizes">${formatBytes(i.originalBytes)}</span>
         <span class="delta skipped" title="No JPEG images re-encoded (text-only or non-DCT images)">unchanged</span>
       </div>`;
-    }
-    const before = i.stats.before;
-    const after  = i.stats.after;
-    totalBefore += before;
-    totalAfter  += after;
-    const pctNum = before ? ((after - before) / before) * 100 : 0;
-    const cls = pctNum < -2 ? 'good' : (pctNum > 2 ? 'bad' : 'neutral');
-    return `<div class="summary-row">
+      }
+      const before = i.stats.before;
+      const after = i.stats.after;
+      totalBefore += before;
+      totalAfter += after;
+      const pctNum = before ? ((after - before) / before) * 100 : 0;
+      const cls = pctNum < -2 ? 'good' : pctNum > 2 ? 'bad' : 'neutral';
+      return `<div class="summary-row">
       <span class="name" title="${escAttr(i.file.name)}">${escAttr(i.file.name)}</span>
       <span class="sizes">
         <span class="before">${formatBytes(before)}</span>
@@ -237,19 +242,19 @@ function renderSummary() {
       </span>
       <span class="delta ${cls}">${formatPct(after, before)}</span>
     </div>`;
-  }).join('');
+    })
+    .join('');
 
   const savedBytes = totalBefore - totalAfter;
   const savedPct = totalBefore ? (savedBytes / totalBefore) * 100 : 0;
-  const sign = savedBytes > 0 ? '−' : (savedBytes < 0 ? '+' : '');
-  summaryTotal.textContent =
-    `${processed.length} file${processed.length === 1 ? '' : 's'} · saved ${sign}${formatBytes(Math.abs(savedBytes))} (${savedPct.toFixed(0)}%)`;
+  const sign = savedBytes > 0 ? '−' : savedBytes < 0 ? '+' : '';
+  summaryTotal.textContent = `${processed.length} file${processed.length === 1 ? '' : 's'} · saved ${sign}${formatBytes(Math.abs(savedBytes))} (${savedPct.toFixed(0)}%)`;
 }
 
 // ── File ingestion ───────────────────────────────────────────────────────
 async function ingestFiles(files) {
-  const accepted = [...files].filter(f =>
-    f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')
+  const accepted = [...files].filter(
+    (f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'),
   );
   if (accepted.length === 0) {
     showError('No PDFs found. Drop one or more .pdf files.');
@@ -259,14 +264,17 @@ async function ingestFiles(files) {
     showError(`${files.length - accepted.length} file(s) skipped — only PDFs are accepted.`);
   }
   if (items.length + accepted.length > MAX_FILES) {
-    showError(`Cap is ${MAX_FILES} files per session. ${accepted.length} dropped, only adding what fits.`);
+    showError(
+      `Cap is ${MAX_FILES} files per session. ${accepted.length} dropped, only adding what fits.`,
+    );
   }
 
   for (const file of accepted) {
     if (items.length >= MAX_FILES) break;
     const id = ++idSeq;
     const item = {
-      id, file,
+      id,
+      file,
       status: 'queued',
       originalBytes: file.size,
       compressedBlob: null,
@@ -326,9 +334,10 @@ async function reencodeJpeg(srcBlob, quality, maxLong) {
     dstW = Math.max(1, Math.round(dstW * s));
     dstH = Math.max(1, Math.round(dstH * s));
   }
-  const canvas = (typeof OffscreenCanvas !== 'undefined')
-    ? new OffscreenCanvas(dstW, dstH)
-    : Object.assign(document.createElement('canvas'), { width: dstW, height: dstH });
+  const canvas =
+    typeof OffscreenCanvas !== 'undefined'
+      ? new OffscreenCanvas(dstW, dstH)
+      : Object.assign(document.createElement('canvas'), { width: dstW, height: dstH });
   const ctx = canvas.getContext('2d');
   // JPEG has no alpha — fill white in case the decoded source carries any.
   ctx.fillStyle = '#ffffff';
@@ -337,17 +346,20 @@ async function reencodeJpeg(srcBlob, quality, maxLong) {
   bitmap.close?.();
   const blob = await (canvas.convertToBlob
     ? canvas.convertToBlob({ type: 'image/jpeg', quality })
-    : new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality)));
+    : new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality)));
   return { blob, w: dstW, h: dstH };
 }
 
 async function compressPdf(file) {
   const sourceBytes = new Uint8Array(await file.arrayBuffer());
-  const doc = await PDFDocument.load(sourceBytes, { ignoreEncryption: true, updateMetadata: false });
+  const doc = await PDFDocument.load(sourceBytes, {
+    ignoreEncryption: true,
+    updateMetadata: false,
+  });
   const ctx = doc.context;
 
   let imagesReplaced = 0;
-  let imagesSkipped  = 0;
+  let imagesSkipped = 0;
   let bytesShavedFromImages = 0; // approximate; pre-save accounting
 
   // Track refs we've already replaced so we don't double-process a shared
@@ -381,15 +393,24 @@ async function compressPdf(file) {
     // is the common path; even the rare DCT-encoded mask would lose the mask
     // semantics if we round-tripped it through a regular JPEG decode).
     const isMask = dict.get(PDFName.of('ImageMask'));
-    if (isMask) { imagesSkipped++; continue; }
-    if (dict.get(PDFName.of('SMaskInData'))) { imagesSkipped++; continue; }
+    if (isMask) {
+      imagesSkipped++;
+      continue;
+    }
+    if (dict.get(PDFName.of('SMaskInData'))) {
+      imagesSkipped++;
+      continue;
+    }
 
     const srcBytes = obj.contents;
     const srcBlob = new Blob([srcBytes], { type: 'image/jpeg' });
 
     const maxLong = opts.downscale ? Math.max(200, opts.downscalePx | 0) : 0;
     const result = await reencodeJpeg(srcBlob, PRESET_QUALITY[opts.preset], maxLong);
-    if (!result) { imagesSkipped++; continue; }
+    if (!result) {
+      imagesSkipped++;
+      continue;
+    }
 
     const newBytes = new Uint8Array(await result.blob.arrayBuffer());
     if (newBytes.length >= srcBytes.length) {
@@ -402,7 +423,7 @@ async function compressPdf(file) {
     // preserve ColorSpace, BitsPerComponent, Decode, SMask, etc.
     dict.set(PDFName.of('Filter'), PDFName.of('DCTDecode'));
     dict.delete(PDFName.of('DecodeParms'));
-    dict.set(PDFName.of('Width'),  PDFNumber.of(result.w));
+    dict.set(PDFName.of('Width'), PDFNumber.of(result.w));
     dict.set(PDFName.of('Height'), PDFNumber.of(result.h));
     // Length is auto-rewritten by pdf-lib on save based on the new bytes.
 
@@ -410,7 +431,7 @@ async function compressPdf(file) {
     ctx.assign(ref, newStream);
     visited.add(ref);
     imagesReplaced++;
-    bytesShavedFromImages += (srcBytes.length - newBytes.length);
+    bytesShavedFromImages += srcBytes.length - newBytes.length;
   }
 
   if (opts.stripMeta) {
@@ -429,7 +450,7 @@ async function compressPdf(file) {
     blob,
     stats: {
       before: sourceBytes.length,
-      after:  outBytes.length,
+      after: outBytes.length,
       imagesReplaced,
       imagesSkipped,
       bytesShavedFromImages,
@@ -475,11 +496,13 @@ async function runQueue() {
 
 // ── Options wiring ───────────────────────────────────────────────────────
 const presetBtns = Array.from(document.querySelectorAll('[data-preset]'));
-presetBtns.forEach(b => b.addEventListener('click', () => {
-  presetBtns.forEach(x => x.classList.remove('on'));
-  b.classList.add('on');
-  opts.preset = b.dataset.preset;
-}));
+presetBtns.forEach((b) =>
+  b.addEventListener('click', () => {
+    presetBtns.forEach((x) => x.classList.remove('on'));
+    b.classList.add('on');
+    opts.preset = b.dataset.preset;
+  }),
+);
 
 toggleDown.addEventListener('change', () => {
   opts.downscale = toggleDown.checked;
@@ -488,17 +511,27 @@ toggleDown.addEventListener('change', () => {
 downPx.addEventListener('input', () => {
   opts.downscalePx = parseInt(downPx.value, 10) || 2000;
 });
-toggleMeta.addEventListener('change', () => { opts.stripMeta = toggleMeta.checked; });
-filePattern.addEventListener('change', () => { opts.filenamePattern = filePattern.value; });
+toggleMeta.addEventListener('change', () => {
+  opts.stripMeta = toggleMeta.checked;
+});
+filePattern.addEventListener('change', () => {
+  opts.filenamePattern = filePattern.value;
+});
 
 // ── Event wiring ─────────────────────────────────────────────────────────
 dropZone.addEventListener('click', () => fileInput.click());
-dropZone.addEventListener('keydown', e => {
-  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+dropZone.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    fileInput.click();
+  }
 });
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropZone.classList.add('dragover');
+});
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop', e => {
+dropZone.addEventListener('drop', (e) => {
   e.preventDefault();
   dropZone.classList.remove('dragover');
   if (e.dataTransfer.files.length) ingestFiles(e.dataTransfer.files);
@@ -520,7 +553,7 @@ clearAll.addEventListener('click', () => {
 
 compressBtn.addEventListener('click', runQueue);
 downloadZipBtn.addEventListener('click', () => {
-  const done = items.filter(i => i.status === 'done' && i.compressedBlob);
+  const done = items.filter((i) => i.status === 'done' && i.compressedBlob);
   if (done.length === 0) return;
   if (done.length === 1) downloadOne(done[0]);
   else downloadZip();

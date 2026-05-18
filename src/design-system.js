@@ -12,7 +12,7 @@ import themeNightOwlLight from '@shikijs/themes/night-owl-light';
     engine: createJavaScriptRegexEngine(),
   });
 
-  document.querySelectorAll('pre').forEach(pre => {
+  document.querySelectorAll('pre').forEach((pre) => {
     const code = pre.textContent;
     if (!code.trim()) return;
     const lang = code.trimStart().startsWith('<') ? 'html' : 'javascript';
@@ -29,12 +29,21 @@ import themeNightOwlLight from '@shikijs/themes/night-owl-light';
 
       const wrapper = pre.closest('.ds-snippet');
       if (wrapper && !wrapper.querySelector('.ds-lang-badge')) {
-        const LANG_SHORT = { javascript: 'js', typescript: 'ts', markdown: 'md', python: 'py', ruby: 'rb', shellscript: 'sh' };
+        const LANG_SHORT = {
+          javascript: 'js',
+          typescript: 'ts',
+          markdown: 'md',
+          python: 'py',
+          ruby: 'rb',
+          shellscript: 'sh',
+        };
         const badge = document.createElement('span');
         badge.className = 'ds-lang-badge';
         badge.textContent = LANG_SHORT[lang] ?? lang;
         wrapper.appendChild(badge);
       }
-    } catch { /* keep plain text on error */ }
+    } catch {
+      /* keep plain text on error */
+    }
   });
 })();

@@ -2,11 +2,11 @@ import { marked } from 'marked';
 
 marked.use({ gfm: true });
 
-const editorEl  = document.getElementById('editor');
+const editorEl = document.getElementById('editor');
 const previewEl = document.getElementById('preview');
-const charEl    = document.getElementById('stat-chars');
-const wordEl    = document.getElementById('stat-words');
-const lineEl    = document.getElementById('stat-lines');
+const charEl = document.getElementById('stat-chars');
+const wordEl = document.getElementById('stat-words');
+const lineEl = document.getElementById('stat-lines');
 
 const SAMPLE = `# Markdown Preview
 
@@ -63,7 +63,7 @@ function render(text) {
   const html = marked.parse(text);
   previewEl.innerHTML = html;
   // Open all links in a new tab
-  previewEl.querySelectorAll('a').forEach(a => {
+  previewEl.querySelectorAll('a').forEach((a) => {
     a.setAttribute('target', '_blank');
     a.setAttribute('rel', 'noopener noreferrer');
   });
@@ -92,7 +92,9 @@ document.getElementById('btn-copy-md').addEventListener('click', async () => {
   const btn = document.getElementById('btn-copy-md');
   const orig = btn.textContent;
   btn.textContent = 'Copied!';
-  setTimeout(() => { btn.textContent = orig; }, 1500);
+  setTimeout(() => {
+    btn.textContent = orig;
+  }, 1500);
 });
 
 document.getElementById('btn-copy-html').addEventListener('click', async () => {
@@ -100,7 +102,9 @@ document.getElementById('btn-copy-html').addEventListener('click', async () => {
   const btn = document.getElementById('btn-copy-html');
   const orig = btn.textContent;
   btn.textContent = 'Copied!';
-  setTimeout(() => { btn.textContent = orig; }, 1500);
+  setTimeout(() => {
+    btn.textContent = orig;
+  }, 1500);
 });
 
 document.getElementById('btn-download').addEventListener('click', () => {
