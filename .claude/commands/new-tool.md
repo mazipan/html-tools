@@ -30,7 +30,7 @@ Follow AGENTS.md "Adding a new tool" exactly — this command is a runner for th
    ```
    Both update every tool page that references the new tool — review the diff before continuing.
 
-7. **Update docs**: add a bullet to the "Current tools" list in `AGENTS.md` and a row in the tools table in `README.md`. Keep wording terse and consistent with neighbours.
+7. **Update docs**: add a bullet to the "Current tools" list in `TOOLS.md` and a row in the tools table in `README.md`. Keep wording terse and consistent with neighbours.
 
 8. **Sanity check**: `npm run build` must succeed before stopping. Run it.
 
