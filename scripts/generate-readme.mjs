@@ -33,15 +33,15 @@ function categoryBlock(category, categoryTools) {
   const rows = categoryTools
     .map((t) => `| ${t.icon} [${t.name}](src/${t.slug}.html) | ${t.card || t.description} |`)
     .join('\n');
-  return [`### ${category}`, '', '| Tool | Description |', '|------|-------------|', rows].join('\n');
+  return [`### ${category}`, '', '| Tool | Description |', '|------|-------------|', rows].join(
+    '\n',
+  );
 }
 
 const sections = [...byCategory.entries()].map(([cat, catTools]) => categoryBlock(cat, catTools));
 const blockInner = sections.join('\n\n');
 const block =
-  `<!-- BEGIN:tools-table ${GENERATED_NOTE} -->\n` +
-  `${blockInner}\n` +
-  `<!-- END:tools-table -->`;
+  `<!-- BEGIN:tools-table ${GENERATED_NOTE} -->\n` + `${blockInner}\n` + `<!-- END:tools-table -->`;
 
 const readmePath = resolve(root, 'README.md');
 const original = readFileSync(readmePath, 'utf8');
