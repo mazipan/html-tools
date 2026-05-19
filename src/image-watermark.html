@@ -259,7 +259,18 @@
           <div class="preview-stage">
             <canvas id="preview-canvas"></canvas>
           </div>
-          <p class="text-xs text-gray-600 mt-1.5 text-center" id="preview-hint">Drag to move · Pinch to resize &amp; rotate</p>
+          <div class="flex items-center justify-between mt-1.5">
+            <p class="text-xs text-gray-600" id="preview-hint">Drag to move · Pinch to resize &amp; rotate</p>
+            <div id="preview-nav" class="hidden flex items-center gap-2">
+              <button id="prev-preview" class="btn-icon ghost btn-icon-sm" type="button" aria-label="Previous image">
+                <svg class="icon" aria-hidden="true"><use href="#icon-arrow-left"/></svg>
+              </button>
+              <span id="preview-counter" class="text-xs text-gray-500 tabular-nums">1 / 1</span>
+              <button id="next-preview" class="btn-icon ghost btn-icon-sm" type="button" aria-label="Next image">
+                <svg class="icon" aria-hidden="true"><use href="#icon-arrow-right"/></svg>
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Multi-image queue -->
@@ -474,6 +485,7 @@
     const items = [];
     let nextId = 1;
     const HARD_CAP = 50;
+    let previewIndex = 0;
 
     // ── Format helpers ────────────────────────────────────────────
     const FORMAT_TABLE = {
@@ -574,9 +586,32 @@
       previewTimer = setTimeout(updatePreview, 150);
     }
 
+    const previewNav     = document.getElementById('preview-nav');
+    const previewCounter = document.getElementById('preview-counter');
+    const prevBtn        = document.getElementById('prev-preview');
+    const nextBtn        = document.getElementById('next-preview');
+
+    function updatePreviewNav() {
+      const multi = items.length > 1;
+      previewNav.classList.toggle('hidden', !multi);
+      if (multi) {
+        previewCounter.textContent = `${previewIndex + 1} / ${items.length}`;
+        prevBtn.disabled = previewIndex === 0;
+        nextBtn.disabled = previewIndex === items.length - 1;
+      }
+    }
+
+    prevBtn.addEventListener('click', () => {
+      if (previewIndex > 0) { previewIndex--; updatePreviewNav(); schedulePreview(); }
+    });
+    nextBtn.addEventListener('click', () => {
+      if (previewIndex < items.length - 1) { previewIndex++; updatePreviewNav(); schedulePreview(); }
+    });
+
     async function updatePreview() {
       if (items.length === 0) return;
-      const item = items[0];
+      previewIndex = Math.min(previewIndex, items.length - 1);
+      const item = items[previewIndex];
       try {
         if (!item.srcBitmap) {
           item.srcBitmap = await createImageBitmap(item.file);
@@ -831,6 +866,7 @@
       dropEl.classList.add('compact', 'p-3');
 
       previewWrap.classList.remove('hidden');
+      updatePreviewNav();
       schedulePreview();
       if (n === 1) {
         queueWrap.classList.add('hidden');
@@ -1220,6 +1256,7 @@
 
     clearBtn.addEventListener('click', () => {
       items.splice(0);
+      previewIndex = 0;
       filesList.innerHTML = '';
       if (previewCanvas.getContext) {
         const ctx = previewCanvas.getContext('2d');
