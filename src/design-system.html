@@ -278,6 +278,7 @@
           <a href="#checkbox-radio">Checkbox &amp; radio</a>
           <a href="#switch">Switch</a>
           <a href="#range">Range slider</a>
+          <a href="#angle-dial">Angle dial</a>
           <a href="#color-picker">Color picker</a>
           <a href="#drop-zone">Drop zone</a>
           <h3>Layout &amp; content</h3>
@@ -289,6 +290,7 @@
           <a href="#code">Code blocks</a>
           <a href="#json-tree">JSON tree</a>
           <h3>Feedback</h3>
+          <a href="#badges">Badges</a>
           <a href="#loader">Loader</a>
           <a href="#error-bar">Error / warn / success bars</a>
           <a href="#stats">Stats &amp; deltas</a>
@@ -736,10 +738,50 @@
           </div>
         </section>
 
+        <!-- Angle dial -->
+        <section id="angle-dial" class="ds-section">
+          <h2>Angle dial</h2>
+          <p class="lead">A draggable circular rotation picker. Use when the user needs to set any angle from −180° to 180° — prefer it over a numeric input alone for rotation controls. Drag the knob on the dial face, or focus the element and use arrow keys (±1°; Shift ±10°).</p>
+          <div class="ds-row gap-6 my-3 items-center">
+            <div class="angle-dial" id="ds-dial-demo" role="slider" tabindex="0"
+                 aria-label="Rotation angle demo" aria-valuemin="-180" aria-valuemax="180" aria-valuenow="-45">
+              <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+                <circle class="angle-dial-track" cx="32" cy="32" r="27"/>
+                <line class="angle-dial-tick" x1="32" y1="4" x2="32" y2="10"/>
+                <line class="angle-dial-tick" x1="32" y1="54" x2="32" y2="60"/>
+                <line class="angle-dial-tick" x1="4" y1="32" x2="10" y2="32"/>
+                <line class="angle-dial-tick" x1="54" y1="32" x2="60" y2="32"/>
+                <line class="angle-dial-hand" id="ds-dial-hand" x1="32" y1="32" x2="32" y2="9"/>
+                <circle class="angle-dial-knob" id="ds-dial-knob" cx="32" cy="9" r="4"/>
+              </svg>
+              <div class="angle-dial-readout" id="ds-dial-readout">0°</div>
+            </div>
+            <p class="text-xs text-gray-500 leading-relaxed">Drag the knob · Arrow keys ±1° · Shift+Arrow ±10°</p>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;div class="angle-dial" role="slider" tabindex="0"
+     aria-label="Rotation angle"
+     aria-valuemin="-180" aria-valuemax="180" aria-valuenow="0"&gt;
+  &lt;svg viewBox="0 0 64 64" fill="none" aria-hidden="true"&gt;
+    &lt;circle class="angle-dial-track" cx="32" cy="32" r="27"/&gt;
+    &lt;line class="angle-dial-tick" x1="32" y1="4" x2="32" y2="10"/&gt;
+    &lt;line class="angle-dial-tick" x1="32" y1="54" x2="32" y2="60"/&gt;
+    &lt;line class="angle-dial-tick" x1="4" y1="32" x2="10" y2="32"/&gt;
+    &lt;line class="angle-dial-tick" x1="54" y1="32" x2="60" y2="32"/&gt;
+    &lt;line class="angle-dial-hand" x1="32" y1="32" x2="32" y2="9"/&gt;
+    &lt;circle class="angle-dial-knob" cx="32" cy="9" r="4"/&gt;
+  &lt;/svg&gt;
+  &lt;div class="angle-dial-readout"&gt;0°&lt;/div&gt;
+&lt;/div&gt;</pre>
+          </div>
+          <p class="text-xs text-gray-500 mt-3">Wiring: see Image Watermark (<code>image-watermark.html</code>) for the full JS hook-up (drag + touch + keyboard + aria). The component is purely CSS/SVG — supply JS to update the hand/knob <code>x2</code>/<code>cx</code>/<code>cy</code> and readout. Formula: <code>x = cx + R·sin(θ)</code>, <code>y = cy − R·cos(θ)</code>, where <code>R = 23</code> (track radius 27 minus knob radius 4).</p>
+        </section>
+
         <!-- Color picker -->
         <section id="color-picker" class="ds-section">
           <h2>Color picker</h2>
-          <p class="lead">Native <code class="text-gray-300">&lt;input type="color"&gt;</code>. Pair with the <code class="text-gray-300">.swatch</code> primitive when surfacing the choice as a label.</p>
+          <p class="lead">Native <code class="text-gray-300">&lt;input type="color"&gt;</code>. Pair with the <code class="text-gray-300">.swatch</code> primitive when surfacing the choice as a label. For a wider clickable target with swatch preview + hex readout, use <code class="text-gray-300">.color-btn</code>.</p>
           <div class="ds-row">
             <input type="color" value="#3b82f6" class="w-10 h-9 rounded border border-gray-700 bg-transparent cursor-pointer">
             <span class="pill"><span class="swatch" style="background:#3b82f6"></span>&nbsp;#3b82f6</span>
@@ -753,6 +795,24 @@
 &lt;span class="pill"&gt;
   &lt;span class="swatch" style="background:#3b82f6"&gt;&lt;/span&gt;&amp;nbsp;#3b82f6
 &lt;/span&gt;</pre>
+          </div>
+
+          <h3 class="text-sm font-semibold text-gray-400 mt-6 mb-2">Color button</h3>
+          <p class="text-sm text-gray-500 mb-3">Use <code class="text-gray-300">.color-btn</code> when you need a wider clickable target: a large swatch preview plus hex readout. Wrap an <code class="text-gray-300">&lt;input type="color"&gt;</code> inside a <code class="text-gray-300">&lt;label class="color-btn"&gt;</code>. Set <code class="text-gray-300">--color-btn-c</code> via inline style to sync the swatch to the current value.</p>
+          <div class="ds-row my-3 gap-3">
+            <label class="color-btn" id="ds-color-btn" style="--color-btn-c:#3b82f6; width:9rem;">
+              <input id="ds-color-input" type="color" value="#3b82f6">
+              <span class="color-btn-swatch"></span>
+              <span class="color-btn-hex" id="ds-color-hex">3B82F6</span>
+            </label>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;label class="color-btn" style="--color-btn-c:#ffffff"&gt;
+  &lt;input type="color" value="#ffffff"&gt;
+  &lt;span class="color-btn-swatch"&gt;&lt;/span&gt;
+  &lt;span class="color-btn-hex"&gt;FFFFFF&lt;/span&gt;
+&lt;/label&gt;</pre>
           </div>
         </section>
 
@@ -983,6 +1043,27 @@ console.log([...text.matchAll(re)]);</pre>
 &lt;span class="json-bool"&gt;true&lt;/span&gt;
 &lt;span class="json-null"&gt;null&lt;/span&gt;
 &lt;span class="json-punct"&gt;{}&lt;/span&gt;</pre>
+          </div>
+        </section>
+
+        <!-- Badges -->
+        <section id="badges" class="ds-section">
+          <h2>Badges</h2>
+          <p class="lead">Read-only status pills — not interactive. Always combine the base <code class="text-gray-300">.badge</code> with one semantic variant. Five built-in variants cover the common processing lifecycle.</p>
+          <div class="ds-row flex-wrap gap-2 my-3">
+            <span class="badge badge-queued">queued</span>
+            <span class="badge badge-working">working…</span>
+            <span class="badge badge-done">done</span>
+            <span class="badge badge-warn">skipped</span>
+            <span class="badge badge-error">error</span>
+          </div>
+          <div class="ds-snippet">
+            <button class="copy" type="button">Copy</button>
+<pre>&lt;span class="badge badge-queued"&gt;queued&lt;/span&gt;
+&lt;span class="badge badge-working"&gt;working…&lt;/span&gt;
+&lt;span class="badge badge-done"&gt;done&lt;/span&gt;
+&lt;span class="badge badge-warn"&gt;skipped&lt;/span&gt;
+&lt;span class="badge badge-error"&gt;error&lt;/span&gt;</pre>
           </div>
         </section>
 
@@ -1299,6 +1380,58 @@ loaderEl.classList.add('hidden');</pre>
       if (!slider) return;
       slider.addEventListener('input', () => wrap.style.setProperty('--split', `${slider.value}%`));
     });
+
+    // Angle dial demo
+    (function () {
+      const dialEl   = document.getElementById('ds-dial-demo');
+      const dialHand = document.getElementById('ds-dial-hand');
+      const dialKnob = document.getElementById('ds-dial-knob');
+      const dialOut  = document.getElementById('ds-dial-readout');
+      if (!dialEl) return;
+      const CX = 32, CY = 32, R = 23;
+      let angle = 0, dragging = false;
+      function setAngle(deg) {
+        angle = Math.max(-180, Math.min(180, deg));
+        const rad = angle * Math.PI / 180;
+        const kx = (CX + R * Math.sin(rad)).toFixed(2);
+        const ky = (CY - R * Math.cos(rad)).toFixed(2);
+        dialHand.setAttribute('x2', kx); dialHand.setAttribute('y2', ky);
+        dialKnob.setAttribute('cx', kx); dialKnob.setAttribute('cy', ky);
+        dialOut.textContent = Math.round(angle) + '°';
+        dialEl.setAttribute('aria-valuenow', Math.round(angle));
+      }
+      function angleFrom(e) {
+        const rect = dialEl.querySelector('svg').getBoundingClientRect();
+        const px = e.touches ? e.touches[0].clientX : e.clientX;
+        const py = e.touches ? e.touches[0].clientY : e.clientY;
+        return Math.atan2(px - (rect.left + rect.width / 2), -((py - (rect.top + rect.height / 2)))) * 180 / Math.PI;
+      }
+      dialEl.querySelector('svg').addEventListener('mousedown', e => { dragging = true; setAngle(angleFrom(e)); e.preventDefault(); });
+      window.addEventListener('mousemove', e => { if (dragging) setAngle(angleFrom(e)); });
+      window.addEventListener('mouseup', () => { dragging = false; });
+      dialEl.querySelector('svg').addEventListener('touchstart', e => { dragging = true; setAngle(angleFrom(e)); e.preventDefault(); }, { passive: false });
+      window.addEventListener('touchmove', e => { if (dragging) setAngle(angleFrom(e)); }, { passive: true });
+      window.addEventListener('touchend', () => { dragging = false; });
+      dialEl.addEventListener('keydown', e => {
+        let d = 0;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') d = e.shiftKey ? 10 : 1;
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') d = e.shiftKey ? -10 : -1;
+        if (!d) return; e.preventDefault(); setAngle(angle + d);
+      });
+      setAngle(-45);
+    })();
+
+    // Color button demo
+    (function () {
+      const input  = document.getElementById('ds-color-input');
+      const label  = document.getElementById('ds-color-btn');
+      const hexEl  = document.getElementById('ds-color-hex');
+      if (!input) return;
+      input.addEventListener('input', () => {
+        label.style.setProperty('--color-btn-c', input.value);
+        hexEl.textContent = input.value.slice(1).toUpperCase();
+      });
+    })();
   </script>
 
   <include src="_partials/footer-script.html"></include>

@@ -51,6 +51,7 @@ A collection of single-file browser-native utilities. All logic runs client-side
 | 📐 [Image Resizer](src/image-resizer.html) | Batch-resize images by percentage, exact size, or max dimensions — social-card presets. |
 | ✂️ [Image Cropper](src/image-cropper.html) | Crop a region — rectangle or circle, drag the box, lock an aspect ratio. |
 | 🖼️ [Image Format Converter](src/image-converter.html) | Convert images between PNG, JPEG, WebP, and AVIF with a quality slider and before/after diff. |
+| 🔏 [Image Watermark](src/image-watermark.html) | Stamp a text or image watermark onto photos — position, opacity, rotation, tiling. |
 
 ### Web / SEO
 

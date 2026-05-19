@@ -495,6 +495,37 @@
       "maxWidth": "1200px"
     },
     {
+      "slug": "image-watermark",
+      "name": "Image Watermark",
+      "icon": "🔏",
+      "category": "Image",
+      "card": "Stamp a text or image watermark onto photos — position, opacity, rotation, tiling.",
+      "description": "Add a text or image watermark to your photos — choose position, opacity, rotation, and tiling. Batch-process up to 50 images locally. Runs in your browser — no installs, no servers, no tracking.",
+      "faqs": [
+        {
+          "q": "Do my images ever leave my computer?",
+          "a": "No. Everything runs locally in your browser — no upload, no server, no third-party API. Watermark compositing happens on a canvas and encoding via a Web Worker."
+        },
+        {
+          "q": "How does text watermarking work?",
+          "a": "Your text is drawn on a canvas using the Canvas 2D fillText API with your chosen font, size, color, opacity, and rotation. The same canvas is reused for every image in the batch."
+        },
+        {
+          "q": "How does image watermarking work?",
+          "a": "The watermark image is decoded once with createImageBitmap, then composited onto each source image at the chosen position, size, and opacity using canvas drawImage. Decoding once and reusing the bitmap keeps batch processing fast."
+        },
+        {
+          "q": "What does Tile mode do?",
+          "a": "Tile repeats the watermark across the entire image in a grid pattern. Density (Sparse / Normal / Dense) controls the spacing between tiles."
+        },
+        {
+          "q": "Why does the output file look slightly different from the input?",
+          "a": "Compositing happens on a canvas, and the re-encode pipeline may change the format. Choose PNG output for lossless quality, or set the quality slider high for JPEG/WebP."
+        }
+      ],
+      "maxWidth": "1400px"
+    },
+    {
       "slug": "meta-tag-preview",
       "name": "Meta Tag Preview",
       "icon": "🔍",
