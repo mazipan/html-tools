@@ -620,7 +620,8 @@
         }
         const imgW = item.srcW;
         const imgH = item.srcH;
-        const maxW = previewStage.offsetWidth || 600;
+        const stageRect = previewStage.getBoundingClientRect();
+        const maxW = stageRect.width || Math.min(window.innerWidth - 48, 800);
         const maxH = Math.min(window.innerHeight * 0.6, 600);
         const scale = Math.min(maxW / imgW, maxH / imgH, 1);
         const pW = Math.max(1, Math.round(imgW * scale));
@@ -643,69 +644,73 @@
             const TL = toC(-hw, -hh), TR = toC(hw, -hh);
             const BR = toC(hw,  hh),  BL = toC(-hw, hh);
             const TC = toC(0, -hh);
-            const ROT_STEM = 28;
+            // Scale handles proportionally so they're visible on any canvas/display size
+            const hs = Math.max(1, pW / 300);
+            const CH = Math.round(10 * hs);
+            const RH = Math.round(13 * hs);
+            const ROT_STEM = Math.round(32 * hs);
             const ROT = toC(0, -hh - ROT_STEM);
-            // Store for hit-testing in event handlers
-            previewHandles = { hx, hy, hw, hh, angle, tl: TL, tr: TR, br: BR, bl: BL, rot: ROT };
+            // Store for hit-testing (include scaled radii)
+            previewHandles = { hx, hy, hw, hh, angle, tl: TL, tr: TR, br: BR, bl: BL, rot: ROT, CH, RH };
             // Dashed bounding box — dark underline + white dash for visibility on any bg
             ctx.save();
             ctx.translate(hx, hy); ctx.rotate(angle);
-            ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+            ctx.lineWidth = Math.max(3, 3 * hs); ctx.strokeStyle = 'rgba(0,0,0,0.55)';
             ctx.strokeRect(-hw, -hh, dims.w, dims.h);
-            ctx.lineWidth = 1.5; ctx.strokeStyle = '#ffffff';
-            ctx.setLineDash([6, 4]);
+            ctx.lineWidth = Math.max(2, 2 * hs); ctx.strokeStyle = '#ffffff';
+            ctx.setLineDash([Math.round(7 * hs), Math.round(4 * hs)]);
             ctx.strokeRect(-hw, -hh, dims.w, dims.h);
             ctx.setLineDash([]);
             ctx.restore();
-            // Corner handles — white circle with dark ring
-            const CH = 8;
+            // Corner handles — white circle with dark shadow
             [TL, TR, BR, BL].forEach(([x, y]) => {
               ctx.save();
-              ctx.beginPath(); ctx.arc(x, y, CH + 1.5, 0, Math.PI * 2);
-              ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fill();
+              ctx.beginPath(); ctx.arc(x, y, CH + 2, 0, Math.PI * 2);
+              ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fill();
               ctx.beginPath(); ctx.arc(x, y, CH, 0, Math.PI * 2);
               ctx.fillStyle = '#ffffff'; ctx.fill();
               ctx.restore();
             });
             // Stem line to rotation handle
             ctx.save();
-            ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+            ctx.lineWidth = Math.max(2, 2 * hs); ctx.strokeStyle = 'rgba(0,0,0,0.45)';
             ctx.beginPath(); ctx.moveTo(TC[0], TC[1]); ctx.lineTo(ROT[0], ROT[1]); ctx.stroke();
-            ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+            ctx.lineWidth = Math.max(1.5, 1.5 * hs); ctx.strokeStyle = 'rgba(255,255,255,0.85)';
             ctx.beginPath(); ctx.moveTo(TC[0], TC[1]); ctx.lineTo(ROT[0], ROT[1]); ctx.stroke();
             ctx.restore();
             // Rotation handle — accent blue circle with ↻ arc
-            const RH = 10;
+            const arcR = Math.round(5 * hs);
             ctx.save();
-            ctx.beginPath(); ctx.arc(ROT[0], ROT[1], RH + 1.5, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fill();
+            ctx.beginPath(); ctx.arc(ROT[0], ROT[1], RH + 2, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fill();
             ctx.beginPath(); ctx.arc(ROT[0], ROT[1], RH, 0, Math.PI * 2);
             ctx.fillStyle = '#3b82f6'; ctx.fill();
-            ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 1.5; ctx.stroke();
-            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.lineCap = 'round';
-            ctx.beginPath(); ctx.arc(ROT[0], ROT[1], 4.5, 0.4 * Math.PI, 1.8 * Math.PI, false);
+            ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = Math.max(1.5, 1.5 * hs); ctx.stroke();
+            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = Math.max(2, 2 * hs); ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.arc(ROT[0], ROT[1], arcR, 0.4 * Math.PI, 1.8 * Math.PI, false);
             ctx.stroke();
             const aEnd = 1.8 * Math.PI;
-            const ax = ROT[0] + 4.5 * Math.cos(aEnd), ay = ROT[1] + 4.5 * Math.sin(aEnd);
+            const ax = ROT[0] + arcR * Math.cos(aEnd), ay = ROT[1] + arcR * Math.sin(aEnd);
             const td = aEnd + Math.PI / 2;
+            const al = Math.max(3.5, 3.5 * hs);
             ctx.beginPath();
             ctx.moveTo(ax, ay);
-            ctx.lineTo(ax + 3.5 * Math.cos(td - 0.5), ay + 3.5 * Math.sin(td - 0.5));
+            ctx.lineTo(ax + al * Math.cos(td - 0.5), ay + al * Math.sin(td - 0.5));
             ctx.moveTo(ax, ay);
-            ctx.lineTo(ax + 3.5 * Math.cos(td + 0.5), ay + 3.5 * Math.sin(td + 0.5));
+            ctx.lineTo(ax + al * Math.cos(td + 0.5), ay + al * Math.sin(td + 0.5));
             ctx.stroke(); ctx.restore();
           } else {
             previewHandles = null;
           }
-          // Centre crosshair (always show)
+          // Centre crosshair (always show, scaled)
+          const chs = Math.max(1, pW / 300);
+          const CR = Math.round(10 * chs), CL = Math.round(6 * chs);
           ctx.save();
-          const CR = 10;
-          ctx.beginPath(); ctx.arc(hx, hy, CR + 1.5, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fill();
+          ctx.beginPath(); ctx.arc(hx, hy, CR + 2, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fill();
           ctx.beginPath(); ctx.arc(hx, hy, CR, 0, Math.PI * 2);
-          ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 2; ctx.stroke();
-          const CL = 6;
-          ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+          ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = Math.max(2, 2 * chs); ctx.stroke();
+          ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = Math.max(1.5, 1.5 * chs); ctx.lineCap = 'round';
           ctx.beginPath(); ctx.moveTo(hx - CL, hy); ctx.lineTo(hx + CL, hy); ctx.stroke();
           ctx.beginPath(); ctx.moveTo(hx, hy - CL); ctx.lineTo(hx, hy + CL); ctx.stroke();
           ctx.restore();
@@ -1070,11 +1075,13 @@
     function getHandleMode(cmx, cmy) {
       if (!previewHandles) return null;
       const { hx, hy, hw, hh, angle, tl, tr, br, bl, rot } = previewHandles;
-      if (hitHandle(cmx, cmy, rot, 16)) return 'rotate';
-      if (hitHandle(cmx, cmy, tl,  14)) return 'corner';
-      if (hitHandle(cmx, cmy, tr,  14)) return 'corner';
-      if (hitHandle(cmx, cmy, br,  14)) return 'corner';
-      if (hitHandle(cmx, cmy, bl,  14)) return 'corner';
+      const rRH = (previewHandles.RH || 13) + 4;
+      const rCH = (previewHandles.CH || 10) + 4;
+      if (hitHandle(cmx, cmy, rot, rRH)) return 'rotate';
+      if (hitHandle(cmx, cmy, tl,  rCH)) return 'corner';
+      if (hitHandle(cmx, cmy, tr,  rCH)) return 'corner';
+      if (hitHandle(cmx, cmy, br,  rCH)) return 'corner';
+      if (hitHandle(cmx, cmy, bl,  rCH)) return 'corner';
       // Point-in-rotated-rect for body move
       const dx = cmx - hx, dy = cmy - hy;
       const cosA = Math.cos(-angle), sinA = Math.sin(-angle);
