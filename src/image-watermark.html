@@ -573,7 +573,7 @@
     }
 
     async function updatePreview() {
-      if (items.length !== 1) return;
+      if (items.length === 0) return;
       const item = items[0];
       try {
         if (!item.srcBitmap) {
@@ -788,7 +788,7 @@
         document.getElementById('zip-btn-label').textContent = single ? 'Download' : 'Download all (zip)';
         zipBtn.classList.remove('hidden');
       }
-      if (items.length === 1) schedulePreview();
+      schedulePreview();
     }
 
     // ── File handling ─────────────────────────────────────────────
@@ -827,12 +827,11 @@
       dropCompact.classList.remove('hidden');
       dropEl.classList.add('compact', 'p-3');
 
+      previewWrap.classList.remove('hidden');
+      schedulePreview();
       if (n === 1) {
-        previewWrap.classList.remove('hidden');
         queueWrap.classList.add('hidden');
-        schedulePreview();
       } else {
-        previewWrap.classList.add('hidden');
         queueWrap.classList.remove('hidden');
         filesList.innerHTML = '';
         for (const item of items) renderCard(item);
