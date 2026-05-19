@@ -788,6 +788,7 @@
       if (allDone && items.length > 0) {
         const single = items.length === 1;
         document.getElementById('zip-btn-label').textContent = single ? 'Download' : 'Download all (zip)';
+        zipBtn.disabled = false;
         zipBtn.classList.remove('hidden');
       }
       schedulePreview();
