@@ -268,8 +268,8 @@
         <!-- Action row -->
         <div id="actions-bar" class="flex flex-wrap gap-3 items-center">
           <button id="apply-btn" class="btn btn-secondary" type="button">✨ Apply watermarks</button>
-          <button id="zip-btn" class="btn btn-primary" type="button" disabled>
-            <svg class="icon" aria-hidden="true"><use href="#icon-download"/></svg> Download all (zip)
+          <button id="zip-btn" class="btn btn-primary hidden" type="button">
+            <svg class="icon" aria-hidden="true"><use href="#icon-download"/></svg> <span id="zip-btn-label">Download all (zip)</span>
           </button>
           <button id="clear-btn" class="btn btn-danger" type="button">
             <svg class="icon" aria-hidden="true"><use href="#icon-trash"/></svg> Clear
@@ -773,7 +773,11 @@
       applyBtn.disabled = false;
       statusEl.textContent = '';
       const allDone = items.every(it => it.dstBlob && !it.error);
-      zipBtn.disabled = !allDone || items.length === 0;
+      if (allDone && items.length > 0) {
+        const single = items.length === 1;
+        document.getElementById('zip-btn-label').textContent = single ? 'Download' : 'Download all (zip)';
+        zipBtn.classList.remove('hidden');
+      }
       if (items.length === 1) schedulePreview();
     }
 
@@ -823,8 +827,7 @@
         filesList.innerHTML = '';
         for (const item of items) renderCard(item);
       }
-      const anyDone = items.some(it => it.dstBlob);
-      zipBtn.disabled = !anyDone || n < 1;
+      zipBtn.classList.add('hidden');
     }
 
     // ── Drop zone (source images) ─────────────────────────────────
@@ -1178,6 +1181,15 @@
         .filter(it => it.dstBlob)
         .map(it => ({ name: it.dstName || swapExtension(it.name, 'png'), blob: it.dstBlob }));
       if (!entries.length) return;
+      if (entries.length === 1) {
+        const url = URL.createObjectURL(entries[0].blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = entries[0].name;
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+        return;
+      }
       zipBtn.disabled = true;
       statusEl.textContent = 'Building zip…';
       try {
@@ -1201,7 +1213,7 @@
         const ctx = previewCanvas.getContext('2d');
         ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
       }
-      zipBtn.disabled = true;
+      zipBtn.classList.add('hidden');
       hideError();
       updateView();
     });
