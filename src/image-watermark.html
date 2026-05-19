@@ -610,57 +610,67 @@
             const ROT = toC(0, -hh - ROT_STEM);
             // Store for hit-testing in event handlers
             previewHandles = { hx, hy, hw, hh, angle, tl: TL, tr: TR, br: BR, bl: BL, rot: ROT };
-            // Dashed bounding box
+            // Dashed bounding box — dark underline + white dash for visibility on any bg
             ctx.save();
             ctx.translate(hx, hy); ctx.rotate(angle);
-            ctx.strokeStyle = 'rgba(255,255,255,0.65)';
-            ctx.lineWidth = 1.5; ctx.setLineDash([5, 3]);
+            ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+            ctx.strokeRect(-hw, -hh, dims.w, dims.h);
+            ctx.lineWidth = 1.5; ctx.strokeStyle = '#ffffff';
+            ctx.setLineDash([6, 4]);
             ctx.strokeRect(-hw, -hh, dims.w, dims.h);
             ctx.setLineDash([]);
             ctx.restore();
-            // Corner handles — white filled circles
-            const CH = 6;
+            // Corner handles — white circle with dark ring
+            const CH = 8;
             [TL, TR, BR, BL].forEach(([x, y]) => {
               ctx.save();
+              ctx.beginPath(); ctx.arc(x, y, CH + 1.5, 0, Math.PI * 2);
+              ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fill();
               ctx.beginPath(); ctx.arc(x, y, CH, 0, Math.PI * 2);
-              ctx.fillStyle = '#ffffff';
-              ctx.fill();
-              ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1.5;
-              ctx.stroke(); ctx.restore();
+              ctx.fillStyle = '#ffffff'; ctx.fill();
+              ctx.restore();
             });
             // Stem line to rotation handle
             ctx.save();
-            ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-            ctx.lineWidth = 1; ctx.setLineDash([3, 2]);
-            ctx.beginPath(); ctx.moveTo(TC[0], TC[1]); ctx.lineTo(ROT[0], ROT[1]);
-            ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+            ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+            ctx.beginPath(); ctx.moveTo(TC[0], TC[1]); ctx.lineTo(ROT[0], ROT[1]); ctx.stroke();
+            ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+            ctx.beginPath(); ctx.moveTo(TC[0], TC[1]); ctx.lineTo(ROT[0], ROT[1]); ctx.stroke();
+            ctx.restore();
             // Rotation handle — accent blue circle with ↻ arc
-            const RH = 8;
+            const RH = 10;
             ctx.save();
+            ctx.beginPath(); ctx.arc(ROT[0], ROT[1], RH + 1.5, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fill();
             ctx.beginPath(); ctx.arc(ROT[0], ROT[1], RH, 0, Math.PI * 2);
             ctx.fillStyle = '#3b82f6'; ctx.fill();
-            ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 1.5; ctx.stroke();
-            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
-            ctx.beginPath(); ctx.arc(ROT[0], ROT[1], 3.5, 0.4 * Math.PI, 1.8 * Math.PI, false);
+            ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 1.5; ctx.stroke();
+            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.arc(ROT[0], ROT[1], 4.5, 0.4 * Math.PI, 1.8 * Math.PI, false);
             ctx.stroke();
-            // Arrowhead at end of arc
             const aEnd = 1.8 * Math.PI;
-            const ax = ROT[0] + 3.5 * Math.cos(aEnd), ay = ROT[1] + 3.5 * Math.sin(aEnd);
+            const ax = ROT[0] + 4.5 * Math.cos(aEnd), ay = ROT[1] + 4.5 * Math.sin(aEnd);
             const td = aEnd + Math.PI / 2;
             ctx.beginPath();
             ctx.moveTo(ax, ay);
-            ctx.lineTo(ax + 3 * Math.cos(td - 0.5), ay + 3 * Math.sin(td - 0.5));
+            ctx.lineTo(ax + 3.5 * Math.cos(td - 0.5), ay + 3.5 * Math.sin(td - 0.5));
             ctx.moveTo(ax, ay);
-            ctx.lineTo(ax + 3 * Math.cos(td + 0.5), ay + 3 * Math.sin(td + 0.5));
+            ctx.lineTo(ax + 3.5 * Math.cos(td + 0.5), ay + 3.5 * Math.sin(td + 0.5));
             ctx.stroke(); ctx.restore();
           } else {
             previewHandles = null;
           }
           // Centre crosshair (always show)
           ctx.save();
-          ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 2.5;
-          ctx.beginPath(); ctx.arc(hx, hy, 8, 0, Math.PI * 2); ctx.stroke();
-          ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 1.5; ctx.stroke();
+          const CR = 10;
+          ctx.beginPath(); ctx.arc(hx, hy, CR + 1.5, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fill();
+          ctx.beginPath(); ctx.arc(hx, hy, CR, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 2; ctx.stroke();
+          const CL = 6;
+          ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(hx - CL, hy); ctx.lineTo(hx + CL, hy); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(hx, hy - CL); ctx.lineTo(hx, hy + CL); ctx.stroke();
           ctx.restore();
         } else {
           previewHandles = null;
@@ -1022,11 +1032,11 @@
     function getHandleMode(cmx, cmy) {
       if (!previewHandles) return null;
       const { hx, hy, hw, hh, angle, tl, tr, br, bl, rot } = previewHandles;
-      if (hitHandle(cmx, cmy, rot, 12)) return 'rotate';
-      if (hitHandle(cmx, cmy, tl,  10)) return 'corner';
-      if (hitHandle(cmx, cmy, tr,  10)) return 'corner';
-      if (hitHandle(cmx, cmy, br,  10)) return 'corner';
-      if (hitHandle(cmx, cmy, bl,  10)) return 'corner';
+      if (hitHandle(cmx, cmy, rot, 16)) return 'rotate';
+      if (hitHandle(cmx, cmy, tl,  14)) return 'corner';
+      if (hitHandle(cmx, cmy, tr,  14)) return 'corner';
+      if (hitHandle(cmx, cmy, br,  14)) return 'corner';
+      if (hitHandle(cmx, cmy, bl,  14)) return 'corner';
       // Point-in-rotated-rect for body move
       const dx = cmx - hx, dy = cmy - hy;
       const cosA = Math.cos(-angle), sinA = Math.sin(-angle);
