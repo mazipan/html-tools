@@ -259,9 +259,9 @@
           <div class="preview-stage">
             <canvas id="preview-canvas"></canvas>
           </div>
-          <div class="flex items-center justify-between mt-1.5">
+          <div class="mt-1.5 flex flex-col gap-1">
             <p class="text-xs text-gray-600" id="preview-hint">Drag to move · Pinch to resize &amp; rotate</p>
-            <div id="preview-nav" class="hidden flex items-center gap-2">
+            <div id="preview-nav" class="hidden items-center gap-2">
               <button id="prev-preview" class="btn-icon ghost btn-icon-sm" type="button" aria-label="Previous image">
                 <svg class="icon" aria-hidden="true"><use href="#icon-arrow-left"/></svg>
               </button>
@@ -594,6 +594,7 @@
     function updatePreviewNav() {
       const multi = items.length > 1;
       previewNav.classList.toggle('hidden', !multi);
+      previewNav.classList.toggle('flex', multi);
       if (multi) {
         previewCounter.textContent = `${previewIndex + 1} / ${items.length}`;
         prevBtn.disabled = previewIndex === 0;
