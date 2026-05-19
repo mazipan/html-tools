@@ -594,38 +594,79 @@
         ctx.clearRect(0, 0, pW, pH);
         ctx.drawImage(item.srcBitmap, 0, 0, pW, pH);
         drawWatermarkOnCtx(ctx, pW, pH);
-        // Draw bounding box + centre handle when not tiling
+        // Draw free-transform handles when not tiling
         if (!st.tile) {
           const dims = getWmDimensions(pW, pH);
-          const hx = st.posX * pW;
-          const hy = st.posY * pH;
+          const hx = st.posX * pW, hy = st.posY * pH;
           if (dims) {
-            // Rotated dashed bounding box
             const angle = st.rotation * Math.PI / 180;
+            const cosA = Math.cos(angle), sinA = Math.sin(angle);
+            const hw = dims.w / 2, hh = dims.h / 2;
+            function toC(lx, ly) { return [hx + lx * cosA - ly * sinA, hy + lx * sinA + ly * cosA]; }
+            const TL = toC(-hw, -hh), TR = toC(hw, -hh);
+            const BR = toC(hw,  hh),  BL = toC(-hw, hh);
+            const TC = toC(0, -hh);
+            const ROT_STEM = 28;
+            const ROT = toC(0, -hh - ROT_STEM);
+            // Store for hit-testing in event handlers
+            previewHandles = { hx, hy, hw, hh, angle, tl: TL, tr: TR, br: BR, bl: BL, rot: ROT };
+            // Dashed bounding box
             ctx.save();
-            ctx.translate(hx, hy);
-            ctx.rotate(angle);
-            ctx.strokeStyle = 'rgba(255,255,255,0.7)';
-            ctx.lineWidth = 1.5;
-            ctx.setLineDash([5, 3]);
-            ctx.strokeRect(-dims.w / 2, -dims.h / 2, dims.w, dims.h);
+            ctx.translate(hx, hy); ctx.rotate(angle);
+            ctx.strokeStyle = 'rgba(255,255,255,0.65)';
+            ctx.lineWidth = 1.5; ctx.setLineDash([5, 3]);
+            ctx.strokeRect(-hw, -hh, dims.w, dims.h);
             ctx.setLineDash([]);
             ctx.restore();
+            // Corner handles — white filled circles
+            const CH = 6;
+            [TL, TR, BR, BL].forEach(([x, y]) => {
+              ctx.save();
+              ctx.beginPath(); ctx.arc(x, y, CH, 0, Math.PI * 2);
+              ctx.fillStyle = '#ffffff';
+              ctx.fill();
+              ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1.5;
+              ctx.stroke(); ctx.restore();
+            });
+            // Stem line to rotation handle
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+            ctx.lineWidth = 1; ctx.setLineDash([3, 2]);
+            ctx.beginPath(); ctx.moveTo(TC[0], TC[1]); ctx.lineTo(ROT[0], ROT[1]);
+            ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+            // Rotation handle — accent blue circle with ↻ arc
+            const RH = 8;
+            ctx.save();
+            ctx.beginPath(); ctx.arc(ROT[0], ROT[1], RH, 0, Math.PI * 2);
+            ctx.fillStyle = '#3b82f6'; ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 1.5; ctx.stroke();
+            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.arc(ROT[0], ROT[1], 3.5, 0.4 * Math.PI, 1.8 * Math.PI, false);
+            ctx.stroke();
+            // Arrowhead at end of arc
+            const aEnd = 1.8 * Math.PI;
+            const ax = ROT[0] + 3.5 * Math.cos(aEnd), ay = ROT[1] + 3.5 * Math.sin(aEnd);
+            const td = aEnd + Math.PI / 2;
+            ctx.beginPath();
+            ctx.moveTo(ax, ay);
+            ctx.lineTo(ax + 3 * Math.cos(td - 0.5), ay + 3 * Math.sin(td - 0.5));
+            ctx.moveTo(ax, ay);
+            ctx.lineTo(ax + 3 * Math.cos(td + 0.5), ay + 3 * Math.sin(td + 0.5));
+            ctx.stroke(); ctx.restore();
+          } else {
+            previewHandles = null;
           }
-          // Centre handle (move indicator)
+          // Centre crosshair (always show)
           ctx.save();
-          ctx.strokeStyle = 'rgba(0,0,0,0.45)';
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.arc(hx, hy, 9, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
+          ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 2.5;
+          ctx.beginPath(); ctx.arc(hx, hy, 8, 0, Math.PI * 2); ctx.stroke();
+          ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 1.5; ctx.stroke();
           ctx.restore();
+        } else {
+          previewHandles = null;
         }
         const draggable = !st.tile;
-        previewCanvas.style.cursor = draggable ? 'move' : 'default';
+        if (!dragMode) previewCanvas.style.cursor = 'default';
         previewStage.classList.toggle('wm-draggable', draggable);
       } catch (err) {
         // Preview failure is non-critical
@@ -936,8 +977,9 @@
       schedulePreview();
     });
 
-    // ── Canvas free-transform (drag + pinch-resize + twist-rotate) ──
-    let isDraggingWm = false;
+    // ── Canvas free-transform (mouse handles + touch pinch/twist) ──
+    let dragMode = null;  // null | 'move' | 'corner' | 'rotate'
+    let dragOrigin = {};
     let pinching = false, pinchDist0 = 0, pinchAngle0 = 0, pinchSize0 = 0, pinchRot0 = 0;
 
     function getTouchDist(e) {
@@ -949,39 +991,102 @@
       return Math.atan2(b.clientY - a.clientY, b.clientX - a.clientX) * 180 / Math.PI;
     }
 
-    function updateWmPosFromCanvas(clientX, clientY) {
+    function clientToCanvas(clientX, clientY) {
       const r = previewCanvas.getBoundingClientRect();
-      const cW = previewCanvas.width, cH = previewCanvas.height;
-      const mx = (clientX - r.left) * (cW / r.width);
-      const my = (clientY - r.top)  * (cH / r.height);
-      st.posX = Math.max(0, Math.min(1, mx / cW));
-      st.posY = Math.max(0, Math.min(1, my / cH));
-      schedulePreview();
+      return [(clientX - r.left) * (previewCanvas.width  / r.width),
+              (clientY - r.top)  * (previewCanvas.height / r.height)];
     }
 
+    function applySize(rawSize) {
+      if (st.wmType === 'image') {
+        st.wmSizePct = Math.max(1, Math.min(100, Math.round(rawSize)));
+        wmImgSize.value = st.wmSizePct;
+      } else if (st.textSizeMode === 'px') {
+        st.textSizePx  = Math.max(1, Math.min(9999, Math.round(rawSize)));
+        textSizeInput.value = st.textSizePx;
+      } else {
+        st.textSizePct = Math.max(1, Math.min(100, Math.round(rawSize)));
+        textSizeInput.value = st.textSizePct;
+      }
+    }
+
+    function currentSize() {
+      return st.wmType === 'image' ? st.wmSizePct
+           : (st.textSizeMode === 'px' ? st.textSizePx : st.textSizePct);
+    }
+
+    function hitHandle(cmx, cmy, pt, radius) {
+      return Math.hypot(cmx - pt[0], cmy - pt[1]) <= radius;
+    }
+
+    function getHandleMode(cmx, cmy) {
+      if (!previewHandles) return null;
+      const { hx, hy, hw, hh, angle, tl, tr, br, bl, rot } = previewHandles;
+      if (hitHandle(cmx, cmy, rot, 12)) return 'rotate';
+      if (hitHandle(cmx, cmy, tl,  10)) return 'corner';
+      if (hitHandle(cmx, cmy, tr,  10)) return 'corner';
+      if (hitHandle(cmx, cmy, br,  10)) return 'corner';
+      if (hitHandle(cmx, cmy, bl,  10)) return 'corner';
+      // Point-in-rotated-rect for body move
+      const dx = cmx - hx, dy = cmy - hy;
+      const cosA = Math.cos(-angle), sinA = Math.sin(-angle);
+      const lx = dx * cosA - dy * sinA, ly = dx * sinA + dy * cosA;
+      if (Math.abs(lx) <= hw + 6 && Math.abs(ly) <= hh + 6) return 'move';
+      return null;
+    }
+
+    function modeToCursor(mode) {
+      if (mode === 'rotate') return 'crosshair';
+      if (mode === 'corner') return 'se-resize';
+      if (mode === 'move')   return 'grab';
+      return 'default';
+    }
+
+    // Hover: update cursor based on which handle is under pointer
+    previewCanvas.addEventListener('mousemove', e => {
+      if (st.tile || dragMode) return;
+      const [cmx, cmy] = clientToCanvas(e.clientX, e.clientY);
+      previewCanvas.style.cursor = modeToCursor(getHandleMode(cmx, cmy));
+    });
+
     previewCanvas.addEventListener('mousedown', e => {
-      if (st.tile) return;
-      isDraggingWm = true;
-      previewCanvas.style.cursor = 'grabbing';
-      updateWmPosFromCanvas(e.clientX, e.clientY);
+      if (st.tile || e.button !== 0) return;
+      const [cmx, cmy] = clientToCanvas(e.clientX, e.clientY);
+      const mode = getHandleMode(cmx, cmy);
+      if (!mode) return;
+      dragMode = mode;
+      if (mode === 'move') {
+        dragOrigin = { posX0: st.posX, posY0: st.posY, mx0: cmx, my0: cmy };
+        previewCanvas.style.cursor = 'grabbing';
+      } else if (mode === 'corner') {
+        const { hx, hy } = previewHandles;
+        dragOrigin = { size0: currentSize(), dist0: Math.hypot(cmx - hx, cmy - hy) || 1 };
+        previewCanvas.style.cursor = 'se-resize';
+      } else if (mode === 'rotate') {
+        const { hx, hy } = previewHandles;
+        dragOrigin = { rot0: st.rotation, angle0: Math.atan2(cmy - hy, cmx - hx) * 180 / Math.PI };
+        previewCanvas.style.cursor = 'crosshair';
+      }
       e.preventDefault();
     });
+
     previewCanvas.addEventListener('touchstart', e => {
       if (st.tile) return;
       if (e.touches.length === 2) {
         // Two-finger gesture: pinch to resize + twist to rotate
-        isDraggingWm = false;
+        dragMode = null;
         pinching = true;
         pinchDist0  = getTouchDist(e);
         pinchAngle0 = getTouchAngle(e);
-        pinchSize0  = st.wmType === 'image' ? st.wmSizePct
-          : (st.textSizeMode === 'px' ? st.textSizePx : st.textSizePct);
+        pinchSize0  = currentSize();
         pinchRot0 = st.rotation;
         e.preventDefault();
         return;
       }
-      isDraggingWm = true;
-      updateWmPosFromCanvas(e.touches[0].clientX, e.touches[0].clientY);
+      // Single-finger: delta-move watermark
+      const [cmx, cmy] = clientToCanvas(e.touches[0].clientX, e.touches[0].clientY);
+      dragMode = 'move';
+      dragOrigin = { posX0: st.posX, posY0: st.posY, mx0: cmx, my0: cmy };
       e.preventDefault();
     }, { passive: false });
 
@@ -990,7 +1095,7 @@
       st.tile = tileToggle.checked;
       densitySection.classList.toggle('hidden', !st.tile);
       previewStage.classList.toggle('wm-draggable', !st.tile);
-      previewCanvas.style.cursor = st.tile ? 'default' : 'move';
+      previewCanvas.style.cursor = 'default';
       const hint = document.getElementById('preview-hint');
       if (hint) hint.textContent = st.tile
         ? 'Tiled pattern — disable Tile to drag-reposition'
@@ -1008,43 +1113,50 @@
     // ── Global pointer-up / move (shared by dial + canvas drag + pinch) ──
     window.addEventListener('mousemove', e => {
       if (dialDragging) setDialAngle(dialAngleFromPointer(e));
-      if (isDraggingWm) updateWmPosFromCanvas(e.clientX, e.clientY);
+      if (!dragMode) return;
+      const [cmx, cmy] = clientToCanvas(e.clientX, e.clientY);
+      const cW = previewCanvas.width, cH = previewCanvas.height;
+      if (dragMode === 'move') {
+        st.posX = Math.max(0, Math.min(1, dragOrigin.posX0 + (cmx - dragOrigin.mx0) / cW));
+        st.posY = Math.max(0, Math.min(1, dragOrigin.posY0 + (cmy - dragOrigin.my0) / cH));
+        schedulePreview();
+      } else if (dragMode === 'corner') {
+        const { hx, hy } = previewHandles;
+        const newDist = Math.hypot(cmx - hx, cmy - hy);
+        applySize(dragOrigin.size0 * (newDist / dragOrigin.dist0));
+        schedulePreview();
+      } else if (dragMode === 'rotate') {
+        const { hx, hy } = previewHandles;
+        const newAngle = Math.atan2(cmy - hy, cmx - hx) * 180 / Math.PI;
+        setDialAngle(dragOrigin.rot0 + (newAngle - dragOrigin.angle0));
+      }
     });
     window.addEventListener('mouseup', () => {
       dialDragging = false;
-      if (isDraggingWm) {
-        isDraggingWm = false;
-        previewCanvas.style.cursor = st.tile ? 'default' : 'move';
+      if (dragMode) {
+        dragMode = null;
+        previewCanvas.style.cursor = 'default';
       }
     });
     window.addEventListener('touchmove', e => {
       if (pinching && e.touches.length === 2) {
         // Two-finger: apply scale (resize) + angle delta (rotate) simultaneously
-        const scaleFactor = getTouchDist(e) / pinchDist0;
-        const angleDelta  = getTouchAngle(e) - pinchAngle0;
-        // Resize
-        if (st.wmType === 'image') {
-          st.wmSizePct = Math.max(1, Math.min(100, Math.round(pinchSize0 * scaleFactor)));
-          wmImgSize.value = st.wmSizePct;
-        } else {
-          if (st.textSizeMode === 'px') {
-            st.textSizePx  = Math.max(1, Math.min(9999, Math.round(pinchSize0 * scaleFactor)));
-            textSizeInput.value = st.textSizePx;
-          } else {
-            st.textSizePct = Math.max(1, Math.min(100, Math.round(pinchSize0 * scaleFactor)));
-            textSizeInput.value = st.textSizePct;
-          }
-        }
-        // Rotate — use setDialAngle so the dial display stays in sync
-        setDialAngle(pinchRot0 + angleDelta);
+        applySize(pinchSize0 * (getTouchDist(e) / pinchDist0));
+        setDialAngle(pinchRot0 + (getTouchAngle(e) - pinchAngle0));
         return;
       }
       if (dialDragging) setDialAngle(dialAngleFromPointer(e));
-      if (isDraggingWm) updateWmPosFromCanvas(e.touches[0].clientX, e.touches[0].clientY);
+      if (dragMode === 'move') {
+        const [cmx, cmy] = clientToCanvas(e.touches[0].clientX, e.touches[0].clientY);
+        const cW = previewCanvas.width, cH = previewCanvas.height;
+        st.posX = Math.max(0, Math.min(1, dragOrigin.posX0 + (cmx - dragOrigin.mx0) / cW));
+        st.posY = Math.max(0, Math.min(1, dragOrigin.posY0 + (cmy - dragOrigin.my0) / cH));
+        schedulePreview();
+      }
     }, { passive: true });
     window.addEventListener('touchend', () => {
       dialDragging = false;
-      isDraggingWm = false;
+      dragMode = null;
       pinching = false;
     });
 
