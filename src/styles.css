@@ -707,6 +707,99 @@ input[type="range"].range:disabled { opacity: 0.4; cursor: not-allowed; }
   vertical-align: middle;
 }
 
+/* ── Angle dial (circular drag-to-rotate control) ────────────── */
+/* Drag the knob around the clock face to set a rotation angle.   */
+/* JS updates the hand/knob x2/cx/cy attributes + readout text.   */
+.angle-dial {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  user-select: none;
+  touch-action: none;
+}
+.angle-dial svg {
+  width: 4rem;
+  height: 4rem;
+  overflow: visible;
+  cursor: grab;
+  display: block;
+}
+.angle-dial svg:active { cursor: grabbing; }
+.angle-dial-track {
+  fill: #0b1220;
+  stroke: #374151;
+  stroke-width: 2;
+}
+.angle-dial-tick {
+  stroke: #4b5563;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.angle-dial-hand {
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.angle-dial-knob { fill: var(--accent-h); }
+.angle-dial-readout {
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: #9ca3af;
+  min-width: 3rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* ── Color button (styled label wrapping <input type="color">) ── */
+/* Renders as a clickable row: swatch preview + hex text. The     */
+/* native color picker opens on click. Always use as a <label>.   */
+.color-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.6rem 0.3rem 0.4rem;
+  border: 1px solid #374151;
+  border-radius: 0.45rem;
+  background: #0b1220;
+  cursor: pointer;
+  transition: border-color 0.12s;
+  overflow: hidden;
+}
+.color-btn:hover { border-color: #4b5563; }
+.color-btn:focus-within {
+  border-color: var(--accent);
+  outline: 2px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  outline-offset: 1px;
+}
+.color-btn input[type="color"] {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+.color-btn-swatch {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.3rem;
+  background: var(--color-btn-c, #ffffff);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+  pointer-events: none;
+}
+.color-btn-hex {
+  font-size: 0.75rem;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: #e5e7eb;
+  pointer-events: none;
+  user-select: none;
+}
+
 /* ── Drop zone (file drop / click / paste) ───────────────────── */
 .drop-zone {
   border: 2px dashed #374151;
@@ -1291,6 +1384,17 @@ html[data-theme="light"] input[type="range"].range::-moz-range-thumb { border-co
 
 /* Color swatch */
 html[data-theme="light"] .swatch { border-color: #d1d5db; }
+
+/* Angle dial */
+html[data-theme="light"] .angle-dial-track   { fill: #ffffff; stroke: #d1d5db; }
+html[data-theme="light"] .angle-dial-tick    { stroke: #9ca3af; }
+html[data-theme="light"] .angle-dial-readout { color: #6b7280; }
+
+/* Color button */
+html[data-theme="light"] .color-btn          { background: #ffffff; border-color: #d1d5db; }
+html[data-theme="light"] .color-btn:hover    { border-color: #9ca3af; }
+html[data-theme="light"] .color-btn-swatch   { border-color: rgba(0, 0, 0, 0.1); }
+html[data-theme="light"] .color-btn-hex      { color: #374151; }
 
 /* Drop zone */
 html[data-theme="light"] .drop-zone {
