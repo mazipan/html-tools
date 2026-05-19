@@ -130,12 +130,14 @@
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs text-gray-500 mb-1.5">Font</label>
-              <div class="flex gap-1">
-                <button class="pill pill-sm on" data-font="sans-serif" type="button">Sans</button>
-                <button class="pill pill-sm" data-font="serif" type="button">Serif</button>
-                <button class="pill pill-sm" data-font="monospace" type="button">Mono</button>
-              </div>
+              <label for="font-select" class="block text-xs text-gray-500 mb-1.5">Font</label>
+              <select id="font-select" class="select w-full">
+                <option value="sans-serif">Sans-serif</option>
+                <option value="serif">Serif</option>
+                <option value="monospace">Monospace</option>
+                <option value="cursive">Cursive</option>
+                <option value="fantasy">Fantasy</option>
+              </select>
             </div>
             <div>
               <label class="block text-xs text-gray-500 mb-1.5">Color</label>
@@ -875,12 +877,9 @@
         schedulePreview();
       }
     });
-    document.querySelectorAll('[data-font]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        st.font = btn.dataset.font;
-        document.querySelectorAll('[data-font]').forEach(b => b.classList.toggle('on', b === btn));
-        schedulePreview();
-      });
+    document.getElementById('font-select').addEventListener('change', e => {
+      st.font = e.target.value;
+      schedulePreview();
     });
     document.querySelectorAll('[data-size-mode]').forEach(btn => {
       btn.addEventListener('click', () => {
