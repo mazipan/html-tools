@@ -426,14 +426,12 @@ function wireOverlayEvents(el) {
         nh = Math.max(MIN, so.h + dy);
       }
       if (dir.includes('w')) {
-        const dw = Math.min(so.w - MIN, -dx);
-        nx = so.x + dw;
-        nw = so.w - dw;
+        nw = Math.max(MIN, so.w - dx);
+        nx = so.x + (so.w - nw);
       }
       if (dir.includes('n')) {
-        const dh = Math.min(so.h - MIN, -dy);
-        ny = so.y + dh;
-        nh = so.h - dh;
+        nh = Math.max(MIN, so.h - dy);
+        ny = so.y + (so.h - nh);
       }
       if (nx < 0) {
         nw += nx;
