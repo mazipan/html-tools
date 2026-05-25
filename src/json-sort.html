@@ -59,6 +59,7 @@
       <button id="btn-asc" onclick="setOrder('asc')" class="btn btn-active">A → Z</button>
       <button id="btn-desc" onclick="setOrder('desc')" class="btn btn-secondary">Z → A</button>
       <div class="w-px h-5 bg-gray-700 mx-1"></div>
+      <button onclick="loadSample()" class="btn btn-secondary">📥 Load sample</button>
       <button onclick="clearAll()" class="btn btn-danger">🗑️ Clear</button>
     </div>
     <p id="preset-hint" class="text-xs text-gray-500 mb-3 hidden">Preset fixes the order of known keys; A→Z / Z→A still controls how any extra keys are sorted at the end.</p>
@@ -579,6 +580,84 @@
       outputEl.classList.remove('border-red-500', 'whitespace-pre');
       outputEl.classList.add('border-gray-700');
       setStatus('');
+    }
+
+    // ── Samples ──────────────────────────────────────────────────
+    // Deliberately unsorted so the user can see the effect immediately.
+    const SAMPLES = {
+      none: {
+        "zebra": "stripes",
+        "apple": "red",
+        "nested": { "z_last": 1, "a_first": 2, "m_middle": 3 },
+        "fruit": ["banana", "apple", "cherry"],
+        "count": 42,
+        "_meta": { "version": 1 }
+      },
+      package: {
+        "devDependencies": { "vitest": "^1", "biome": "^1.9", "@types/node": "^22" },
+        "scripts": {
+          "postbuild": "echo built",
+          "lint:fix": "biome check --write",
+          "test": "vitest",
+          "build": "tsc -p .",
+          "lint": "biome check",
+          "pretest": "npm run lint",
+          "prebuild": "rimraf dist",
+          "dev": "tsx watch src/index.ts"
+        },
+        "name": "my-package",
+        "main": "./dist/index.cjs",
+        "_id": "internal-marker",
+        "exports": {
+          ".": { "default": "./dist/index.cjs", "types": "./dist/index.d.ts", "import": "./dist/index.mjs" },
+          "./utils": "./dist/utils.js"
+        },
+        "dependencies": { "zod": "^3.23", "cmd-ts": "^0.13" },
+        "version": "1.2.3",
+        "myCustomConfig": { "foo": "bar" },
+        "description": "Example package to demo sort-package-json field order",
+        "engines": { "pnpm": ">=9", "node": ">=20" },
+        "keywords": ["example", "demo", "example"],
+        "repository": { "url": "git+https://github.com/user/repo.git", "type": "git" },
+        "license": "MIT",
+        "author": { "url": "https://example.com", "name": "Jane Doe", "email": "jane@example.com" }
+      },
+      tsconfig: {
+        "include": ["src/**/*"],
+        "exclude": ["node_modules", "dist"],
+        "compilerOptions": {
+          "target": "ES2022",
+          "strict": true,
+          "esModuleInterop": true,
+          "module": "NodeNext",
+          "moduleResolution": "NodeNext",
+          "outDir": "./dist",
+          "declaration": true,
+          "skipLibCheck": true
+        },
+        "extends": "./tsconfig.base.json",
+        "$schema": "https://json.schemastore.org/tsconfig",
+        "ts-node": { "transpileOnly": true }
+      },
+      composer: {
+        "require-dev": { "phpunit/phpunit": "^10", "friendsofphp/php-cs-fixer": "^3" },
+        "autoload": { "psr-4": { "App\\": "src/" } },
+        "require": { "php": "^8.2", "guzzlehttp/guzzle": "^7", "symfony/console": "^7" },
+        "name": "vendor/my-php-pkg",
+        "authors": [{ "email": "jane@example.com", "name": "Jane Doe", "homepage": "https://example.com" }],
+        "description": "Example PHP package demonstrating composer.json field order",
+        "license": "MIT",
+        "type": "library",
+        "scripts": { "test": "phpunit", "lint": "php-cs-fixer fix" },
+        "minimum-stability": "stable"
+      }
+    };
+
+    function loadSample() {
+      const sample = SAMPLES[currentPreset] || SAMPLES.none;
+      inputEl.value = JSON.stringify(sample, null, 2);
+      sort();
+      inputEl.focus();
     }
 
     let debounceTimer;
