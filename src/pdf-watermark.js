@@ -103,7 +103,7 @@ function getStampDimensions(stampInfo, pageW, pageH) {
     return { w: stampInfo.pdfW, h: stampInfo.pdfH };
   }
   const short = Math.min(pageW, pageH);
-  const h = short * opts.imageScale / 100;
+  const h = (short * opts.imageScale) / 100;
   const w = stampInfo.aspect * h;
   return { w, h };
 }
@@ -111,16 +111,45 @@ function getStampDimensions(stampInfo, pageW, pageH) {
 function computePosition(pos, pageW, pageH, stampW, stampH, margin) {
   let cx, cy;
   switch (pos) {
-    case 'tl': cx = margin + stampW / 2;           cy = pageH - margin - stampH / 2; break;
-    case 'tc': cx = pageW / 2;                      cy = pageH - margin - stampH / 2; break;
-    case 'tr': cx = pageW - margin - stampW / 2;   cy = pageH - margin - stampH / 2; break;
-    case 'ml': cx = margin + stampW / 2;           cy = pageH / 2;                   break;
-    case 'mc': cx = pageW / 2;                      cy = pageH / 2;                   break;
-    case 'mr': cx = pageW - margin - stampW / 2;   cy = pageH / 2;                   break;
-    case 'bl': cx = margin + stampW / 2;           cy = margin + stampH / 2;         break;
-    case 'bc': cx = pageW / 2;                      cy = margin + stampH / 2;         break;
-    case 'br': cx = pageW - margin - stampW / 2;   cy = margin + stampH / 2;         break;
-    default:   cx = pageW / 2;                      cy = pageH / 2;
+    case 'tl':
+      cx = margin + stampW / 2;
+      cy = pageH - margin - stampH / 2;
+      break;
+    case 'tc':
+      cx = pageW / 2;
+      cy = pageH - margin - stampH / 2;
+      break;
+    case 'tr':
+      cx = pageW - margin - stampW / 2;
+      cy = pageH - margin - stampH / 2;
+      break;
+    case 'ml':
+      cx = margin + stampW / 2;
+      cy = pageH / 2;
+      break;
+    case 'mc':
+      cx = pageW / 2;
+      cy = pageH / 2;
+      break;
+    case 'mr':
+      cx = pageW - margin - stampW / 2;
+      cy = pageH / 2;
+      break;
+    case 'bl':
+      cx = margin + stampW / 2;
+      cy = margin + stampH / 2;
+      break;
+    case 'bc':
+      cx = pageW / 2;
+      cy = margin + stampH / 2;
+      break;
+    case 'br':
+      cx = pageW - margin - stampW / 2;
+      cy = margin + stampH / 2;
+      break;
+    default:
+      cx = pageW / 2;
+      cy = pageH / 2;
   }
   return { x: cx - stampW / 2, y: cy - stampH / 2 };
 }
@@ -193,38 +222,42 @@ async function applyWatermark(file) {
 }
 
 // ── DOM refs ────────────────────────────────────────────────────────────────
-const dropZone     = document.getElementById('wf-drop-zone');
-const fileInput    = document.getElementById('wf-file-input');
-const wfList       = document.getElementById('wf-list');
-const errorBar     = document.getElementById('wf-error-bar');
-const processBtn   = document.getElementById('wf-process-btn');
-const zipBtn       = document.getElementById('wf-zip-btn');
-const statusEl     = document.getElementById('wf-status');
-const fileCountEl  = document.getElementById('wf-file-count');
+const dropZone = document.getElementById('wf-drop-zone');
+const fileInput = document.getElementById('wf-file-input');
+const wfList = document.getElementById('wf-list');
+const errorBar = document.getElementById('wf-error-bar');
+const processBtn = document.getElementById('wf-process-btn');
+const zipBtn = document.getElementById('wf-zip-btn');
+const statusEl = document.getElementById('wf-status');
+const fileCountEl = document.getElementById('wf-file-count');
 
-const textColorInput  = document.getElementById('text-color');
-const textColorBtn    = document.getElementById('text-color-btn');
-const textColorHex    = document.getElementById('text-color-hex');
-const textOpacity     = document.getElementById('text-opacity');
-const textOpacityVal  = document.getElementById('text-opacity-val');
-const imageOpacity    = document.getElementById('img-opacity');
+const textColorInput = document.getElementById('text-color');
+const textColorBtn = document.getElementById('text-color-btn');
+const textColorHex = document.getElementById('text-color-hex');
+const textOpacity = document.getElementById('text-opacity');
+const textOpacityVal = document.getElementById('text-opacity-val');
+const imageOpacity = document.getElementById('img-opacity');
 const imageOpacityVal = document.getElementById('img-opacity-val');
-const wmImgDrop       = document.getElementById('wm-img-drop');
-const wmImgInput      = document.getElementById('wm-img-input');
-const wmImgEmpty      = document.getElementById('wm-img-empty');
-const wmImgLoaded     = document.getElementById('wm-img-loaded');
-const wmImgThumb      = document.getElementById('wm-img-thumb');
-const wmImgName       = document.getElementById('wm-img-name');
-const densitySection  = document.getElementById('density-section');
-const rotCustomWrap   = document.getElementById('rot-custom-wrap');
-const rotCustomInput  = document.getElementById('rot-custom');
-const tileToggle      = document.getElementById('tile-toggle');
-const pagesInput      = document.getElementById('pages-input');
-const marginInput     = document.getElementById('margin-input');
-const imgScaleInput   = document.getElementById('img-scale');
+const wmImgDrop = document.getElementById('wm-img-drop');
+const wmImgInput = document.getElementById('wm-img-input');
+const wmImgEmpty = document.getElementById('wm-img-empty');
+const wmImgLoaded = document.getElementById('wm-img-loaded');
+const wmImgThumb = document.getElementById('wm-img-thumb');
+const wmImgName = document.getElementById('wm-img-name');
+const densitySection = document.getElementById('density-section');
+const rotCustomWrap = document.getElementById('rot-custom-wrap');
+const rotCustomInput = document.getElementById('rot-custom');
+const tileToggle = document.getElementById('tile-toggle');
+const pagesInput = document.getElementById('pages-input');
+const marginInput = document.getElementById('margin-input');
+const imgScaleInput = document.getElementById('img-scale');
 
 function escHtml(s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 function showError(msg) {
@@ -244,10 +277,14 @@ function updateFileCount() {
 // ── Card rendering ──────────────────────────────────────────────────────────
 function badgeHtml(item) {
   switch (item.status) {
-    case 'working': return `<span class="badge badge-working">working…</span>`;
-    case 'done':    return `<span class="badge badge-done">done</span>`;
-    case 'error':   return `<span class="badge badge-error">error</span>`;
-    default:        return `<span class="badge badge-queued">queued</span>`;
+    case 'working':
+      return `<span class="badge badge-working">working…</span>`;
+    case 'done':
+      return `<span class="badge badge-done">done</span>`;
+    case 'error':
+      return `<span class="badge badge-error">error</span>`;
+    default:
+      return `<span class="badge badge-queued">queued</span>`;
   }
 }
 
@@ -282,8 +319,13 @@ function updateCard(item) {
 
 // ── File ingestion ──────────────────────────────────────────────────────────
 function ingestFiles(files) {
-  const accepted = [...files].filter(f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'));
-  if (accepted.length === 0) { showError('No PDFs found. Drop one or more .pdf files.'); return; }
+  const accepted = [...files].filter(
+    (f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'),
+  );
+  if (accepted.length === 0) {
+    showError('No PDFs found. Drop one or more .pdf files.');
+    return;
+  }
   if (accepted.length < [...files].length) {
     showError(`${[...files].length - accepted.length} file(s) skipped — only PDFs are accepted.`);
   }
@@ -312,8 +354,14 @@ let running = false;
 
 async function runQueue() {
   if (running) return;
-  if (opts.type === 'text' && !opts.text.trim()) { showError('Enter watermark text first.'); return; }
-  if (opts.type === 'image' && !opts.wmBitmap) { showError('Drop a watermark image first.'); return; }
+  if (opts.type === 'text' && !opts.text.trim()) {
+    showError('Enter watermark text first.');
+    return;
+  }
+  if (opts.type === 'image' && !opts.wmBitmap) {
+    showError('Drop a watermark image first.');
+    return;
+  }
   running = true;
   processBtn.disabled = true;
   hideError();
@@ -337,7 +385,7 @@ async function runQueue() {
   processBtn.disabled = false;
   statusEl.textContent = '';
 
-  const anyDone = items.some(it => it.status === 'done');
+  const anyDone = items.some((it) => it.status === 'done');
   if (anyDone) zipBtn.classList.remove('hidden');
 }
 
@@ -353,13 +401,16 @@ function downloadOne(item) {
 }
 
 async function downloadZip() {
-  const done = items.filter(it => it.status === 'done' && it.blob);
+  const done = items.filter((it) => it.status === 'done' && it.blob);
   if (done.length === 0) return;
-  if (done.length === 1) { downloadOne(done[0]); return; }
+  if (done.length === 1) {
+    downloadOne(done[0]);
+    return;
+  }
   zipBtn.disabled = true;
   statusEl.textContent = 'Building zip…';
   try {
-    const entries = done.map(it => ({
+    const entries = done.map((it) => ({
       name: it.file.name.replace(/\.pdf$/i, '') + '-watermarked.pdf',
       blob: it.blob,
     }));
@@ -378,11 +429,22 @@ async function downloadZip() {
 
 // ── Drop zone wiring ────────────────────────────────────────────────────────
 dropZone.addEventListener('click', () => fileInput.click());
-dropZone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
-fileInput.addEventListener('change', () => { if (fileInput.files.length) ingestFiles(fileInput.files); fileInput.value = ''; });
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    fileInput.click();
+  }
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files.length) ingestFiles(fileInput.files);
+  fileInput.value = '';
+});
+dropZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropZone.classList.add('dragover');
+});
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop', e => {
+dropZone.addEventListener('drop', (e) => {
   e.preventDefault();
   dropZone.classList.remove('dragover');
   if (e.dataTransfer.files.length) ingestFiles(e.dataTransfer.files);
@@ -390,11 +452,22 @@ dropZone.addEventListener('drop', e => {
 
 // ── Watermark image drop zone ───────────────────────────────────────────────
 wmImgDrop.addEventListener('click', () => wmImgInput.click());
-wmImgDrop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); wmImgInput.click(); } });
-wmImgInput.addEventListener('change', () => { if (wmImgInput.files?.[0]) loadWmImage(wmImgInput.files[0]); wmImgInput.value = ''; });
-wmImgDrop.addEventListener('dragover', e => { e.preventDefault(); wmImgDrop.classList.add('dragover'); });
+wmImgDrop.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    wmImgInput.click();
+  }
+});
+wmImgInput.addEventListener('change', () => {
+  if (wmImgInput.files?.[0]) loadWmImage(wmImgInput.files[0]);
+  wmImgInput.value = '';
+});
+wmImgDrop.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  wmImgDrop.classList.add('dragover');
+});
 wmImgDrop.addEventListener('dragleave', () => wmImgDrop.classList.remove('dragover'));
-wmImgDrop.addEventListener('drop', e => {
+wmImgDrop.addEventListener('drop', (e) => {
   e.preventDefault();
   wmImgDrop.classList.remove('dragover');
   const f = e.dataTransfer?.files?.[0];
@@ -416,19 +489,23 @@ async function loadWmImage(file) {
 }
 
 // ── Type pills ──────────────────────────────────────────────────────────────
-document.querySelectorAll('[data-wm-type]').forEach(btn => {
+document.querySelectorAll('[data-wm-type]').forEach((btn) => {
   btn.addEventListener('click', () => {
     opts.type = btn.dataset.wmType;
-    document.querySelectorAll('[data-wm-type]').forEach(b => b.classList.toggle('on', b === btn));
+    document.querySelectorAll('[data-wm-type]').forEach((b) => b.classList.toggle('on', b === btn));
     document.getElementById('text-panel').classList.toggle('on', opts.type === 'text');
     document.getElementById('img-panel').classList.toggle('on', opts.type === 'image');
   });
 });
 
 // ── Text controls ───────────────────────────────────────────────────────────
-document.getElementById('text-content').addEventListener('input', e => { opts.text = e.target.value; });
-document.getElementById('font-select').addEventListener('change', e => { opts.fontFamily = e.target.value; });
-document.getElementById('font-size').addEventListener('input', e => {
+document.getElementById('text-content').addEventListener('input', (e) => {
+  opts.text = e.target.value;
+});
+document.getElementById('font-select').addEventListener('change', (e) => {
+  opts.fontFamily = e.target.value;
+});
+document.getElementById('font-size').addEventListener('input', (e) => {
   const v = parseInt(e.target.value, 10);
   if (!isNaN(v) && v > 0) opts.fontSize = v;
 });
@@ -444,10 +521,10 @@ textOpacity.addEventListener('input', () => {
   textOpacityVal.textContent = Math.round(opts.opacity * 100) + '%';
 });
 
-document.querySelectorAll('[data-rot]').forEach(btn => {
+document.querySelectorAll('[data-rot]').forEach((btn) => {
   btn.addEventListener('click', () => {
     const v = btn.dataset.rot;
-    document.querySelectorAll('[data-rot]').forEach(b => b.classList.toggle('on', b === btn));
+    document.querySelectorAll('[data-rot]').forEach((b) => b.classList.toggle('on', b === btn));
     if (v === 'custom') {
       rotCustomWrap.classList.remove('hidden');
     } else {
@@ -474,10 +551,10 @@ imgScaleInput.addEventListener('input', () => {
 });
 
 // ── Position grid ───────────────────────────────────────────────────────────
-document.querySelectorAll('.pos-btn').forEach(btn => {
+document.querySelectorAll('.pos-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
     opts.position = btn.dataset.pos;
-    document.querySelectorAll('.pos-btn').forEach(b => b.classList.toggle('on', b === btn));
+    document.querySelectorAll('.pos-btn').forEach((b) => b.classList.toggle('on', b === btn));
   });
 });
 
@@ -492,15 +569,17 @@ tileToggle.addEventListener('change', () => {
   densitySection.classList.toggle('hidden', !opts.tile);
 });
 
-document.querySelectorAll('[data-density]').forEach(btn => {
+document.querySelectorAll('[data-density]').forEach((btn) => {
   btn.addEventListener('click', () => {
     opts.density = btn.dataset.density;
-    document.querySelectorAll('[data-density]').forEach(b => b.classList.toggle('on', b === btn));
+    document.querySelectorAll('[data-density]').forEach((b) => b.classList.toggle('on', b === btn));
   });
 });
 
 // ── Pages input ─────────────────────────────────────────────────────────────
-pagesInput.addEventListener('input', () => { opts.pages = pagesInput.value; });
+pagesInput.addEventListener('input', () => {
+  opts.pages = pagesInput.value;
+});
 
 // ── Action buttons ──────────────────────────────────────────────────────────
 processBtn.addEventListener('click', runQueue);
@@ -516,16 +595,16 @@ document.getElementById('wf-clear-btn').addEventListener('click', () => {
   updateView();
 });
 
-wfList.addEventListener('click', e => {
+wfList.addEventListener('click', (e) => {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
   const { action, id } = btn.dataset;
   const idNum = parseInt(id, 10);
-  const item = items.find(it => it.id === idNum);
+  const item = items.find((it) => it.id === idNum);
   if (!item) return;
   if (action === 'download') downloadOne(item);
   else if (action === 'remove') {
-    items = items.filter(it => it.id !== idNum);
+    items = items.filter((it) => it.id !== idNum);
     document.getElementById(`wf-${id}`)?.remove();
     updateView();
   }

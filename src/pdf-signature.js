@@ -63,7 +63,7 @@ function showError(msg) {
 }
 
 function canvasToBlob(canvas, type = 'image/png') {
-  return new Promise(res => canvas.toBlob(res, type));
+  return new Promise((res) => canvas.toBlob(res, type));
 }
 
 // ── Draw tab ───────────────────────────────────────────────────────────────
@@ -194,7 +194,9 @@ async function handleSigUpload(file) {
 }
 
 sigUploadZone.addEventListener('click', () => sigUploadInput.click());
-sigUploadZone.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') sigUploadInput.click(); });
+sigUploadZone.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') sigUploadInput.click();
+});
 sigUploadInput.addEventListener('change', () => {
   if (sigUploadInput.files[0]) handleSigUpload(sigUploadInput.files[0]);
 });
@@ -317,7 +319,7 @@ function syncOvFromInputs() {
   syncOverlayEl();
 }
 
-['ov-x', 'ov-y', 'ov-w', 'ov-h'].forEach(id => {
+['ov-x', 'ov-y', 'ov-w', 'ov-h'].forEach((id) => {
   document.getElementById(id).addEventListener('input', syncOvFromInputs);
 });
 
@@ -326,7 +328,7 @@ function createOverlay() {
   if (existing) existing.remove();
   const el = document.createElement('div');
   el.id = 'sig-overlay';
-  ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].forEach(d => {
+  ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].forEach((d) => {
     const h = document.createElement('div');
     h.className = `rh rh-${d}`;
     h.dataset.dir = d;
@@ -345,9 +347,15 @@ function wireOverlayEvents(el) {
     e.preventDefault();
   });
 
-  el.querySelectorAll('.rh').forEach(h => {
+  el.querySelectorAll('.rh').forEach((h) => {
     h.addEventListener('pointerdown', (e) => {
-      dragState = { type: 'resize', dir: h.dataset.dir, startX: e.clientX, startY: e.clientY, startOv: { ...ov } };
+      dragState = {
+        type: 'resize',
+        dir: h.dataset.dir,
+        startX: e.clientX,
+        startY: e.clientY,
+        startOv: { ...ov },
+      };
       h.setPointerCapture(e.pointerId);
       e.stopPropagation();
       e.preventDefault();
@@ -369,12 +377,30 @@ function wireOverlayEvents(el) {
       ny = Math.max(0, Math.min(maxY - nh, so.y + dy));
     } else {
       const dir = dragState.dir;
-      if (dir.includes('e')) { nw = Math.max(MIN, so.w + dx); }
-      if (dir.includes('s')) { nh = Math.max(MIN, so.h + dy); }
-      if (dir.includes('w')) { const dw = Math.min(so.w - MIN, -dx); nx = so.x + dw; nw = so.w - dw; }
-      if (dir.includes('n')) { const dh = Math.min(so.h - MIN, -dy); ny = so.y + dh; nh = so.h - dh; }
-      if (nx < 0) { nw += nx; nx = 0; }
-      if (ny < 0) { nh += ny; ny = 0; }
+      if (dir.includes('e')) {
+        nw = Math.max(MIN, so.w + dx);
+      }
+      if (dir.includes('s')) {
+        nh = Math.max(MIN, so.h + dy);
+      }
+      if (dir.includes('w')) {
+        const dw = Math.min(so.w - MIN, -dx);
+        nx = so.x + dw;
+        nw = so.w - dw;
+      }
+      if (dir.includes('n')) {
+        const dh = Math.min(so.h - MIN, -dy);
+        ny = so.y + dh;
+        nh = so.h - dh;
+      }
+      if (nx < 0) {
+        nw += nx;
+        nx = 0;
+      }
+      if (ny < 0) {
+        nh += ny;
+        ny = 0;
+      }
       if (nx + nw > maxX) nw = maxX - nx;
       if (ny + nh > maxY) nh = maxY - ny;
     }
@@ -384,8 +410,12 @@ function wireOverlayEvents(el) {
     syncInputsFromOv();
   });
 
-  el.addEventListener('pointerup', () => { dragState = null; });
-  el.addEventListener('pointercancel', () => { dragState = null; });
+  el.addEventListener('pointerup', () => {
+    dragState = null;
+  });
+  el.addEventListener('pointercancel', () => {
+    dragState = null;
+  });
 }
 
 // ── Signature PNG ──────────────────────────────────────────────────────────
@@ -457,7 +487,9 @@ async function downloadSignedPdf() {
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 10000);
     dlStatus.textContent = 'Done!';
-    setTimeout(() => { dlStatus.textContent = ''; }, 3000);
+    setTimeout(() => {
+      dlStatus.textContent = '';
+    }, 3000);
   } catch (err) {
     showError(`Failed to sign PDF: ${err.message}`);
     dlStatus.textContent = '';
@@ -532,7 +564,9 @@ clearPdfBtn.addEventListener('click', resetPdf);
 
 // ── PDF drop zone ──────────────────────────────────────────────────────────
 pdfDrop.addEventListener('click', () => pdfFileInput.click());
-pdfDrop.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') pdfFileInput.click(); });
+pdfDrop.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') pdfFileInput.click();
+});
 pdfFileInput.addEventListener('change', () => {
   if (pdfFileInput.files[0]) loadPdf(pdfFileInput.files[0]);
 });
