@@ -1,9 +1,15 @@
 import { PDFDocument } from 'pdf-lib';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = window.__PDF_WORKER_URL__;
 
 const { formatBytes, buildStoreZip } = window;
 
 const MAX_FILES = 25;
 const SCALE = 2;
+
+let previewPdfJsDoc = null;
+let previewTimer = null;
 
 const opts = {
   type: 'text',
@@ -221,6 +227,100 @@ async function applyWatermark(file) {
   return new Blob([outBytes], { type: 'application/pdf' });
 }
 
+// ── Preview ──────────────────────────────────────────────────────────────────
+async function renderPreview() {
+  if (!previewPdfJsDoc || items.length !== 1) return;
+  const canvas = document.getElementById('preview-canvas');
+  const ctx = canvas.getContext('2d');
+  try {
+    const page = await previewPdfJsDoc.getPage(1);
+    const vp1 = page.getViewport({ scale: 1 });
+    const maxW = canvas.parentElement.clientWidth || 800;
+    const scale = Math.min(maxW / vp1.width, 2);
+    const vp = page.getViewport({ scale });
+    canvas.width = vp.width;
+    canvas.height = vp.height;
+    await page.render({ canvasContext: ctx, viewport: vp }).promise;
+
+    const cH = canvas.height;
+    const pdfW = vp1.width;
+    const pdfH = vp1.height;
+
+    if (opts.type === 'text' && opts.text.trim()) {
+      const scaledFontSize = opts.fontSize * scale;
+      const tmp = new OffscreenCanvas(10, 10);
+      const tmpCtx = tmp.getContext('2d');
+      tmpCtx.font = `bold ${scaledFontSize}px ${opts.fontFamily}`;
+      const m = tmpCtx.measureText(opts.text);
+      const tw = m.width;
+      const th = scaledFontSize * 1.25;
+      const rad = (opts.angleDeg * Math.PI) / 180;
+      const abscos = Math.abs(Math.cos(rad));
+      const abssin = Math.abs(Math.sin(rad));
+      const stampW_pt = (Math.ceil(tw * abscos + th * abssin) + 4) / scale;
+      const stampH_pt = (Math.ceil(tw * abssin + th * abscos) + 4) / scale;
+      const positions = opts.tile
+        ? tilePositions(pdfW, pdfH, stampW_pt, stampH_pt, opts.density)
+        : [computePosition(opts.position, pdfW, pdfH, stampW_pt, stampH_pt, opts.margin)];
+      for (const { x, y } of positions) {
+        const cx = (x + stampW_pt / 2) * scale;
+        const cy = cH - (y + stampH_pt / 2) * scale;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(rad);
+        ctx.globalAlpha = opts.opacity;
+        ctx.font = `bold ${scaledFontSize}px ${opts.fontFamily}`;
+        ctx.fillStyle = opts.color;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(opts.text, 0, 0);
+        ctx.restore();
+      }
+    } else if (opts.type === 'image' && opts.wmBitmap) {
+      const short = Math.min(pdfW, pdfH);
+      const stampH_pt = (short * opts.imageScale) / 100;
+      const stampW_pt = (opts.wmBitmap.width / opts.wmBitmap.height) * stampH_pt;
+      const positions = opts.tile
+        ? tilePositions(pdfW, pdfH, stampW_pt, stampH_pt, opts.density)
+        : [computePosition(opts.position, pdfW, pdfH, stampW_pt, stampH_pt, opts.margin)];
+      for (const { x, y } of positions) {
+        ctx.save();
+        ctx.globalAlpha = opts.imageOpacity;
+        ctx.drawImage(
+          opts.wmBitmap,
+          x * scale,
+          cH - (y + stampH_pt) * scale,
+          stampW_pt * scale,
+          stampH_pt * scale,
+        );
+        ctx.restore();
+      }
+    }
+  } catch (_) {
+    // preview errors are non-fatal
+  }
+}
+
+function schedulePreview() {
+  if (previewTimer) clearTimeout(previewTimer);
+  previewTimer = setTimeout(renderPreview, 150);
+}
+
+async function updatePreviewDoc() {
+  if (previewPdfJsDoc) {
+    previewPdfJsDoc.destroy();
+    previewPdfJsDoc = null;
+  }
+  if (items.length !== 1) return;
+  try {
+    const bytes = new Uint8Array(await items[0].file.arrayBuffer());
+    previewPdfJsDoc = await pdfjsLib.getDocument({ data: bytes }).promise;
+    schedulePreview();
+  } catch (_) {
+    // ignore unreadable PDFs in preview
+  }
+}
+
 // ── DOM refs ────────────────────────────────────────────────────────────────
 const dropZone = document.getElementById('wf-drop-zone');
 const fileInput = document.getElementById('wf-file-input');
@@ -245,7 +345,6 @@ const wmImgLoaded = document.getElementById('wm-img-loaded');
 const wmImgThumb = document.getElementById('wm-img-thumb');
 const wmImgName = document.getElementById('wm-img-name');
 const densitySection = document.getElementById('density-section');
-const rotCustomWrap = document.getElementById('rot-custom-wrap');
 const rotCustomInput = document.getElementById('rot-custom');
 const tileToggle = document.getElementById('tile-toggle');
 const pagesInput = document.getElementById('pages-input');
@@ -347,6 +446,14 @@ function updateView() {
   processBtn.classList.toggle('hidden', !has);
   updateFileCount();
   if (!has) zipBtn.classList.add('hidden');
+  const previewWrap = document.getElementById('preview-wrap');
+  previewWrap.classList.toggle('hidden', items.length !== 1);
+  if (items.length === 1) {
+    updatePreviewDoc();
+  } else if (previewPdfJsDoc) {
+    previewPdfJsDoc.destroy();
+    previewPdfJsDoc = null;
+  }
 }
 
 // ── Process queue ───────────────────────────────────────────────────────────
@@ -483,6 +590,7 @@ async function loadWmImage(file) {
     wmImgName.textContent = file.name;
     wmImgEmpty.classList.add('hidden');
     wmImgLoaded.classList.remove('hidden');
+    schedulePreview();
   } catch (err) {
     showError('Could not load watermark image: ' + (err.message || String(err)));
   }
@@ -495,59 +603,76 @@ document.querySelectorAll('[data-wm-type]').forEach((btn) => {
     document.querySelectorAll('[data-wm-type]').forEach((b) => b.classList.toggle('on', b === btn));
     document.getElementById('text-panel').classList.toggle('on', opts.type === 'text');
     document.getElementById('img-panel').classList.toggle('on', opts.type === 'image');
+    schedulePreview();
   });
 });
 
 // ── Text controls ───────────────────────────────────────────────────────────
 document.getElementById('text-content').addEventListener('input', (e) => {
   opts.text = e.target.value;
+  schedulePreview();
 });
 document.getElementById('font-select').addEventListener('change', (e) => {
   opts.fontFamily = e.target.value;
+  schedulePreview();
 });
 document.getElementById('font-size').addEventListener('input', (e) => {
   const v = parseInt(e.target.value, 10);
-  if (!isNaN(v) && v > 0) opts.fontSize = v;
+  if (!isNaN(v) && v > 0) {
+    opts.fontSize = v;
+    schedulePreview();
+  }
 });
 
 textColorInput.addEventListener('input', () => {
   opts.color = textColorInput.value;
   textColorBtn.style.setProperty('--color-btn-c', opts.color);
   textColorHex.textContent = opts.color.slice(1).toUpperCase();
+  schedulePreview();
 });
 
 textOpacity.addEventListener('input', () => {
   opts.opacity = parseFloat(textOpacity.value);
   textOpacityVal.textContent = Math.round(opts.opacity * 100) + '%';
+  schedulePreview();
 });
 
 document.querySelectorAll('[data-rot]').forEach((btn) => {
   btn.addEventListener('click', () => {
-    const v = btn.dataset.rot;
-    document.querySelectorAll('[data-rot]').forEach((b) => b.classList.toggle('on', b === btn));
-    if (v === 'custom') {
-      rotCustomWrap.classList.remove('hidden');
-    } else {
-      rotCustomWrap.classList.add('hidden');
-      opts.angleDeg = parseFloat(v);
-    }
+    const v = parseFloat(btn.dataset.rot);
+    opts.angleDeg = v;
+    rotCustomInput.value = v;
+    document
+      .querySelectorAll('[data-rot]')
+      .forEach((b) => b.classList.toggle('on', parseFloat(b.dataset.rot) === v));
+    schedulePreview();
   });
 });
 
 rotCustomInput.addEventListener('input', () => {
   const v = parseFloat(rotCustomInput.value);
-  if (!isNaN(v)) opts.angleDeg = v;
+  if (!isNaN(v)) {
+    opts.angleDeg = v;
+    document
+      .querySelectorAll('[data-rot]')
+      .forEach((b) => b.classList.toggle('on', parseFloat(b.dataset.rot) === v));
+    schedulePreview();
+  }
 });
 
 // ── Image controls ──────────────────────────────────────────────────────────
 imageOpacity.addEventListener('input', () => {
   opts.imageOpacity = parseFloat(imageOpacity.value);
   imageOpacityVal.textContent = Math.round(opts.imageOpacity * 100) + '%';
+  schedulePreview();
 });
 
 imgScaleInput.addEventListener('input', () => {
   const v = parseInt(imgScaleInput.value, 10);
-  if (!isNaN(v) && v > 0) opts.imageScale = v;
+  if (!isNaN(v) && v > 0) {
+    opts.imageScale = v;
+    schedulePreview();
+  }
 });
 
 // ── Position grid ───────────────────────────────────────────────────────────
@@ -555,24 +680,30 @@ document.querySelectorAll('.pos-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
     opts.position = btn.dataset.pos;
     document.querySelectorAll('.pos-btn').forEach((b) => b.classList.toggle('on', b === btn));
+    schedulePreview();
   });
 });
 
 marginInput.addEventListener('input', () => {
   const v = parseFloat(marginInput.value);
-  if (!isNaN(v) && v >= 0) opts.margin = v;
+  if (!isNaN(v) && v >= 0) {
+    opts.margin = v;
+    schedulePreview();
+  }
 });
 
 // ── Tile toggle ─────────────────────────────────────────────────────────────
 tileToggle.addEventListener('change', () => {
   opts.tile = tileToggle.checked;
   densitySection.classList.toggle('hidden', !opts.tile);
+  schedulePreview();
 });
 
 document.querySelectorAll('[data-density]').forEach((btn) => {
   btn.addEventListener('click', () => {
     opts.density = btn.dataset.density;
     document.querySelectorAll('[data-density]').forEach((b) => b.classList.toggle('on', b === btn));
+    schedulePreview();
   });
 });
 
