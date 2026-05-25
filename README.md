@@ -82,6 +82,7 @@ A collection of single-file browser-native utilities. All logic runs client-side
 | 🗂️ [PDF Page Manager](src/pdf-page-manager.html) | Reorder, rotate, and delete PDF pages — text stays selectable, undo/redo included. |
 | 💧 [PDF Watermark](src/pdf-watermark.html) | Stamp a text or image watermark onto PDF pages — position, opacity, rotation, tiling. |
 | ✍️ [PDF Signature](src/pdf-signature.html) | Draw, type, or upload a signature and stamp it onto any page of a PDF. |
+| 🖼️ [PDF to Image](src/pdf-to-image.html) | Rasterise PDF pages to PNG, JPEG, or WebP at 72–300 DPI — select pages, download individually or as a zip. |
 <!-- END:tools-table -->
 
 ## Design system

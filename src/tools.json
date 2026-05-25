@@ -1212,6 +1212,37 @@
       ]
     },
     {
+      "slug": "pdf-to-image",
+      "name": "PDF to Image",
+      "icon": "🖼️",
+      "category": "PDF",
+      "card": "Rasterise PDF pages to PNG, JPEG, or WebP at 72–300 DPI — select pages, download individually or as a zip.",
+      "description": "Drop a PDF, select pages from a thumbnail grid, choose PNG / JPEG / WebP output at 72, 150, 300, or custom DPI, then download the images — one file direct, multiple pages as a zip. Runs in your browser — no upload, no server, no tracking.",
+      "maxWidth": "1200px",
+      "faqs": [
+        {
+          "q": "Do my PDFs ever leave my computer?",
+          "a": "No. All rendering happens locally in your browser using PDF.js — no upload, no server, no third-party API. PDFs can contain sensitive content, and none of it leaves your device."
+        },
+        {
+          "q": "What DPI should I use?",
+          "a": "72 DPI matches screen resolution and gives the smallest files — good for web previews. 150 DPI is a balanced print-preview quality. 300 DPI gives print-ready output at roughly 4× the file size of 72 DPI. Use Custom if you need an exact value."
+        },
+        {
+          "q": "What's the difference between PNG, JPEG, and WebP output?",
+          "a": "PNG is lossless — every pixel is preserved exactly, making it the largest but most faithful format. JPEG is lossy but widely supported, ideal for photos or scanned pages where small size matters more than pixel-perfect reproduction. WebP is lossy (or lossless) and gives the best size/quality ratio, though older software may not support it."
+        },
+        {
+          "q": "Why does a 300 DPI export take longer?",
+          "a": "300 DPI renders each page at 4× the pixel area of 72 DPI (scale factor ≈4.17×). For a letter-size page that's roughly 2480×3508 pixels — much more work for the PDF renderer. The tool processes pages in parallel up to your CPU core count, so progress is steady rather than sequential."
+        },
+        {
+          "q": "What does 'Force background' do for PNG and WebP?",
+          "a": "By default PNG and WebP preserve transparency — PDF pages with transparent backgrounds stay transparent. Enabling 'Force background' fills every transparent area with the chosen color before encoding, which is useful when you need an opaque image for a use case that doesn't support alpha (e.g., pasting into a document editor)."
+        }
+      ]
+    },
+    {
       "slug": "design-system",
       "name": "Design System",
       "icon": "🎛️",
