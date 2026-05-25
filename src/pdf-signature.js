@@ -128,6 +128,7 @@ sigCanvas.addEventListener('pointerup', () => {
     drawPaths.push(currentPath);
     currentPath = null;
     isDrawing = false;
+    updateOverlayPreview();
   }
 });
 
@@ -140,6 +141,7 @@ clearDrawBtn.addEventListener('click', () => {
   drawPaths = [];
   currentPath = null;
   redrawSigCanvas();
+  updateOverlayPreview();
 });
 
 const sigCanvasObserver = new ResizeObserver(() => resizeSigCanvas());
@@ -177,6 +179,7 @@ function renderTypePreview() {
   ctx.textBaseline = 'middle';
   ctx.fillText(text, physW / 2, physH / 2);
   ctx.restore();
+  updateOverlayPreview();
 }
 
 typeText.addEventListener('input', renderTypePreview);
@@ -193,6 +196,7 @@ async function handleSigUpload(file) {
   const url = URL.createObjectURL(file);
   sigUploadThumb.src = url;
   sigUploadThumb.classList.remove('hidden');
+  updateOverlayPreview();
 }
 
 sigUploadZone.addEventListener('click', () => sigUploadInput.click());
@@ -235,7 +239,14 @@ function switchTab(tab) {
   for (const [k, panel] of Object.entries(tabPanels)) {
     panel.classList.toggle('on', k === tab);
   }
-  if (tab === 'type') requestAnimationFrame(renderTypePreview);
+  if (tab === 'type') {
+    requestAnimationFrame(() => {
+      renderTypePreview();
+      updateOverlayPreview();
+    });
+  } else {
+    updateOverlayPreview();
+  }
 }
 
 tabBtns.draw.addEventListener('click', () => switchTab('draw'));
@@ -248,6 +259,7 @@ sigColorInput.addEventListener('input', () => {
   sigColorHex.textContent = sigColorInput.value.slice(1).toUpperCase();
   redrawSigCanvas();
   renderTypePreview();
+  updateOverlayPreview();
 });
 
 sigOpacity.addEventListener('input', () => {
@@ -255,11 +267,13 @@ sigOpacity.addEventListener('input', () => {
   sigOpacityVal.textContent = `${pct}%`;
   redrawSigCanvas();
   renderTypePreview();
+  updateOverlayPreview();
 });
 
 penWidth.addEventListener('input', () => {
   penWidthVal.textContent = penWidth.value;
   redrawSigCanvas();
+  updateOverlayPreview();
 });
 
 // ── PDF rendering ──────────────────────────────────────────────────────────
@@ -325,11 +339,36 @@ function syncOvFromInputs() {
   document.getElementById(id).addEventListener('input', syncOvFromInputs);
 });
 
+function updateOverlayPreview() {
+  const img = document.getElementById('sig-overlay-preview');
+  if (!img) return;
+  if (activeTab === 'draw') {
+    img.src = drawPaths.length ? sigCanvas.toDataURL() : '';
+  } else if (activeTab === 'type') {
+    img.src = typeText.value.trim() ? typePreview.toDataURL() : '';
+  } else if (activeTab === 'upload' && uploadBitmap) {
+    const c = document.createElement('canvas');
+    c.width = uploadBitmap.width;
+    c.height = uploadBitmap.height;
+    const ctx2 = c.getContext('2d');
+    ctx2.globalAlpha = parseFloat(sigOpacity.value);
+    ctx2.drawImage(uploadBitmap, 0, 0);
+    img.src = c.toDataURL();
+  } else {
+    img.src = '';
+  }
+}
+
 function createOverlay() {
   const existing = document.getElementById('sig-overlay');
   if (existing) existing.remove();
   const el = document.createElement('div');
   el.id = 'sig-overlay';
+  const preview = document.createElement('img');
+  preview.id = 'sig-overlay-preview';
+  preview.alt = '';
+  preview.setAttribute('aria-hidden', 'true');
+  el.appendChild(preview);
   ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].forEach((d) => {
     const h = document.createElement('div');
     h.className = `rh rh-${d}`;
@@ -339,6 +378,7 @@ function createOverlay() {
   previewWrap.appendChild(el);
   wireOverlayEvents(el);
   syncOverlayEl();
+  updateOverlayPreview();
 }
 
 function wireOverlayEvents(el) {

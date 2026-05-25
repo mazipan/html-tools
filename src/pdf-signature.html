@@ -67,6 +67,14 @@
     .rh-sw { bottom:-5px; left:-5px; cursor:sw-resize; }
     .rh-w  { top:calc(50% - 5px); left:-5px; cursor:w-resize; }
 
+    #sig-overlay-preview {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      pointer-events: none;
+    }
     html[data-theme=light] #sig-canvas { border-color: #e5e7eb; }
     html[data-theme=light] #type-preview { border-color: #e5e7eb; }
     html[data-theme=light] #pdf-canvas-wrap { background: #e5e7eb; }
