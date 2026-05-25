@@ -96,8 +96,8 @@
       "name": "JSON Sort",
       "icon": "🔤",
       "category": "JSON",
-      "card": "Sort JSON object keys alphabetically (A→Z or Z→A), recursively.",
-      "description": "Sort JSON object keys alphabetically (A→Z or Z→A) recursively, for canonical, line-stable output. Runs in your browser — no installs, no tracking.",
+      "card": "Sort JSON keys alphabetically or by preset (package.json, tsconfig, composer).",
+      "description": "Sort JSON object keys alphabetically (A→Z or Z→A) recursively, or pick a preset — package.json (npm), tsconfig.json, composer.json — to apply the canonical field order for that file type. Runs in your browser — no installs, no tracking.",
       "faqs": [
         {
           "q": "Will it sort arrays too?",
@@ -114,6 +114,14 @@
         {
           "q": "Is sorting recursive?",
           "a": "Yes. Every nested object in the tree is sorted in one pass."
+        },
+        {
+          "q": "What does the package.json preset do differently?",
+          "a": "It applies the same field order as keithamus/sort-package-json: known keys (name, version, description, …, scripts, dependencies, devDependencies, …) follow a fixed sequence; scripts are grouped by `:` namespace with pre/post variants kept next to their main script; dependencies blocks are alpha-sorted (locale-aware); the `exports` field puts path keys first and `default` last. Any unknown top-level keys are appended after, with private (leading `_`) keys at the very end."
+        },
+        {
+          "q": "How do A→Z / Z→A interact with a preset?",
+          "a": "The preset fixes the order of its known keys. A→Z and Z→A only control how any extra keys you have that aren't part of the preset are sorted at the end."
         }
       ],
       "maxWidth": "1100px"

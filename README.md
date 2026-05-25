@@ -16,7 +16,7 @@ A collection of single-file browser-native utilities. All logic runs client-side
 | 🗂️ [JSON Formatter](src/json-formatter.html) | Prettify, minify, and validate JSON with syntax highlighting. |
 | 🔷 [JSON to TypeScript](src/json-to-ts.html) | Convert JSON objects into TypeScript interface definitions. |
 | 🔍 [JSON Diff](src/json-diff.html) | Compare two JSON objects and highlight the differences. |
-| 🔤 [JSON Sort](src/json-sort.html) | Sort JSON object keys alphabetically (A→Z or Z→A), recursively. |
+| 🔤 [JSON Sort](src/json-sort.html) | Sort JSON keys alphabetically or by preset (package.json, tsconfig, composer). |
 | 📊 [JSON ↔ CSV](src/csv-to-json.html) | Round-trip JSON and CSV with smart type inference and delimiter detection. |
 | 📝 [JSON ↔ YAML](src/json-to-yaml.html) | Round-trip JSON and YAML with anchor resolution and multi-document support. |
 | 🛡️ [JSON to Validator Schema](src/json-to-schema.html) | Generate Zod, Valibot, or Yup schemas from a JSON sample. |
