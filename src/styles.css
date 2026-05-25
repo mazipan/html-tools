@@ -553,10 +553,13 @@ input[type="radio"]:disabled { cursor: not-allowed; opacity: 0.5; }
 .pill.on:hover { border-color: var(--accent-h); }
 .pill:disabled { opacity: 0.4; cursor: not-allowed; }
 .pill-sm {
-  width: 28px;
   height: 28px;
-  padding: 0;
+  padding: 0 0.5rem;
   font-size: 0.85rem;
+}
+.pill-sm.is-square {
+  width: 28px;
+  padding: 0;
 }
 
 /* ── Chips (rounded, label-like, transient triggers) ─────────── */
