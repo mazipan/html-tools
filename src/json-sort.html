@@ -55,14 +55,15 @@
           <option value="composer">composer.json</option>
         </select>
       </label>
-      <div class="w-px h-5 bg-gray-700 mx-1"></div>
-      <button id="btn-asc" onclick="setOrder('asc')" class="btn btn-active">A → Z</button>
-      <button id="btn-desc" onclick="setOrder('desc')" class="btn btn-secondary">Z → A</button>
+      <span id="order-group" style="display:contents">
+        <span class="w-px h-5 bg-gray-700 mx-1"></span>
+        <button id="btn-asc" onclick="setOrder('asc')" class="btn btn-active">A → Z</button>
+        <button id="btn-desc" onclick="setOrder('desc')" class="btn btn-secondary">Z → A</button>
+      </span>
       <div class="w-px h-5 bg-gray-700 mx-1"></div>
       <button onclick="loadSample()" class="btn btn-secondary">📥 Load sample</button>
       <button onclick="clearAll()" class="btn btn-danger">🗑️ Clear</button>
     </div>
-    <p id="preset-hint" class="text-xs text-gray-500 mb-3 hidden">Preset fixes the order of known keys; A→Z / Z→A still controls how any extra keys are sorted at the end.</p>
 
     <!-- Panels -->
     <div class="grid grid-cols-2 gap-4 max-md:grid-cols-1">
@@ -105,7 +106,7 @@
     const inputEl  = document.getElementById('input');
     const outputEl = document.getElementById('output');
     const statusEl = document.getElementById('status');
-    const presetHintEl = document.getElementById('preset-hint');
+    const orderGroupEl = document.getElementById('order-group');
 
     let sortOrder    = 'asc';
     let currentView  = 'tree';
@@ -128,7 +129,9 @@
     // ── Preset selector ──────────────────────────────────────────
     function setPreset(name) {
       currentPreset = PRESETS[name] ? name : 'none';
-      presetHintEl.classList.toggle('hidden', currentPreset === 'none');
+      // Non-alphabetical presets fix their own key order — A→Z / Z→A becomes
+      // irrelevant for the user, so hide it to remove the dead affordance.
+      orderGroupEl.style.display = currentPreset === 'none' ? 'contents' : 'none';
       sort();
     }
 
