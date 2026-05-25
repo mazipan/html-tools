@@ -54,3 +54,51 @@ The general principle: any class that's meant to *override* the default presenta
 **How to do it right**: The `dev` script uses `parcel 'src/[!_]*.html'` (extglob negation) so underscored files are skipped, matching the build script's filter. If you add a new underscored file under `src/` (e.g. another template), the same rule will already cover it.
 
 ---
+
+## `.tab-btn` active state requires `.tab-btn-active`, not `.btn-active`
+
+**Symptom**: A tab strip (`role="tablist"`) shows no visual active state — clicking tabs switches the content panel correctly but the selected tab button has no colored border-bottom underline. The initial tab also starts without the active style.
+
+**Why**: There are two separate CSS classes:
+- `.btn-active` (in the `.btn` family) — adds an accent background, intended for regular buttons not tab navigation
+- `.tab-btn-active` — specific to `.tab-btn`; sets `color: #fff; border-bottom-color: var(--accent)` for the underline indicator
+
+Using `.btn-active` on a `.tab-btn` applies the background-color rule but NOT the border-bottom, so the tab looks unselected. The fix is to use `.tab-btn-active` everywhere tabs are involved.
+
+**How to do it right**:
+
+In the HTML initial state:
+```html
+<!-- wrong -->
+<button class="tab-btn btn-active" ...>Draw</button>
+<!-- right -->
+<button class="tab-btn tab-btn-active" ...>Draw</button>
+```
+
+In the JS `switchTab` function:
+```js
+// wrong
+btn.classList.toggle('btn-active', k === tab);
+// right
+btn.classList.toggle('tab-btn-active', k === tab);
+```
+
+---
+
+## `.pill-sm` is auto-width — use `.pill-sm.is-square` only for single-char labels
+
+**Symptom**: Short multi-character labels like `-45°` or `90°` are clipped or overflow a `pill-sm` button, visually overlapping adjacent pills.
+
+**Why**: `.pill-sm` was originally defined with `width: 28px; height: 28px; padding: 0` — a fixed square. At `0.85rem` monospace font, three characters already exceed 28 px and get clipped. The class was renamed/refactored: `.pill-sm` now only fixes the height (`28px`) and uses auto-width padding. The `.is-square` modifier (`width: 28px; padding: 0`) is for single-character or emoji labels where a square looks intentional (e.g. regex flags `g i m`).
+
+**How to do it right**:
+```html
+<!-- labels with 2+ characters: just pill-sm -->
+<button class="pill pill-sm" ...>45°</button>
+<button class="pill pill-sm" ...>-45°</button>
+
+<!-- single char / emoji where square is intentional -->
+<button class="pill pill-sm is-square" ...>g</button>
+```
+
+---

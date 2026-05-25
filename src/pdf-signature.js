@@ -147,34 +147,36 @@ sigCanvasObserver.observe(sigCanvas);
 
 // ── Type tab ───────────────────────────────────────────────────────────────
 function renderTypePreview() {
-  const ctx = typePreview.getContext('2d');
+  const rect = typePreview.getBoundingClientRect();
+  if (!rect.width) return;
   const text = typeText.value.trim() || 'Your Signature';
   const font = typeFont.value;
   const color = sigColorInput.value;
   const opacity = parseFloat(sigOpacity.value);
 
-  const rect = typePreview.getBoundingClientRect();
-  const dpr = devicePixelRatio || 1;
-  const displayW = rect.width || 340;
-  const displayH = rect.height || 80;
-  typePreview.width = Math.round(displayW * dpr);
-  typePreview.height = Math.round(displayH * dpr);
+  const dpr = window.devicePixelRatio || 1;
+  const physW = Math.round(rect.width * dpr);
+  const physH = Math.round(rect.height * dpr);
+  if (typePreview.width !== physW) typePreview.width = physW;
+  if (typePreview.height !== physH) typePreview.height = physH;
 
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, displayW, displayH);
+  const ctx = typePreview.getContext('2d');
+  ctx.clearRect(0, 0, physW, physH);
 
-  let fs = displayH * 0.65;
+  let fs = physH * 0.65;
   ctx.font = `${fs}px ${font}`;
-  while (ctx.measureText(text).width > displayW * 0.9 && fs > 10) {
+  while (ctx.measureText(text).width > physW * 0.9 && fs > 10 * dpr) {
     fs -= 1;
     ctx.font = `${fs}px ${font}`;
   }
 
+  ctx.save();
   ctx.globalAlpha = opacity;
   ctx.fillStyle = color;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(text, displayW / 2, displayH / 2);
+  ctx.fillText(text, physW / 2, physH / 2);
+  ctx.restore();
 }
 
 typeText.addEventListener('input', renderTypePreview);
@@ -227,13 +229,13 @@ const tabPanels = {
 function switchTab(tab) {
   activeTab = tab;
   for (const [k, btn] of Object.entries(tabBtns)) {
-    btn.classList.toggle('btn-active', k === tab);
+    btn.classList.toggle('tab-btn-active', k === tab);
     btn.setAttribute('aria-selected', k === tab ? 'true' : 'false');
   }
   for (const [k, panel] of Object.entries(tabPanels)) {
     panel.classList.toggle('on', k === tab);
   }
-  if (tab === 'type') renderTypePreview();
+  if (tab === 'type') requestAnimationFrame(renderTypePreview);
 }
 
 tabBtns.draw.addEventListener('click', () => switchTab('draw'));
