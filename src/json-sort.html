@@ -132,7 +132,10 @@
       // Non-alphabetical presets fix their own key order — A→Z / Z→A becomes
       // irrelevant for the user, so hide it to remove the dead affordance.
       orderGroupEl.style.display = currentPreset === 'none' ? 'contents' : 'none';
-      sort();
+      // Switching presets implies switching file types, so wipe the previous
+      // paste — the old input is unlikely to make sense under the new preset.
+      clearAll();
+      inputEl.focus();
     }
 
     // ── View toggle ──────────────────────────────────────────────
