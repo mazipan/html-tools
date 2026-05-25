@@ -17,7 +17,7 @@ const opts = {
   fontFamily: 'sans-serif',
   fontSize: 48,
   color: '#ff0000',
-  opacity: 0.75,
+  opacity: 0.35,
   angleDeg: 0,
   wmBitmap: null,
   imageOpacity: 0.7,
