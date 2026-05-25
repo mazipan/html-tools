@@ -80,6 +80,8 @@ A collection of single-file browser-native utilities. All logic runs client-side
 | 🤏 [PDF Compressor](src/pdf-compressor.html) | Shrink PDFs in-browser by re-encoding embedded JPEG images — text stays selectable. |
 | ✂️ [PDF Splitter](src/pdf-splitter.html) | Extract selected pages into one PDF or split to per-page files as a zip. |
 | 🗂️ [PDF Page Manager](src/pdf-page-manager.html) | Reorder, rotate, and delete PDF pages — text stays selectable, undo/redo included. |
+| 💧 [PDF Watermark](src/pdf-watermark.html) | Stamp a text or image watermark onto PDF pages — position, opacity, rotation, tiling. |
+| ✍️ [PDF Signature](src/pdf-signature.html) | Draw, type, or upload a signature and stamp it onto any page of a PDF. |
 <!-- END:tools-table -->
 
 ## Design system

@@ -1150,6 +1150,68 @@
       ]
     },
     {
+      "slug": "pdf-watermark",
+      "name": "PDF Watermark",
+      "icon": "💧",
+      "category": "PDF",
+      "card": "Stamp a text or image watermark onto PDF pages — position, opacity, rotation, tiling.",
+      "description": "Add a text or image watermark to one or more PDFs — control position, opacity, rotation, and tiling. Specify exact page ranges. Files never leave your browser — no upload, no server, no tracking.",
+      "maxWidth": "1400px",
+      "faqs": [
+        {
+          "q": "Do my PDFs ever leave my computer?",
+          "a": "No. All processing happens locally in your browser using pdf-lib — no upload, no server, no third-party API."
+        },
+        {
+          "q": "How does text watermarking work?",
+          "a": "Your text is rasterized to a transparent-background PNG via the browser Canvas API with your chosen font, size, color, opacity, and rotation. That PNG is then embedded into the PDF as an image overlay — no font subsetting required."
+        },
+        {
+          "q": "What page range syntax does the tool accept?",
+          "a": "The same convention as PDF Splitter: comma-separated values — individual pages (5), ranges (1-3), or open-ended ranges (7- means page 7 through the last page). Leave the field blank to watermark every page."
+        },
+        {
+          "q": "Will the watermark affect the text in my PDF?",
+          "a": "No. The watermark is an image layer drawn on top of each page. The underlying text, fonts, and content streams are untouched — the output PDF is still fully selectable and searchable."
+        },
+        {
+          "q": "What does Tile mode do?",
+          "a": "Tile repeats the watermark in a grid across the full page. Density (Sparse / Normal / Dense) controls the gap between repetitions — Dense fills the page with tightly spaced copies, Sparse spreads them out."
+        }
+      ]
+    },
+    {
+      "slug": "pdf-signature",
+      "name": "PDF Signature",
+      "icon": "✍️",
+      "category": "PDF",
+      "card": "Draw, type, or upload a signature and stamp it onto any page of a PDF.",
+      "description": "Draw freehand, type, or upload an image of your signature, then drag and resize it onto any page of a PDF. Appearance-only overlay — no cryptographic signing. Runs in your browser — no upload, no server, no tracking.",
+      "maxWidth": "1400px",
+      "faqs": [
+        {
+          "q": "Do my PDFs ever leave my computer?",
+          "a": "No. All processing happens locally in your browser using pdf-lib and PDF.js — no upload, no server, no third-party API."
+        },
+        {
+          "q": "Is this a legally binding electronic signature?",
+          "a": "No. This tool creates a visual appearance overlay only — it embeds your signature as an image on the page with no cryptographic certificate or audit trail. For legally binding e-signatures, use a dedicated service like DocuSign, Adobe Sign, or equivalent."
+        },
+        {
+          "q": "How are the signature coordinates converted to PDF space?",
+          "a": "The PDF page is rendered to a canvas at a computed scale (pixels per point). Your overlay position and size in canvas pixels are divided by that scale to get PDF points. The Y-axis is also flipped because PDF coordinates start at the bottom-left corner, while canvas coordinates start at the top-left."
+        },
+        {
+          "q": "Why might my typed signature look different in the PDF than in the preview?",
+          "a": "The preview uses your OS's system font for the chosen CSS family (e.g. 'cursive'). The PDF embeds the rendering as a flat PNG image, so what you see in the preview is exactly what goes into the PDF — but the font itself depends on what your OS has installed."
+        },
+        {
+          "q": "Can I sign multiple pages?",
+          "a": "Each download stamps the signature onto one chosen page. To sign additional pages, download the signed PDF, drop it back in, and repeat the process."
+        }
+      ]
+    },
+    {
       "slug": "design-system",
       "name": "Design System",
       "icon": "🎛️",
