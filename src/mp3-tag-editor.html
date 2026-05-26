@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <include src="_partials/meta-base.html"></include>
+  <title>MP3 Tag Editor — HTML Tools</title>
+  <meta name="description" content="Edit MP3 ID3 tags and album art in your browser — smart-fills Artist/Title from the filename, batch Apply-to-all for shared fields. Runs in your browser, no tracking.">
+  <link rel="canonical" href="https://tools.mazipan.space/mp3-tag-editor">
+  <meta property="og:title" content="MP3 Tag Editor — HTML Tools">
+  <meta property="og:description" content="Edit MP3 ID3 tags and album art in your browser — smart-fills Artist/Title from the filename, batch Apply-to-all for shared fields. Runs in your browser, no tracking.">
+  <meta property="og:url" content="https://tools.mazipan.space/mp3-tag-editor">
+  <meta name="twitter:title" content="MP3 Tag Editor — HTML Tools">
+  <meta name="twitter:description" content="Edit MP3 ID3 tags and album art in your browser — smart-fills Artist/Title from the filename, batch Apply-to-all for shared fields. Runs in your browser, no tracking.">
+  <include src="_partials/meta-social.html"></include>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-mp3-tag-editor.png">
+  <include src="_partials/head-fonts.html"></include>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* File-card list — rows in a vertical scroll */
+    .mp3-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 0.4rem 0.75rem;
+      padding: 0.65rem 0.85rem;
+      border: 1px solid #1f2937;
+      border-radius: 0.6rem;
+      background: #0b1220;
+      cursor: pointer;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .mp3-card:hover { border-color: #374151; }
+    .mp3-card.is-selected {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 8%, transparent);
+    }
+    .mp3-card-name {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #e5e7eb;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+    .mp3-card-meta {
+      font-size: 0.7rem;
+      color: #6b7280;
+      margin-top: 0.15rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+    .mp3-card-actions { display: flex; gap: 0.4rem; align-items: center; }
+    .mp3-file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: calc(100vh - 18rem);
+      overflow-y: auto;
+      padding-right: 0.25rem;
+    }
+    /* Suggestion chip row */
+    .sug-row {
+      border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+      background: color-mix(in srgb, var(--accent) 8%, transparent);
+      border-radius: 0.6rem;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.78rem;
+    }
+    .sug-row.is-low {
+      border-color: rgba(217, 119, 6, 0.4);
+      background: rgba(217, 119, 6, 0.08);
+    }
+    .sug-row-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--accent-h);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.45rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .sug-row.is-low .sug-row-title { color: #fbbf24; }
+    .sug-row-items { display: flex; flex-direction: column; gap: 0.3rem; }
+    .sug-item {
+      display: grid;
+      grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.78rem;
+    }
+    .sug-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .sug-value {
+      color: #e5e7eb;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+    /* Applied banner */
+    .sug-applied {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.5rem 0.85rem;
+      border: 1px solid #1f2937;
+      border-radius: 0.6rem;
+      background: #0b1220;
+      font-size: 0.78rem;
+      color: #9ca3af;
+    }
+    /* Album art preview */
+    .art-preview {
+      width: 160px;
+      height: 160px;
+      border-radius: 0.5rem;
+      border: 1px solid #1f2937;
+      background: #0b1220;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .art-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .art-preview-empty {
+      font-size: 0.72rem;
+      color: #6b7280;
+      text-align: center;
+      padding: 0.5rem;
+    }
+    /* Field row with Apply-to-all */
+    .field-row {
+      display: grid;
+      grid-template-columns: 5.5rem minmax(0, 1fr) 2rem;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .field-row.no-action { grid-template-columns: 5.5rem minmax(0, 1fr); }
+    .field-row label {
+      font-size: 0.72rem;
+      color: #9ca3af;
+      font-weight: 500;
+    }
+    .editor-empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #6b7280;
+      font-size: 0.85rem;
+    }
+    /* Light-theme tweaks */
+    html[data-theme=light] .mp3-card { background: #f9fafb; border-color: #e5e7eb; }
+    html[data-theme=light] .mp3-card:hover { border-color: #d1d5db; }
+    html[data-theme=light] .mp3-card-name { color: #111827; }
+    html[data-theme=light] .mp3-card.is-selected {
+      background: color-mix(in srgb, var(--accent) 8%, #fff);
+    }
+    html[data-theme=light] .art-preview { background: #f3f4f6; border-color: #e5e7eb; }
+    html[data-theme=light] .sug-applied { background: #f9fafb; border-color: #e5e7eb; color: #4b5563; }
+    html[data-theme=light] .sug-value { color: #111827; }
+    html[data-theme=light] .field-row label { color: #4b5563; }
+  </style>
+  <include src="_partials/head-theme.html"></include>
+  <!-- BEGIN:json-ld generated by scripts/generate-sections.mjs — re-run after editing tools.json -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"MP3 Tag Editor","url":"https://tools.mazipan.space/mp3-tag-editor","description":"Edit MP3 ID3v1 / ID3v2 metadata in your browser — title, artist, album, year, genre, track number, comment, and album art. Smart-fills missing Artist/Title from the filename, plus an Apply-to-all shortcut for batch album re-tagging. Runs in your browser — no uploads, no servers, no tracking.","applicationCategory":"DeveloperApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"isPartOf":{"@type":"WebSite","name":"HTML Tools","url":"https://tools.mazipan.space/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"HTML Tools","item":"https://tools.mazipan.space/"},{"@type":"ListItem","position":2,"name":"MP3 Tag Editor","item":"https://tools.mazipan.space/mp3-tag-editor"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does my MP3 ever leave my browser?","acceptedAnswer":{"@type":"Answer","text":"No. Reading uses jsmediatags, writing uses browser-id3-writer — both pure-JS libraries bundled with the page. Your file stays in your tab and never touches a server."}},{"@type":"Question","name":"Which ID3 version does the tool write?","acceptedAnswer":{"@type":"Answer","text":"ID3v2.3 — the most compatible target across players (iTunes/Music, Windows Media Player, Android, Sonos, in-car head units). The tool can read v1, v2.2, v2.3, and v2.4 but always writes v2.3 on save."}},{"@type":"Question","name":"Will editing tags affect the audio?","acceptedAnswer":{"@type":"Answer","text":"No. Only the metadata header is rewritten; the MPEG audio frames are copied through byte-for-byte. The output is bit-identical at the audio level."}},{"@type":"Question","name":"What happens to my album art if I only edit the title?","acceptedAnswer":{"@type":"Answer","text":"It's preserved. The tool captures the original APIC frame at load time and re-attaches it on save unless you explicitly click Replace or Remove."}},{"@type":"Question","name":"How does Suggested from filename decide what's the artist and what's the title?","acceptedAnswer":{"@type":"Answer","text":"It splits the filename on \" - \" (dash with spaces) — the half before the dash becomes Artist, the half after becomes Title. Leading track numbers like 01 - or 03. are stripped first. Underscore-separated filenames split on the middle underscore and are flagged as low-confidence so you can double-check. Existing tag values are never overwritten — suggestions only fill blanks."}}]}</script>
+  <!-- END:json-ld -->
+</head>
+<body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+
+  <include src="_partials/icons.html"></include>
+
+  <header class="border-b border-gray-800 px-6 py-4">
+    <nav aria-label="Breadcrumb" class="max-w-[1400px] mx-auto flex items-center gap-3">
+      <a href="index.html" class="no-underline text-white font-bold text-lg tracking-tight hover:text-blue-400 transition-colors">HTML Tools</a>
+      <span class="text-gray-700">/</span>
+      <span class="text-gray-400 text-sm flex items-center gap-1.5" aria-current="page">🎵 MP3 Tag Editor</span>
+    </nav>
+  </header>
+
+  <main class="max-w-[1400px] mx-auto w-full flex-1 py-8 px-6">
+
+    <header class="mb-7">
+      <h1 class="text-3xl font-bold text-white flex items-center gap-3">🎵 MP3 Tag Editor</h1>
+      <p class="mt-1.5 text-sm text-gray-500">Edit MP3 ID3 tags and album art entirely in your browser — smart-fills missing Artist / Title from the filename, plus an Apply-to-all shortcut for batch album re-tagging.</p>
+    </header>
+
+    <!-- Drop zone -->
+    <div id="drop-zone" class="drop-zone p-8 mb-4 text-center" tabindex="0" role="button" aria-label="Drop MP3 files here, or click to choose">
+      <div id="drop-empty">
+        <div class="text-3xl mb-2" aria-hidden="true">🎵</div>
+        <p class="text-sm text-gray-300 font-medium">Drop MP3 files here, click to choose, or paste with Ctrl/Cmd+V</p>
+        <p class="text-xs text-gray-500 mt-1.5">Accepts .mp3 — files never leave your browser</p>
+      </div>
+      <div id="drop-compact" class="hidden text-xs text-gray-500">+ Drop more MP3s · click · paste</div>
+    </div>
+    <input id="file-input" type="file" accept=".mp3,audio/mpeg" multiple class="hidden">
+
+    <div id="error-bar" class="hidden error-bar mb-4" role="alert"></div>
+    <div id="warn-bar" class="hidden warn-bar mb-4" role="status"></div>
+
+    <!-- Toolbar -->
+    <div id="toolbar" class="hidden toolbar mb-4">
+      <button id="smart-fill-all-btn" class="btn btn-secondary" type="button" disabled>
+        ✨ Smart fill all <span id="smart-fill-all-count" class="text-gray-500"></span>
+      </button>
+      <label class="switch ml-1">
+        <input id="include-low-conf" type="checkbox">
+        <span>Include low-confidence guesses</span>
+      </label>
+      <label class="ml-auto flex items-center gap-2">
+        <span class="text-xs text-gray-500">Filename</span>
+        <select id="filename-pattern" class="select">
+          <option value="overwrite">{name}.mp3 (overwrite source name)</option>
+          <option value="tagged">{name}-tagged.mp3</option>
+          <option value="artist-title">{Artist} - {Title}.mp3</option>
+        </select>
+      </label>
+    </div>
+
+    <!-- Main two-column layout (revealed after first drop) -->
+    <div id="app-panel" class="hidden grid gap-6 md:grid-cols-[360px_1fr]">
+
+      <!-- ── Left: File list ── -->
+      <aside class="space-y-3 border border-gray-800 rounded-xl bg-gray-900/40 p-4 self-start">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Files <span id="file-count" class="text-gray-600"></span></h2>
+          <button id="clear-btn" class="btn btn-sm btn-danger" type="button" title="Remove all files">
+            <svg class="icon" aria-hidden="true"><use href="#icon-trash"/></svg>
+          </button>
+        </div>
+        <div id="files-list" class="mp3-file-list"></div>
+      </aside>
+
+      <!-- ── Right: Tag editor ── -->
+      <div class="border border-gray-800 rounded-xl bg-gray-900/40 p-5 min-w-0">
+
+        <div id="editor-empty" class="editor-empty">
+          <div class="text-3xl mb-2" aria-hidden="true">🎼</div>
+          <p>Select a file on the left to edit its tags.</p>
+        </div>
+
+        <div id="editor-form" class="hidden space-y-4">
+
+          <!-- Smart-fill suggestion chip row -->
+          <div id="sug-row" class="hidden sug-row">
+            <div class="sug-row-title">
+              <span>✨ Suggested from filename</span>
+              <span id="sug-conf-tag" class="hidden text-xs font-normal normal-case tracking-normal text-amber-400">— low confidence</span>
+              <span class="ml-auto flex gap-1.5">
+                <button id="sug-apply-all" class="btn btn-sm" type="button">Apply all</button>
+                <button id="sug-dismiss" class="btn-icon ghost btn-icon-sm" type="button" aria-label="Dismiss suggestions">
+                  <svg class="icon" aria-hidden="true"><use href="#icon-x"/></svg>
+                </button>
+              </span>
+            </div>
+            <div id="sug-items" class="sug-row-items"></div>
+          </div>
+
+          <!-- Applied banner (with undo) -->
+          <div id="sug-applied" class="hidden sug-applied">
+            <span>✨ Applied from filename</span>
+            <button id="sug-undo" class="btn btn-sm" type="button">Undo</button>
+          </div>
+
+          <!-- Title (per-file) -->
+          <div class="field-row no-action">
+            <label for="f-title">Title</label>
+            <input id="f-title" type="text" class="input" autocomplete="off" maxlength="500">
+          </div>
+
+          <!-- Artist (shared, has Apply-to-all) -->
+          <div class="field-row">
+            <label for="f-artist">Artist</label>
+            <input id="f-artist" type="text" class="input" autocomplete="off" maxlength="500">
+            <button class="btn-icon ghost btn-icon-sm apply-all-btn" data-field="artist" type="button" title="Apply to all files" aria-label="Apply Artist to all files">
+              <svg class="icon" aria-hidden="true"><use href="#icon-arrow-right"/></svg>
+            </button>
+          </div>
+
+          <!-- Album -->
+          <div class="field-row">
+            <label for="f-album">Album</label>
+            <input id="f-album" type="text" class="input" autocomplete="off" maxlength="500">
+            <button class="btn-icon ghost btn-icon-sm apply-all-btn" data-field="album" type="button" title="Apply to all files" aria-label="Apply Album to all files">
+              <svg class="icon" aria-hidden="true"><use href="#icon-arrow-right"/></svg>
+            </button>
+          </div>
+
+          <!-- Year -->
+          <div class="field-row">
+            <label for="f-year">Year</label>
+            <input id="f-year" type="text" class="input" autocomplete="off" inputmode="numeric" pattern="[0-9]*" maxlength="4">
+            <button class="btn-icon ghost btn-icon-sm apply-all-btn" data-field="year" type="button" title="Apply to all files" aria-label="Apply Year to all files">
+              <svg class="icon" aria-hidden="true"><use href="#icon-arrow-right"/></svg>
+            </button>
+          </div>
+
+          <!-- Genre -->
+          <div class="field-row">
+            <label for="f-genre">Genre</label>
+            <input id="f-genre" type="text" class="input" list="genre-list" autocomplete="off" maxlength="100">
+            <button class="btn-icon ghost btn-icon-sm apply-all-btn" data-field="genre" type="button" title="Apply to all files" aria-label="Apply Genre to all files">
+              <svg class="icon" aria-hidden="true"><use href="#icon-arrow-right"/></svg>
+            </button>
+          </div>
+          <datalist id="genre-list">
+            <option value="Rock"></option><option value="Pop"></option><option value="Hip-Hop"></option>
+            <option value="R&amp;B"></option><option value="Electronic"></option><option value="Dance"></option>
+            <option value="House"></option><option value="Techno"></option><option value="Trance"></option>
+            <option value="Jazz"></option><option value="Blues"></option><option value="Classical"></option>
+            <option value="Country"></option><option value="Folk"></option><option value="Metal"></option>
+            <option value="Punk"></option><option value="Reggae"></option><option value="Soul"></option>
+            <option value="Funk"></option><option value="Disco"></option><option value="Ambient"></option>
+            <option value="Indie"></option><option value="Alternative"></option><option value="Soundtrack"></option>
+            <option value="Podcast"></option><option value="Audiobook"></option><option value="Spoken Word"></option>
+          </datalist>
+
+          <!-- Track # (per-file) -->
+          <div class="field-row no-action">
+            <label for="f-track">Track #</label>
+            <div class="flex items-center gap-2">
+              <input id="f-track" type="text" class="input" style="flex:0 0 5rem" autocomplete="off" maxlength="8" placeholder="01">
+              <span class="text-xs text-gray-500">/</span>
+              <input id="f-track-total" type="text" class="input" style="flex:0 0 5rem" autocomplete="off" maxlength="8" placeholder="12">
+              <span class="text-xs text-gray-500">(optional total)</span>
+            </div>
+          </div>
+
+          <!-- Comment (per-file) -->
+          <div class="field-row no-action">
+            <label for="f-comment">Comment</label>
+            <textarea id="f-comment" class="textarea" rows="2" maxlength="500"></textarea>
+          </div>
+
+          <!-- Album art -->
+          <div>
+            <div class="text-xs text-gray-500 mb-2 font-medium">Album art</div>
+            <div class="flex items-start gap-4">
+              <div class="art-preview">
+                <img id="art-img" class="hidden" alt="Album art preview">
+                <div id="art-empty" class="art-preview-empty">No art</div>
+              </div>
+              <div class="flex flex-col gap-2 self-center">
+                <button id="art-replace" class="btn btn-sm btn-secondary" type="button">
+                  Replace…
+                </button>
+                <button id="art-remove" class="btn btn-sm" type="button" disabled>
+                  <svg class="icon" aria-hidden="true"><use href="#icon-trash"/></svg> Remove
+                </button>
+                <button class="btn btn-sm apply-all-btn" data-field="art" type="button" title="Apply album art to all files">
+                  <svg class="icon" aria-hidden="true"><use href="#icon-arrow-right"/></svg> Apply to all
+                </button>
+                <p id="art-info" class="text-xs text-gray-500 mt-1"></p>
+              </div>
+            </div>
+            <input id="art-input" type="file" accept="image/png,image/jpeg,image/webp" class="hidden">
+          </div>
+
+          <!-- Save actions -->
+          <div class="flex flex-wrap gap-2 items-center pt-4 border-t border-gray-800">
+            <button id="save-btn" class="btn btn-primary" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#icon-download"/></svg> Save
+            </button>
+            <button id="save-all-btn" class="btn btn-secondary" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#icon-download"/></svg> Save all (zip)
+            </button>
+            <span id="status" class="ml-auto text-xs text-gray-600" aria-live="polite"></span>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <script src="image-utils.js"></script>
+  <script type="module" src="mp3-tag-editor.js"></script>
+
+  <include src="_partials/footer-script.html"></include>
+
+  <!-- BEGIN:faq generated by scripts/generate-sections.mjs — re-run after editing tools.json -->
+  <section class="max-w-[1400px] mx-auto w-full px-6 py-8 border-t border-gray-800">
+    <h2 class="text-xl font-bold text-white mb-6">FAQ</h2>
+    <div class="space-y-2">
+      <details class="disclosure">
+        <summary>Does my MP3 ever leave my browser?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">No. Reading uses jsmediatags, writing uses browser-id3-writer — both pure-JS libraries bundled with the page. Your file stays in your tab and never touches a server.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>Which ID3 version does the tool write?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">ID3v2.3 — the most compatible target across players (iTunes/Music, Windows Media Player, Android, Sonos, in-car head units). The tool can read v1, v2.2, v2.3, and v2.4 but always writes v2.3 on save.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>Will editing tags affect the audio?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">No. Only the metadata header is rewritten; the MPEG audio frames are copied through byte-for-byte. The output is bit-identical at the audio level.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>What happens to my album art if I only edit the title?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">It's preserved. The tool captures the original APIC frame at load time and re-attaches it on save unless you explicitly click Replace or Remove.</div></div>
+      </details>
+      <details class="disclosure">
+        <summary>How does Suggested from filename decide what's the artist and what's the title?</summary>
+        <div class="disclosure-content"><div class="disclosure-body">It splits the filename on &quot; - &quot; (dash with spaces) — the half before the dash becomes Artist, the half after becomes Title. Leading track numbers like 01 - or 03. are stripped first. Underscore-separated filenames split on the middle underscore and are flagged as low-confidence so you can double-check. Existing tag values are never overwritten — suggestions only fill blanks.</div></div>
+      </details>
+    </div>
+  </section>
+  <!-- END:faq -->
+
+  <!-- BEGIN:more-tools generated by scripts/generate-sections.mjs — re-run after editing tools.json -->
+  <section class="max-w-[1400px] mx-auto w-full px-6 py-8 border-t border-gray-800">
+    <h2 class="text-xl font-bold text-white mb-6">More tools</h2>
+    <div class="space-y-4">
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">JSON</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/json-formatter" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🗂️ JSON Formatter</a>
+          <a href="/json-to-ts" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔷 JSON to TypeScript</a>
+          <a href="/json-diff" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔍 JSON Diff</a>
+          <a href="/json-sort" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔤 JSON Sort</a>
+          <a href="/csv-to-json" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📊 JSON ↔ CSV</a>
+          <a href="/json-to-yaml" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📝 JSON ↔ YAML</a>
+          <a href="/json-to-schema" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🛡️ JSON to Validator Schema</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Code</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/regex-tester" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🧪 Regex Tester</a>
+          <a href="/svg-to-jsx" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">⚛️ SVG to JSX</a>
+          <a href="/svg-rasterizer" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📷 SVG to Raster</a>
+          <a href="/cron-decoder" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">⏱️ Cron Decoder</a>
+          <a href="/snippet-to-image" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📸 Code Snippet to Image</a>
+          <a href="/text-diff" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📄 Text Diff</a>
+          <a href="/markdown-preview" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📝 Markdown Preview</a>
+          <a href="/semver-checker" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🏷️ SemVer Checker</a>
+          <a href="/jwt-decoder" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔑 JWT Decoder</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Ornaments</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/gradients" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🎨 Gradients</a>
+          <a href="/blob" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🫧 Blob Generator</a>
+          <a href="/waves" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">〰️ Wave Generator</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Image</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/image-compressor" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🗜️ Image Compressor</a>
+          <a href="/image-resizer" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📐 Image Resizer</a>
+          <a href="/image-cropper" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">✂️ Image Cropper</a>
+          <a href="/image-converter" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🖼️ Image Format Converter</a>
+          <a href="/image-watermark" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔏 Image Watermark</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Web / SEO</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/meta-tag-preview" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🔍 Meta Tag Preview</a>
+          <a href="/user-agent-parser" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🕵️ User Agent Parser</a>
+          <a href="/og-image-builder" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🖼️ OG Image Builder</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Generators</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/qr-code-generator" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📱 QR Code Generator</a>
+          <a href="/lorem-ipsum" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📜 Lorem Ipsum Generator</a>
+          <a href="/avatar-generator" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">👤 Avatar Generator</a>
+          <a href="/favicon-generator" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">⭐ Favicon Generator</a>
+          <a href="/uuid-generator" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🪪 UUID Generator</a>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">PDF</h3>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="/pdf-merger" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📄 PDF Merger</a>
+          <a href="/image-to-pdf" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">📑 Image to PDF</a>
+          <a href="/pdf-compressor" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🤏 PDF Compressor</a>
+          <a href="/pdf-splitter" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">✂️ PDF Splitter</a>
+          <a href="/pdf-page-manager" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🗂️ PDF Page Manager</a>
+          <a href="/pdf-watermark" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">💧 PDF Watermark</a>
+          <a href="/pdf-signature" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">✍️ PDF Signature</a>
+          <a href="/pdf-to-image" class="text-sm text-gray-300 hover:text-blue-400 transition-colors no-underline">🖼️ PDF to Image</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- END:more-tools -->
+
+  <footer class="max-w-[1400px] mx-auto w-full py-8 px-6 border-t border-gray-800 text-center text-sm text-gray-600">
+    <div>&copy; <span id="year"></span> <a href="https://mazipan.space" rel="noreferrer noopener" target="_blank" class="text-blue-400 transition-colors">Irfan Maulana</a> &amp; Claude</div>
+    <div><span id="deploy-time"></span></div>
+    <div><span id="commit-sha"></span><a href="https://github.com/mazipan/html-tools" rel="noreferrer noopener" target="_blank" class="text-blue-400 transition-colors">Source</a></div>
+    <div><a href="design-system.html" rel="nofollow" class="text-blue-400 transition-colors">Design system</a></div>
+  </footer>
+
+</body>
+</html>
