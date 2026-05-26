@@ -534,6 +534,37 @@
       "maxWidth": "1400px"
     },
     {
+      "slug": "mp3-tag-editor",
+      "name": "MP3 Tag Editor",
+      "icon": "🎵",
+      "category": "Audio",
+      "card": "Edit MP3 tags and album art — smart-fills Artist/Title from the filename.",
+      "description": "Edit MP3 ID3v1 / ID3v2 metadata in your browser — title, artist, album, year, genre, track number, comment, and album art. Smart-fills missing Artist/Title from the filename, plus an Apply-to-all shortcut for batch album re-tagging. Runs in your browser — no uploads, no servers, no tracking.",
+      "faqs": [
+        {
+          "q": "Does my MP3 ever leave my browser?",
+          "a": "No. Reading uses jsmediatags, writing uses browser-id3-writer — both pure-JS libraries bundled with the page. Your file stays in your tab and never touches a server."
+        },
+        {
+          "q": "Which ID3 version does the tool write?",
+          "a": "ID3v2.3 — the most compatible target across players (iTunes/Music, Windows Media Player, Android, Sonos, in-car head units). The tool can read v1, v2.2, v2.3, and v2.4 but always writes v2.3 on save."
+        },
+        {
+          "q": "Will editing tags affect the audio?",
+          "a": "No. Only the metadata header is rewritten; the MPEG audio frames are copied through byte-for-byte. The output is bit-identical at the audio level."
+        },
+        {
+          "q": "What happens to my album art if I only edit the title?",
+          "a": "It's preserved. The tool captures the original APIC frame at load time and re-attaches it on save unless you explicitly click Replace or Remove."
+        },
+        {
+          "q": "How does Suggested from filename decide what's the artist and what's the title?",
+          "a": "It splits the filename on \" - \" (dash with spaces) — the half before the dash becomes Artist, the half after becomes Title. Leading track numbers like 01 - or 03. are stripped first. Underscore-separated filenames split on the middle underscore and are flagged as low-confidence so you can double-check. Existing tag values are never overwritten — suggestions only fill blanks."
+        }
+      ],
+      "maxWidth": "1400px"
+    },
+    {
       "slug": "meta-tag-preview",
       "name": "Meta Tag Preview",
       "icon": "🔍",

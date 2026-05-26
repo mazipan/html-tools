@@ -53,6 +53,12 @@ A collection of single-file browser-native utilities. All logic runs client-side
 | 🖼️ [Image Format Converter](src/image-converter.html) | Convert images between PNG, JPEG, WebP, and AVIF with a quality slider and before/after diff. |
 | 🔏 [Image Watermark](src/image-watermark.html) | Stamp a text or image watermark onto photos — position, opacity, rotation, tiling. |
 
+### Audio
+
+| Tool | Description |
+|------|-------------|
+| 🎵 [MP3 Tag Editor](src/mp3-tag-editor.html) | Edit MP3 tags and album art — smart-fills Artist/Title from the filename. |
+
 ### Web / SEO
 
 | Tool | Description |

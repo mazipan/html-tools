@@ -46,6 +46,18 @@ import themeGithubDark from '@shikijs/themes/github-dark';
 
 4. `pre.textContent` after `innerHTML` replacement still returns the plain code text (the browser concatenates text nodes, ignoring `<span>` tags), so copy-to-clipboard logic that reads `pre.textContent` continues to work unmodified.
 
+## Hide unusable buttons, don't grey them out
+
+If a button would do nothing when clicked, **remove it from the DOM** (toggle a `hidden` class) rather than rendering it `disabled`. A greyed-out button still occupies space and invites the user to wonder *why* — that's confusing in tools where the available actions vary with state.
+
+Apply this rule to:
+
+- **Batch-only affordances** when only one file is loaded — "Save all (zip)", "Apply to all files", etc. With a single file they're literal no-ops; hide them entirely. Show them only once `items.length >= 2`. Toggle a parent-container class (e.g. `is-batch`) so grid layouts can reclaim the column the button left behind, instead of leaving an empty gutter.
+- **Suggestion / smart-fill triggers** when no file would actually change — e.g. the MP3 Tag Editor's "Smart fill all" button hides itself when zero files have a fillable filename match. Same for the toggles that gate it: hide a "Include uncertain guesses" switch when there are no uncertain matches to toggle in or out.
+- **Context actions** that depend on a piece of state — e.g. "Remove" on a thumbnail when the slot is already empty, "Undo" when the stack is empty.
+
+Exception: **transient disabled states during async work** (e.g. a Save button while a `writer.addTag()` runs, an Apply button mid-encode) should stay visible and use `disabled` plus a status string ("Writing…"). Those are *in-progress*, not *unusable* — the user is waiting for that exact button to come back, so removing it would feel like the page broke.
+
 ## Emoji conventions
 
 Emojis remain part of the site's visual language, but the **SVG sprite takes priority for action buttons**.
