@@ -364,14 +364,14 @@ async function addFile(file) {
   item.pending = { ...item.parsed, art: item.parsed.art };
   item.tagFormat = describeTagFormat(rawTag);
 
-  // Smart-fill if Artist or Title is missing
-  if (!item.parsed.artist || !item.parsed.title) {
-    const inferred = inferFromFilename(item.name);
-    if (inferred) {
-      const filtered = filterSuggestions(inferred.suggestions, item.pending);
-      if (Object.keys(filtered).length > 0) {
-        item.smartFill = { suggestions: filtered, confidence: inferred.confidence };
-      }
+  // Always compute smart-fill suggestions from the filename — the chip row
+  // hides itself when there's nothing left to fill (filterSuggestions skips
+  // any field that already has a value, so existing tags are still safe).
+  const inferred = inferFromFilename(item.name);
+  if (inferred) {
+    const filtered = filterSuggestions(inferred.suggestions, item.pending);
+    if (Object.keys(filtered).length > 0) {
+      item.smartFill = { suggestions: filtered, confidence: inferred.confidence };
     }
   }
 
@@ -734,12 +734,17 @@ document.querySelectorAll('.apply-all-btn').forEach((btn) => {
 });
 function applyAllStatus() {} // for the _t timer namespace above
 
-// Dynamic disable when only one file
-function refreshApplyAllButtons() {
-  const enabled = items.length >= 2;
-  document.querySelectorAll('.apply-all-btn').forEach((b) => {
-    b.disabled = !enabled;
-  });
+// Hide batch-only affordances when only one file is loaded. "Apply to all" and
+// "Save all (zip)" are no-ops with a single file — showing them adds noise.
+// Also flips an `is-batch` class on the editor form so the field-row grid
+// reclaims the 2rem column that would otherwise sit empty.
+function refreshBatchAffordances() {
+  const isBatch = items.length >= 2;
+  editorForm.classList.toggle('is-batch', isBatch);
+  for (const b of document.querySelectorAll('.apply-all-btn')) {
+    b.classList.toggle('hidden', !isBatch);
+  }
+  saveAllBtn.classList.toggle('hidden', !isBatch);
 }
 
 // ── Smart fill all (toolbar) ────────────────────────────────────────────────
@@ -753,7 +758,7 @@ function updateToolbarState() {
   const eligible = items.filter(smartFillEligible);
   smartFillAllBtn.disabled = eligible.length === 0;
   smartFillAllCount.textContent = eligible.length ? `(${eligible.length})` : '';
-  refreshApplyAllButtons();
+  refreshBatchAffordances();
   fileCountEl.textContent = items.length ? `(${items.length})` : '';
 }
 

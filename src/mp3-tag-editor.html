@@ -147,14 +147,15 @@
       text-align: center;
       padding: 0.5rem;
     }
-    /* Field row with Apply-to-all */
+    /* Field row with Apply-to-all (third column only in batch mode) */
     .field-row {
       display: grid;
-      grid-template-columns: 5.5rem minmax(0, 1fr) 2rem;
+      grid-template-columns: 5.5rem minmax(0, 1fr);
       align-items: center;
       gap: 0.6rem;
     }
-    .field-row.no-action { grid-template-columns: 5.5rem minmax(0, 1fr); }
+    #editor-form.is-batch .field-row { grid-template-columns: 5.5rem minmax(0, 1fr) 2rem; }
+    #editor-form.is-batch .field-row.no-action { grid-template-columns: 5.5rem minmax(0, 1fr); }
     .field-row label {
       font-size: 0.72rem;
       color: #9ca3af;
@@ -225,13 +226,13 @@
       </button>
       <label class="switch ml-1">
         <input id="include-low-conf" type="checkbox">
-        <span>Include low-confidence guesses</span>
+        <span>Include uncertain guesses</span>
       </label>
-      <label class="ml-auto flex items-center gap-2">
-        <span class="text-xs text-gray-500">Filename</span>
-        <select id="filename-pattern" class="select">
-          <option value="overwrite">{name}.mp3 (overwrite source name)</option>
-          <option value="tagged">{name}-tagged.mp3</option>
+      <label class="ml-auto flex items-center gap-2 min-w-0">
+        <span class="text-xs text-gray-500 shrink-0">Save as</span>
+        <select id="filename-pattern" class="select" style="max-width:14rem">
+          <option value="overwrite">Overwrite original name</option>
+          <option value="tagged">Add "-tagged" suffix</option>
           <option value="artist-title">{Artist} - {Title}.mp3</option>
         </select>
       </label>
