@@ -663,7 +663,7 @@ function setArt(art) {
     artImg.classList.add('hidden');
     artEmpty.classList.remove('hidden');
     artInfo.textContent = '';
-    artRemove.disabled = true;
+    artRemove.classList.add('hidden');
     return;
   }
   artImg.src = art.dataUrl || '';
@@ -671,7 +671,7 @@ function setArt(art) {
   artEmpty.classList.add('hidden');
   const kb = (art.bytes.byteLength / 1024).toFixed(0);
   artInfo.textContent = `${art.mime} · ${kb} KB`;
-  artRemove.disabled = false;
+  artRemove.classList.remove('hidden');
 }
 
 artReplace.addEventListener('click', () => artInput.click());
@@ -748,16 +748,29 @@ function refreshBatchAffordances() {
 }
 
 // ── Smart fill all (toolbar) ────────────────────────────────────────────────
-function smartFillEligible(item) {
+// `respectLowConfSwitch=true` (default) honors the "Include uncertain guesses"
+// switch; false ignores it (used to detect whether any low-confidence items
+// exist at all, so we know whether to show the switch).
+function smartFillEligible(item, respectLowConfSwitch = true) {
   if (!item.smartFill || item.suggestionState !== 'pending') return false;
-  if (item.smartFill.confidence === 'low' && !includeLowConf.checked) return false;
+  if (respectLowConfSwitch && item.smartFill.confidence === 'low' && !includeLowConf.checked) {
+    return false;
+  }
   return Object.keys(filterSuggestions(item.smartFill.suggestions, item.pending)).length > 0;
 }
 
 function updateToolbarState() {
-  const eligible = items.filter(smartFillEligible);
-  smartFillAllBtn.disabled = eligible.length === 0;
+  const eligible = items.filter((it) => smartFillEligible(it));
+  const eligibleIgnoringSwitch = items.filter((it) => smartFillEligible(it, false));
+  const hasLowConf = eligibleIgnoringSwitch.some((it) => it.smartFill?.confidence === 'low');
+
+  // Hide the button entirely when nothing would happen on click. Same for the
+  // switch — only show it when toggling would actually change the eligible set.
+  smartFillAllBtn.classList.toggle('hidden', eligible.length === 0);
   smartFillAllCount.textContent = eligible.length ? `(${eligible.length})` : '';
+  const lowConfWrap = includeLowConf.closest('label');
+  if (lowConfWrap) lowConfWrap.classList.toggle('hidden', !hasLowConf);
+
   refreshBatchAffordances();
   fileCountEl.textContent = items.length ? `(${items.length})` : '';
 }
