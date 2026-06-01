@@ -112,6 +112,13 @@
     }
     .wf-warn.hidden { display: none; }
 
+    #wf-confetti {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+    }
+
     .wf-result-row {
       display: flex;
       align-items: center;
@@ -143,6 +150,8 @@
   <!-- END:json-ld -->
 </head>
 <body class="bg-gray-950 text-gray-200 min-h-screen flex flex-col">
+
+  <canvas id="wf-confetti" aria-hidden="true"></canvas>
 
   <include src="_partials/icons.html"></include>
 
@@ -537,6 +546,66 @@
       return Math.floor(norm / sliceAngle) % segments.length;
     }
 
+    // ── Confetti ──────────────────────────────────────────────────────────────
+    function launchConfetti(winnerColor) {
+      const cc = document.getElementById('wf-confetti');
+      cc.width = window.innerWidth;
+      cc.height = window.innerHeight;
+      const cctx = cc.getContext('2d');
+
+      const colors = [winnerColor, '#f43f5e', '#f97316', '#f59e0b', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#ffffff'];
+      const particles = Array.from({ length: 130 }, () => ({
+        x: Math.random() * cc.width,
+        y: -20 - Math.random() * 120,
+        vx: (Math.random() - 0.5) * 5,
+        vy: 2.5 + Math.random() * 3.5,
+        w: 7 + Math.random() * 8,
+        h: 9 + Math.random() * 12,
+        rot: Math.random() * Math.PI * 2,
+        rotV: (Math.random() - 0.5) * 0.25,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      }));
+
+      const duration = 3600;
+      let startTime = null;
+
+      function frame(ts) {
+        if (!startTime) startTime = ts;
+        const elapsed = ts - startTime;
+        const progress = elapsed / duration;
+
+        cctx.clearRect(0, 0, cc.width, cc.height);
+        let anyAlive = false;
+
+        for (const p of particles) {
+          if (p.y > cc.height + 20) continue;
+          anyAlive = true;
+
+          p.x += p.vx + Math.sin(elapsed * 0.002 + p.x * 0.01) * 0.8;
+          p.vy += 0.06;
+          p.y += p.vy;
+          p.rot += p.rotV;
+          const alpha = progress > 0.65 ? 1 - (progress - 0.65) / 0.35 : 1;
+
+          cctx.save();
+          cctx.translate(p.x, p.y);
+          cctx.rotate(p.rot);
+          cctx.globalAlpha = alpha;
+          cctx.fillStyle = p.color;
+          cctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          cctx.restore();
+        }
+
+        if (anyAlive && elapsed < duration) {
+          requestAnimationFrame(frame);
+        } else {
+          cctx.clearRect(0, 0, cc.width, cc.height);
+        }
+      }
+
+      requestAnimationFrame(frame);
+    }
+
     function showWinner() {
       const idx = winnerIndex();
       const seg = segments[idx];
@@ -544,6 +613,8 @@
       // Latest winner banner
       document.getElementById('wf-winner-label').textContent = seg.label;
       document.getElementById('wf-winner').classList.remove('hidden');
+
+      launchConfetti(seg.color);
 
       // Append to history
       winners.push({ label: seg.label, color: seg.color });
