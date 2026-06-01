@@ -90,6 +90,12 @@ A collection of single-file browser-native utilities. All logic runs client-side
 | 💧 [PDF Watermark](src/pdf-watermark.html) | Stamp a text or image watermark onto PDF pages — position, opacity, rotation, tiling. |
 | ✍️ [PDF Signature](src/pdf-signature.html) | Draw, type, or upload a signature and stamp it onto any page of a PDF. |
 | 🖼️ [PDF to Image](src/pdf-to-image.html) | Rasterise PDF pages to PNG, JPEG, or WebP at 72–300 DPI — select pages, download individually or as a zip. |
+
+### Time
+
+| Tool | Description |
+|------|-------------|
+| 🍅 [Pomodoro Timer](src/pomodoro-timer.html) | Focus timer that cycles work and breaks — configurable durations, sound, and desktop alerts. |
 <!-- END:tools-table -->
 
 ## Design system
