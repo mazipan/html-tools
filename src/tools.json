@@ -1305,6 +1305,37 @@
       "maxWidth": "1200px"
     },
     {
+      "slug": "pomodoro-timer",
+      "name": "Pomodoro Timer",
+      "icon": "🍅",
+      "category": "Time",
+      "card": "Focus timer that cycles work and breaks — configurable durations, sound, and desktop alerts.",
+      "description": "A Pomodoro focus timer that cycles work sessions and breaks — set your own focus / short / long durations, get a sound chime and desktop notification when each phase ends, and watch the countdown live in the tab title. Settings persist in your browser. Runs in your browser — no installs, no servers, no tracking.",
+      "faqs": [
+        {
+          "q": "What is the Pomodoro Technique?",
+          "a": "It's a time-management method: work in focused intervals (classically 25 minutes) separated by short 5-minute breaks, with a longer break after every 4 rounds. This timer automates that cycle so you just press Start and follow the rhythm."
+        },
+        {
+          "q": "Does the timer keep accurate time in a background tab?",
+          "a": "Yes. It anchors each phase to an absolute end time rather than counting interval ticks, so browser throttling on inactive tabs won't make it drift. The remaining time also shows in the tab title, so you can glance at it without switching back."
+        },
+        {
+          "q": "Why didn't I get a desktop notification?",
+          "a": "Desktop notifications need permission and a supported browser. Toggle them on and accept the prompt; if you previously blocked them you'll need to re-enable them in your browser's site settings. When notifications aren't available, the timer falls back to the sound chime and the tab-title countdown."
+        },
+        {
+          "q": "Why is there no sound when a phase ends?",
+          "a": "Browsers block audio until you interact with the page, so press Start at least once to let the timer initialise its audio. Also check that the 🔔 Sound toggle is on and your device isn't muted."
+        },
+        {
+          "q": "Are my settings saved? Does anything leave my browser?",
+          "a": "Your durations and toggles are stored in your browser's localStorage and restored when you come back. Nothing is uploaded — the page is a single static HTML file with no servers and no tracking."
+        }
+      ],
+      "maxWidth": "900px"
+    },
+    {
       "slug": "design-system",
       "name": "Design System",
       "icon": "🎛️",
