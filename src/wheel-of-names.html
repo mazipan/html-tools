@@ -182,9 +182,12 @@
         </div>
 
         <!-- Spin -->
-        <div class="wf-section">
+        <div class="wf-section" style="display:flex;flex-direction:column;gap:0.5rem">
           <button id="btn-spin" class="btn btn-primary w-full" style="font-size:1.05rem;padding:0.7rem 1rem;">
             🎡 Spin
+          </button>
+          <button id="btn-spin-all" class="btn btn-secondary w-full hidden">
+            ⏩ Spin All
           </button>
         </div>
 
@@ -362,6 +365,7 @@
 
     let currentAngle = 0; // radians — tracks the wheel's current rotation
     let spinning = false;
+    let spinAllActive = false;
     let rafId = null;
     let winners = []; // { label, color } in spin order
 
@@ -496,11 +500,13 @@
       canvas.classList.add('spinning');
       document.getElementById('btn-spin').disabled = true;
 
-      const extraRotations = 6 + Math.floor(randomAngle() / (2 * Math.PI) * 4); // 6–9 full spins
+      const extraRotations = spinAllActive
+        ? 3 + Math.floor(randomAngle() / (2 * Math.PI) * 2) // 3–4 spins when auto-running
+        : 6 + Math.floor(randomAngle() / (2 * Math.PI) * 4); // 6–9 spins normally
       const targetOffset = randomAngle();
       const totalRotation = extraRotations * 2 * Math.PI + targetOffset;
 
-      const duration = 4000; // ms
+      const duration = spinAllActive ? 2000 : 4000; // ms
       const startAngle = currentAngle;
       const startTime = performance.now();
 
@@ -613,12 +619,32 @@
         drawWheel(currentAngle);
         updateWarnMin();
 
-        // Last item remaining — auto-add it to results so every item is ranked
+        // Last name remaining — auto-add it to results so every name is ranked
         if (segments.length === 1) {
           winners.push({ label: segments[0].label, color: segments[0].color });
           renderWinners();
         }
       }
+
+      updateSpinAllBtn();
+
+      // Continue spin-all sequence if still running and more names remain
+      if (spinAllActive) {
+        if (segments.length >= 2) {
+          setTimeout(spin, 900);
+        } else {
+          spinAllActive = false;
+          updateSpinAllBtn();
+        }
+      }
+    }
+
+    function updateSpinAllBtn() {
+      const btn = document.getElementById('btn-spin-all');
+      const removeOn = document.getElementById('switch-remove-winner').checked;
+      const canRun = removeOn && segments.length >= 2;
+      btn.classList.toggle('hidden', !canRun);
+      btn.textContent = spinAllActive ? '⏹ Stop' : '⏩ Spin All';
     }
 
     function renderWinners() {
@@ -737,6 +763,7 @@
         btn.disabled = segments.length <= 2;
         btn.style.opacity = segments.length <= 2 ? '0.3' : '';
       });
+      updateSpinAllBtn();
     }
 
     // ── Add item ──────────────────────────────────────────────────────────────
@@ -750,6 +777,21 @@
     // ── Spin button + canvas click ────────────────────────────────────────────
     document.getElementById('btn-spin').addEventListener('click', spin);
     canvas.addEventListener('click', spin);
+
+    // ── Spin All ──────────────────────────────────────────────────────────────
+    document.getElementById('btn-spin-all').addEventListener('click', () => {
+      if (spinAllActive) {
+        spinAllActive = false;
+        updateSpinAllBtn();
+      } else {
+        spinAllActive = true;
+        updateSpinAllBtn();
+        spin();
+      }
+    });
+
+    // Keep Spin All button in sync with the remove-winner toggle
+    document.getElementById('switch-remove-winner').addEventListener('change', updateSpinAllBtn);
 
     // ── Copy results ──────────────────────────────────────────────────────────
     document.getElementById('btn-copy-results').addEventListener('click', async () => {
@@ -773,6 +815,7 @@
     // ── Init ──────────────────────────────────────────────────────────────────
     renderSegmentList();
     renderWinners();
+    updateSpinAllBtn();
     resizeCanvas();
 
     // Re-draw on window resize
