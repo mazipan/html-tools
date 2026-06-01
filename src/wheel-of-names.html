@@ -81,6 +81,10 @@
       height: 100%;
       border-radius: 50%;
       box-shadow: 0 0 0 3px #374151;
+      cursor: pointer;
+    }
+    .wf-canvas-wrap canvas.spinning {
+      cursor: default;
     }
 
     .wf-warn {
@@ -489,6 +493,7 @@
       if (spinning || segments.length < 2) return;
 
       spinning = true;
+      canvas.classList.add('spinning');
       document.getElementById('btn-spin').disabled = true;
 
       const extraRotations = 6 + Math.floor(randomAngle() / (2 * Math.PI) * 4); // 6–9 full spins
@@ -513,6 +518,7 @@
           currentAngle = startAngle + totalRotation;
           drawWheel(currentAngle);
           spinning = false;
+          canvas.classList.remove('spinning');
           document.getElementById('btn-spin').disabled = false;
           showWinner();
         }
@@ -741,8 +747,9 @@
       drawWheel(currentAngle);
     });
 
-    // ── Spin button ───────────────────────────────────────────────────────────
+    // ── Spin button + canvas click ────────────────────────────────────────────
     document.getElementById('btn-spin').addEventListener('click', spin);
+    canvas.addEventListener('click', spin);
 
     // ── Copy results ──────────────────────────────────────────────────────────
     document.getElementById('btn-copy-results').addEventListener('click', async () => {
