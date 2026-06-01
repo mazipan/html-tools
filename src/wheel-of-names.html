@@ -351,6 +351,9 @@
     const PALETTE = [
       '#f43f5e', '#f97316', '#f59e0b', '#22c55e',
       '#14b8a6', '#3b82f6', '#8b5cf6', '#ec4899',
+      '#e11d48', '#ea580c', '#ca8a04', '#16a34a',
+      '#0d9488', '#2563eb', '#7c3aed', '#db2777',
+      '#06b6d4', '#84cc16', '#a855f7', '#64748b',
     ];
 
     // ── State ─────────────────────────────────────────────────────────────────
@@ -415,36 +418,41 @@
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        // Label — radial orientation (text runs along the spoke toward rim)
+        // Label — radial, right edge anchored near rim, text extends inward toward center.
+        // Anchoring at the rim means the full spoke length is available — no overflow possible.
         const midA = startA + sliceAngle / 2;
-        // Place text at 55% radius; for upper-half segments anchor near rim, lower-half near center
         const inLowerHalf = Math.sin(midA) > 0;
-        const labelR = r * 0.58;
-        const lx = cx + Math.cos(midA) * labelR;
-        const ly = cy + Math.sin(midA) * labelR;
 
         ctx.save();
-        ctx.translate(lx, ly);
-        // Radial: align text along the spoke; flip lower half so text never appears upside-down
+        ctx.translate(cx, cy);
+        // Upper half: x-axis points outward along spoke.
+        // Lower half: rotated +π so text is right-reading; x-axis then points inward.
         ctx.rotate(midA + (inLowerHalf ? Math.PI : 0));
 
         const raw = segments[i].label;
-        const maxChars = segments.length <= 8 ? 20 : segments.length <= 15 ? 14 : 10;
-        const label = raw.length > maxChars ? raw.slice(0, maxChars - 1) + '…' : raw;
-        // Font size scales with available radial space per segment
-        const fontSize = Math.max(9, Math.min(14, Math.floor(r * 0.38 / segments.length * 2.2)));
+        // Font size: constrained by segment arc height (perpendicular direction)
+        const fontSize = Math.max(8, Math.min(14, Math.floor((Math.PI * r / segments.length) * 0.75)));
         ctx.font = `bold ${fontSize}px "IBM Plex Mono", monospace`;
-        ctx.fillStyle = '#ffffff';
-        // Upper half: baseline faces center (text reads outward); lower half: already flipped
-        ctx.textAlign = inLowerHalf ? 'right' : 'left';
-        ctx.textBaseline = 'middle';
-        // Nudge away from the center dot
-        const nudge = r * 0.12;
 
-        // Text shadow for readability
+        // Truncate so the measured text width fits between a center gap and the rim
+        const centerGap = r * 0.18;
+        const rimGap = r * 0.07;
+        const maxWidth = r - centerGap - rimGap;
+        let label = raw;
+        while (label.length > 1 && ctx.measureText(label).width > maxWidth) {
+          label = label.slice(0, -2) + '…';
+        }
+
+        ctx.fillStyle = '#ffffff';
+        ctx.textBaseline = 'middle';
+        // Rim anchor: upper half right-aligns at +rimEdge; lower half left-aligns at -rimEdge
+        // so the outermost character sits near the rim in both cases.
+        const rimEdge = r - rimGap;
+        ctx.textAlign = inLowerHalf ? 'left' : 'right';
+
         ctx.shadowColor = 'rgba(0,0,0,0.7)';
         ctx.shadowBlur = 3;
-        ctx.fillText(label, inLowerHalf ? -nudge : nudge, 0);
+        ctx.fillText(label, inLowerHalf ? -rimEdge : rimEdge, 0);
         ctx.shadowBlur = 0;
         ctx.restore();
       }
