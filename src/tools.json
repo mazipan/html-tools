@@ -1274,12 +1274,12 @@
       ]
     },
     {
-      "slug": "wheel-of-fortune",
-      "name": "Wheel of Fortune",
+      "slug": "wheel-of-names",
+      "name": "Wheel of Names",
       "icon": "🎡",
       "category": "Generators",
-      "card": "Add items, spin the wheel, and let chance decide — remove winners for elimination-style draws.",
-      "description": "An interactive spinning wheel — add your own items, click Spin, and a random segment is chosen. Optionally remove the winner after each spin for elimination-style picks. Runs entirely in your browser — no installs, no servers, no tracking.",
+      "card": "Add names, spin the wheel, and let chance decide — remove winners for elimination-style draws.",
+      "description": "An interactive spinning wheel — add your own names, click Spin, and a random participant is chosen. Optionally remove the winner after each spin for elimination-style picks. Runs entirely in your browser — no installs, no servers, no tracking.",
       "faqs": [
         {
           "q": "How random is the spin, really?",
