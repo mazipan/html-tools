@@ -76,6 +76,7 @@ A collection of single-file browser-native utilities. All logic runs client-side
 | 👤 [Avatar Generator](src/avatar-generator.html) | Generate an initial-based avatar from a name — choose shape, style, and export as PNG. |
 | ⭐ [Favicon Generator](src/favicon-generator.html) | Drop an image or pick an emoji to generate a full favicon set — PNG, ICO, maskable, manifest. |
 | 🪪 [UUID Generator](src/uuid-generator.html) | Generate UUID v4 (random) or v7 (time-ordered) in bulk — copy individually or as a list. |
+| 🎡 [Wheel of Fortune](src/wheel-of-fortune.html) | Add items, spin the wheel, and let chance decide — remove winners for elimination-style draws. |
 
 ### PDF
 
