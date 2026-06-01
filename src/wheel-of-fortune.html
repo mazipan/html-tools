@@ -213,9 +213,14 @@
         <div class="wf-section" id="wf-results-section" style="margin-top:1.2rem">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem">
             <span class="wf-label" style="margin-bottom:0">Results <span id="wf-results-count" class="normal-case font-normal text-gray-600">(0)</span></span>
-            <button id="btn-clear-results" class="btn-icon ghost hidden" title="Clear results" aria-label="Clear results">
-              <svg class="icon" aria-hidden="true"><use href="#icon-trash"/></svg>
-            </button>
+            <div style="display:flex;gap:0.25rem">
+              <button id="btn-copy-results" class="btn-icon ghost hidden" title="Copy results as text" aria-label="Copy results as text">
+                <svg class="icon" aria-hidden="true"><use href="#icon-copy"/></svg>
+              </button>
+              <button id="btn-clear-results" class="btn-icon ghost hidden" title="Clear results" aria-label="Clear results">
+                <svg class="icon" aria-hidden="true"><use href="#icon-trash"/></svg>
+              </button>
+            </div>
           </div>
           <div id="wf-results-list"></div>
         </div>
@@ -623,6 +628,12 @@
         renderSegmentList();
         drawWheel(currentAngle);
         updateWarnMin();
+
+        // Last item remaining — auto-add it to results so every item is ranked
+        if (segments.length === 1) {
+          winners.push({ label: segments[0].label, color: segments[0].color });
+          renderWinners();
+        }
       }
     }
 
@@ -630,9 +641,11 @@
       const list = document.getElementById('wf-results-list');
       const count = document.getElementById('wf-results-count');
       const clearBtn = document.getElementById('btn-clear-results');
+      const copyBtn = document.getElementById('btn-copy-results');
 
       count.textContent = `(${winners.length})`;
       clearBtn.classList.toggle('hidden', winners.length === 0);
+      copyBtn.classList.toggle('hidden', winners.length === 0);
 
       if (winners.length === 0) {
         list.innerHTML = '<p class="text-sm text-gray-600">No spins yet.</p>';
@@ -752,6 +765,19 @@
 
     // ── Spin button ───────────────────────────────────────────────────────────
     document.getElementById('btn-spin').addEventListener('click', spin);
+
+    // ── Copy results ──────────────────────────────────────────────────────────
+    document.getElementById('btn-copy-results').addEventListener('click', async () => {
+      const text = winners.map((w, i) => `${i + 1}. ${w.label}`).join('\n');
+      const btn = document.getElementById('btn-copy-results');
+      try {
+        await navigator.clipboard.writeText(text);
+        btn.title = 'Copied!';
+        setTimeout(() => { btn.title = 'Copy results as text'; }, 1500);
+      } catch {
+        prompt('Copy the results below:', text);
+      }
+    });
 
     // ── Clear results ─────────────────────────────────────────────────────────
     document.getElementById('btn-clear-results').addEventListener('click', () => {
