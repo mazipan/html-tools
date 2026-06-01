@@ -1287,15 +1287,15 @@
         },
         {
           "q": "What does 'Remove winner after spin' do?",
-          "a": "Enabled by default: after each spin the winning segment is removed from the wheel so it can't be picked again. This turns the wheel into a fair draw without replacement — useful for team-picking, raffle ordering, or any situation where each participant should appear exactly once. The toggle disables itself when only one item remains, and that last item is automatically added to the results list so every participant gets a ranked position."
+          "a": "Enabled by default: after each spin the winning segment is removed from the wheel so it can't be picked again. This turns the wheel into a fair draw without replacement — useful for team-picking, raffle ordering, or any situation where each participant should appear exactly once. The toggle disables itself when only one name remains, and that last name is automatically added to the results list so every participant gets a ranked position."
         },
         {
           "q": "What is the Results list and how do I use it?",
           "a": "Every winner is appended to the Results list in spin order, with a numbered rank and a colour dot matching their wheel segment. Use the copy icon to export the full list as plain text (e.g. '1. Alice\\n2. Bob'). The trash icon clears the list and lets you start a fresh draw with the same wheel."
         },
         {
-          "q": "How many items can I add?",
-          "a": "Between 2 and 50 items. Each segment's colour can be changed by clicking the coloured dot next to the label — it cycles through 8 preset colours. Labels longer than 20 characters are truncated with … on the wheel so they stay legible on narrow slices."
+          "q": "How many names can I add?",
+          "a": "Between 2 and 50 names. Each segment's colour can be changed by clicking the coloured dot next to the label — it cycles through 8 preset colours. Labels longer than 20 characters are truncated with … on the wheel so they stay legible on narrow slices."
         },
         {
           "q": "Does anything leave my browser?",
