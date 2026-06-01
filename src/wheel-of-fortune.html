@@ -217,9 +217,7 @@
               <svg class="icon" aria-hidden="true"><use href="#icon-trash"/></svg>
             </button>
           </div>
-          <div id="wf-results-list">
-            <p id="wf-results-empty" class="text-sm text-gray-600">No spins yet.</p>
-          </div>
+          <div id="wf-results-list"></div>
         </div>
 
       </div>
@@ -630,24 +628,18 @@
 
     function renderWinners() {
       const list = document.getElementById('wf-results-list');
-      const empty = document.getElementById('wf-results-empty');
       const count = document.getElementById('wf-results-count');
       const clearBtn = document.getElementById('btn-clear-results');
 
       count.textContent = `(${winners.length})`;
+      clearBtn.classList.toggle('hidden', winners.length === 0);
 
       if (winners.length === 0) {
-        list.innerHTML = '';
-        list.appendChild(empty);
-        empty.classList.remove('hidden');
-        clearBtn.classList.add('hidden');
+        list.innerHTML = '<p class="text-sm text-gray-600">No spins yet.</p>';
         return;
       }
 
-      empty.classList.add('hidden');
-      clearBtn.classList.remove('hidden');
       list.innerHTML = '';
-
       winners.forEach((w, i) => {
         const row = document.createElement('div');
         row.className = 'wf-result-row';
