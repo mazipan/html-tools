@@ -407,28 +407,36 @@
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        // Label
+        // Label — radial orientation (text runs along the spoke toward rim)
         const midA = startA + sliceAngle / 2;
-        const labelR = r * 0.65;
+        // Place text at 55% radius; for upper-half segments anchor near rim, lower-half near center
+        const inLowerHalf = Math.sin(midA) > 0;
+        const labelR = r * 0.58;
         const lx = cx + Math.cos(midA) * labelR;
         const ly = cy + Math.sin(midA) * labelR;
 
         ctx.save();
         ctx.translate(lx, ly);
-        ctx.rotate(midA + Math.PI / 2);
+        // Radial: align text along the spoke; flip lower half so text never appears upside-down
+        ctx.rotate(midA + (inLowerHalf ? Math.PI : 0));
 
         const raw = segments[i].label;
-        const label = raw.length > 20 ? raw.slice(0, 19) + '…' : raw;
-        const fontSize = Math.max(10, Math.min(14, Math.floor((2 * Math.PI * labelR) / segments.length / 1.4)));
+        const maxChars = segments.length <= 8 ? 20 : segments.length <= 15 ? 14 : 10;
+        const label = raw.length > maxChars ? raw.slice(0, maxChars - 1) + '…' : raw;
+        // Font size scales with available radial space per segment
+        const fontSize = Math.max(9, Math.min(14, Math.floor(r * 0.38 / segments.length * 2.2)));
         ctx.font = `bold ${fontSize}px "IBM Plex Mono", monospace`;
         ctx.fillStyle = '#ffffff';
-        ctx.textAlign = 'center';
+        // Upper half: baseline faces center (text reads outward); lower half: already flipped
+        ctx.textAlign = inLowerHalf ? 'right' : 'left';
         ctx.textBaseline = 'middle';
+        // Nudge away from the center dot
+        const nudge = r * 0.12;
 
         // Text shadow for readability
         ctx.shadowColor = 'rgba(0,0,0,0.7)';
         ctx.shadowBlur = 3;
-        ctx.fillText(label, 0, 0);
+        ctx.fillText(label, inLowerHalf ? -nudge : nudge, 0);
         ctx.shadowBlur = 0;
         ctx.restore();
       }
