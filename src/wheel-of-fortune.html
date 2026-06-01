@@ -83,25 +83,6 @@
       box-shadow: 0 0 0 3px #374151;
     }
 
-    .wf-winner {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.6rem 1rem;
-      border-radius: 0.5rem;
-      background: #052e16;
-      border: 1px solid #16a34a;
-      color: #4ade80;
-      font-weight: 600;
-      font-size: 1rem;
-      width: 100%;
-      max-width: 480px;
-      justify-content: center;
-      min-height: 2.5rem;
-    }
-    .wf-winner.hidden { display: none; }
-    .wf-winner-label { word-break: break-word; }
-
     .wf-warn {
       font-size: 0.8rem;
       color: #f59e0b;
@@ -201,12 +182,6 @@
           <button id="btn-spin" class="btn btn-primary w-full" style="font-size:1.05rem;padding:0.7rem 1rem;">
             🎡 Spin
           </button>
-        </div>
-
-        <!-- Latest winner -->
-        <div class="wf-winner hidden" id="wf-winner" role="status" aria-live="polite">
-          <span>🏆</span>
-          <span class="wf-winner-label" id="wf-winner-label"></span>
         </div>
 
         <!-- Results history -->
@@ -613,10 +588,6 @@
       const idx = winnerIndex();
       const seg = segments[idx];
 
-      // Latest winner banner
-      document.getElementById('wf-winner-label').textContent = seg.label;
-      document.getElementById('wf-winner').classList.remove('hidden');
-
       launchConfetti(seg.color);
 
       // Append to history
@@ -782,7 +753,6 @@
     // ── Clear results ─────────────────────────────────────────────────────────
     document.getElementById('btn-clear-results').addEventListener('click', () => {
       winners = [];
-      document.getElementById('wf-winner').classList.add('hidden');
       renderWinners();
     });
 
