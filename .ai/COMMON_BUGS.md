@@ -47,7 +47,7 @@ The general principle: any class that's meant to *override* the default presenta
 
 ## `parcel 'src/*.html'` picks up `_tool-template.html` and crashes dev
 
-**Symptom**: `npm run dev` fails immediately with `Failed to resolve 'favicon-@@SLUG@@.png' from './src/_tool-template.html'`. The production build (`npm run build`) works fine because `scripts/build.mjs` filters underscored files; the dev script doesn't.
+**Symptom**: `bun run dev` fails immediately with `Failed to resolve 'favicon-@@SLUG@@.png' from './src/_tool-template.html'`. The production build (`bun run build`) works fine because `scripts/build.mjs` filters underscored files; the dev script doesn't.
 
 **Why**: `src/_tool-template.html` contains `@@PLACEHOLDER@@` tokens that aren't valid asset paths. The build script explicitly filters `!f.split('/').pop().startsWith('_')`; the dev script uses a raw `src/*.html` glob that includes the template.
 
@@ -100,5 +100,50 @@ btn.classList.toggle('tab-btn-active', k === tab);
 <!-- single char / emoji where square is intentional -->
 <button class="pill pill-sm is-square" ...>g</button>
 ```
+
+---
+
+## Parcel crashes when `scripts/build.mjs` is run with `bun` instead of `node`
+
+**Symptom**: `bun scripts/build.mjs` (or `bun run build` after changing the build script to use bun) fails on Netlify CI with:
+
+```
+TypeError: m.load is not a function. (In 'm.load(filePath)', 'm.load' is undefined)
+    at load (node_modules/@parcel/package-manager/lib/index.js:431:15)
+```
+
+Everything installs fine and the script starts (tools.json is loaded, Parcel entries are counted), then it aborts as soon as Parcel's package manager tries to dynamically require a plugin.
+
+**Why**: `@parcel/package-manager` resolves plugins at runtime using Node.js's `Module._load` — a Node-internal API that isn't implemented in Bun's runtime. Running `bun scripts/build.mjs` starts the script under Bun, which then spawns Parcel in the same runtime, causing the crash. The error is silent until Parcel actually tries to load a transformer or packager plugin, so it always appears mid-build, not at startup.
+
+**How to do it right**: Bun is the **package manager** (`bun install`, `bun run <script>`), but the build script must still be executed by **Node**:
+
+```json
+"build": "bun run clean && node scripts/build.mjs"
+```
+
+The simple generator scripts (`generate:sections`, `generate:index`, etc.) are plain ESM with no Parcel dependency, so they can run under `bun scripts/…` without issue. Only the Parcel-invoking build script needs `node`.
+
+---
+
+## `oven-sh/setup-bun` action — always verify the pinned commit hash
+
+**Symptom**: GitHub Actions fails immediately with `Unable to resolve action 'oven-sh/setup-bun@<hash>', unable to find version '<hash>'` before any step runs.
+
+**Why**: The hash was fabricated (hallucinated by the agent) rather than looked up from the actual repository. GitHub resolves pinned-by-SHA action references directly against the repo's git history — a non-existent SHA causes an immediate resolution failure.
+
+**How to do it right**: Always fetch the real SHA for a tag before writing it into a workflow:
+
+```bash
+curl -s "https://api.github.com/repos/oven-sh/setup-bun/git/ref/tags/v2" | grep sha
+```
+
+Use the returned SHA as the pin, with the tag in a comment:
+
+```yaml
+- uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+```
+
+The same applies to any other action hash — never guess or copy a hash from memory.
 
 ---

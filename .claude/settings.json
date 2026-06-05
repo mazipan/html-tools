@@ -9,6 +9,17 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if git -C \"${CLAUDE_PROJECT_DIR}\" rev-parse --abbrev-ref HEAD 2>/dev/null | grep -qx 'main'; then echo 'ERROR: Direct edits on main branch are not allowed. Create a feature branch first.' >&2; exit 2; fi"
+          }
+        ]
+      }
     ]
   }
 }

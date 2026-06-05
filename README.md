@@ -105,12 +105,12 @@ Shared UI components (buttons, pills, chips, inputs, cards, disclosures, etc.) a
 ## Development
 
 ```bash
-npm install
-npm run dev      # dev server with hot reload
-npm run build    # production build → dist/
+bun install
+bun run dev      # dev server with hot reload
+bun run build    # production build → dist/
 ```
 
-Requires Node 24+ (see `.nvmrc`).
+Requires Bun 1.2+ (see `.bun-version`).
 
 ## Stack
 

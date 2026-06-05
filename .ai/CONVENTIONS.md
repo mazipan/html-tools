@@ -34,7 +34,7 @@ Types: `feat` (new user-facing capability), `fix` (bug fix), `docs`, `style` (fo
 Rules: present-tense description, lowercase first letter, no trailing period. Keep the subject line ≤72 characters; put detail in the body. Use a `BREAKING CHANGE:` footer when applicable.
 
 Examples:
-- `feat: add npm run preview script`
+- `feat: add bun run preview script`
 - `fix(spacing): tighten bottom-section vertical padding`
 - `docs: document semantic landmarks convention`
 - `refactor(build): extract jsonLdForPage helper`
