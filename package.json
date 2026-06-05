@@ -5,7 +5,7 @@
   "scripts": {
     "clean": "rimraf ./dist ./.parcel-cache",
     "dev": "parcel 'src/[!_]*.html'",
-    "build": "bun run clean && bun scripts/build.mjs",
+    "build": "bun run clean && node scripts/build.mjs",
     "preview": "serve dist",
     "generate:og": "bun scripts/generate-og-image.mjs",
     "generate:favicon": "bun scripts/generate-favicon.mjs",
