@@ -142,10 +142,10 @@ In the "Reach for the catalogued classes first" bullet (step 1 of "When building
 
 ## 9. Verify
 
-Run `npm run build` and confirm it exits cleanly:
+Run `bun run build` and confirm it exits cleanly:
 
 ```bash
-npm run build 2>&1 | grep -E "Error|error|🎉" | tail -5
+bun run build 2>&1 | grep -E "Error|error|🎉" | tail -5
 ```
 
 If the build fails, fix the issue before reporting.

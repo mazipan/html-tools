@@ -1,5 +1,5 @@
 [build]
-  command  = "npm run build"
+  command  = "bun run build"
   publish  = "dist"
 
 # Redirect any *.html URL to its clean equivalent. The build also generates
@@ -12,8 +12,4 @@
   force  = false
 
 [build.environment]
-  # `scripts/build.mjs` uses Array.fromAsync (Node 22+). Pin to the version in
-  # .nvmrc so deploy previews don't fall back to Netlify's default and silently
-  # ship a stale build.
-  NODE_VERSION = "24.15.0"
-  NPM_VERSION= "11.14.1"
+  BUN_VERSION = "1.2.17"

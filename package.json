@@ -5,19 +5,19 @@
   "scripts": {
     "clean": "rimraf ./dist ./.parcel-cache",
     "dev": "parcel 'src/[!_]*.html'",
-    "build": "npm run clean && node scripts/build.mjs",
+    "build": "bun run clean && bun scripts/build.mjs",
     "preview": "serve dist",
-    "generate:og": "node scripts/generate-og-image.mjs",
-    "generate:favicon": "node scripts/generate-favicon.mjs",
-    "generate:sections": "node scripts/generate-sections.mjs",
-    "generate:index": "node scripts/generate-index.mjs",
-    "generate:readme": "node scripts/generate-readme.mjs",
+    "generate:og": "bun scripts/generate-og-image.mjs",
+    "generate:favicon": "bun scripts/generate-favicon.mjs",
+    "generate:sections": "bun scripts/generate-sections.mjs",
+    "generate:index": "bun scripts/generate-index.mjs",
+    "generate:readme": "bun scripts/generate-readme.mjs",
     "format": "biome format --write",
     "lint": "biome lint",
     "check": "biome check --write",
     "prepare": "[ -n \"$CI\" ] || lefthook install"
   },
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
     "@parcel/packager-raw-url": "^2.16.4",
@@ -46,10 +46,9 @@
     "shiki": "^4.0.2",
     "tailwindcss": "^4.3.0"
   },
-  "packageManager": "npm@11.14.1",
+  "packageManager": "bun@1.2.17",
   "engines": {
-    "npm": "11.14.1",
-    "node": "24.15.0"
+    "bun": ">=1.2.0"
   },
   "browserslist": "> 0.5%, last 2 versions, Firefox ESR, not dead",
   "@parcel/resolver-default": {

@@ -47,7 +47,7 @@ The general principle: any class that's meant to *override* the default presenta
 
 ## `parcel 'src/*.html'` picks up `_tool-template.html` and crashes dev
 
-**Symptom**: `npm run dev` fails immediately with `Failed to resolve 'favicon-@@SLUG@@.png' from './src/_tool-template.html'`. The production build (`npm run build`) works fine because `scripts/build.mjs` filters underscored files; the dev script doesn't.
+**Symptom**: `bun run dev` fails immediately with `Failed to resolve 'favicon-@@SLUG@@.png' from './src/_tool-template.html'`. The production build (`bun run build`) works fine because `scripts/build.mjs` filters underscored files; the dev script doesn't.
 
 **Why**: `src/_tool-template.html` contains `@@PLACEHOLDER@@` tokens that aren't valid asset paths. The build script explicitly filters `!f.split('/').pop().startsWith('_')`; the dev script uses a raw `src/*.html` glob that includes the template.
 

@@ -25,16 +25,16 @@ Follow AGENTS.md "Adding a new tool" exactly — this command is a runner for th
 
 6. **Run the generators** in order:
    ```bash
-   npm run generate:favicon    # rasterizes the new emoji to src/favicon-<slug>.png
-   npm run generate:sections   # writes FAQ, More tools, JSON-LD blocks into src/*.html
+   bun run generate:favicon    # rasterizes the new emoji to src/favicon-<slug>.png
+   bun run generate:sections   # writes FAQ, More tools, JSON-LD blocks into src/*.html
    ```
    Both update every tool page that references the new tool — review the diff before continuing.
 
 7. **Update docs**: add a bullet to the "Current tools" list in `.ai/TOOLS.md` and a row in the tools table in `README.md`. Keep wording terse and consistent with neighbours.
 
-8. **Sanity check**: `npm run build` must succeed before stopping. Run it.
+8. **Sanity check**: `bun run build` must succeed before stopping. Run it.
 
-9. **Verify in browser**: start `npm run dev` in the background and load `http://localhost:1234/<slug>.html` to confirm the page renders, the breadcrumb works, the favicon loads, and the FAQ / "More tools" blocks appear. Test the golden path of the tool itself. Type checking is not a substitute — if you can't actually exercise the UI, say so explicitly.
+9. **Verify in browser**: start `bun run dev` in the background and load `http://localhost:1234/<slug>.html` to confirm the page renders, the breadcrumb works, the favicon loads, and the FAQ / "More tools" blocks appear. Test the golden path of the tool itself. Type checking is not a substitute — if you can't actually exercise the UI, say so explicitly.
 
 10. **Stop and report**: list the files changed. Don't commit — that's `/ship`'s job.
 
